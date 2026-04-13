@@ -50,12 +50,12 @@ namespace JeffopolyDeal.Hubs
             }
         }
 
-        public async Task StartGame(string gameCode, bool allowSinglePlayer = false)
+        public async Task StartGame(string gameCode, bool allowSinglePlayer = false, bool populateBoards = false)
         {
             try
             {
                 if (string.IsNullOrEmpty(gameCode)) throw new ArgumentNullException(nameof(gameCode));
-                await _gameCache.StartGameAsync(gameCode, allowSinglePlayer);
+                await _gameCache.StartGameAsync(gameCode, allowSinglePlayer, populateBoards);
             }
             catch (Exception ex)
             {

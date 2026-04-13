@@ -10,6 +10,7 @@ interface CardProps {
     onDoubleClick?: () => void;
     selected?: boolean;
     small?: boolean;
+    tiny?: boolean;
 }
 
 // Background color keyed to money value (matching real cards)
@@ -40,10 +41,10 @@ function borderColor(card: CardType): string {
     return "#888";
 }
 
-export function CardComponent({ card, onClick, onDoubleClick, selected, small }: CardProps) {
+export function CardComponent({ card, onClick, onDoubleClick, selected, small, tiny }: CardProps) {
     const cls = [
         "md-card",
-        small ? "md-card--sm" : "",
+        tiny ? "md-card--xs" : small ? "md-card--sm" : "",
         selected ? "md-card--selected" : "",
         onClick ? "md-card--clickable" : "",
     ].filter(Boolean).join(" ");
@@ -54,7 +55,7 @@ export function CardComponent({ card, onClick, onDoubleClick, selected, small }:
     return (
         <div className={cls} onClick={onClick} onDoubleClick={onDoubleClick} style={{ backgroundColor: bg, borderColor: bc }}>
             <div className="md-card__inner">
-                {renderCard(card, small)}
+                {renderCard(card, small || tiny)}
             </div>
             {/* Corner badges */}
             {card.moneyValue > 0 && <Badge value={card.moneyValue} bg="#3a7d44" />}

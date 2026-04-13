@@ -7,6 +7,7 @@ import { CardComponent } from "./components/Card";
 import { PlayerBoard } from "./components/PlayerBoard";
 import { Hand } from "./components/Hand";
 import { ActionModal } from "./components/ActionModal";
+import { DiscardModal } from "./components/DiscardModal";
 import { DebugDeckViewer } from "./components/DebugDeckViewer";
 import "./styles/game.css";
 
@@ -41,7 +42,8 @@ export function GamePage({ gameCode, playerName, onLeave }: GamePageProps) {
 
                     // Auto-start when SkipLobby is set
                     if (Debug.isFlagSet(DebugFlags.SkipLobby)) {
-                        await client.startGame(newCode, true);
+                        const populate = Debug.isFlagSet(DebugFlags.PopulatedBoards);
+                        await client.startGame(newCode, true, populate);
                     }
                 } else {
                     await client.joinGame(gameCode, playerName);
@@ -136,7 +138,7 @@ export function GamePage({ gameCode, playerName, onLeave }: GamePageProps) {
                 <span className="gameCodeSmall">{state.gameCode}</span>
                 <span className="turnInfo">
                     {isMyTurn
-                        ? `Your turn (${state.playsUsed}/3 plays)`
+                        ? `Your turn — ${3 - state.playsUsed} play${3 - state.playsUsed !== 1 ? "s" : ""} left`
                         : `${state.players[state.currentPlayerIndex]?.name}'s turn`}
                 </span>
                 <span className="deckInfo">
@@ -169,16 +171,25 @@ export function GamePage({ gameCode, playerName, onLeave }: GamePageProps) {
 
                 {state.phase === "Play" && isMyTurn && (
                     <div className="actionBar">
+                        <span className="playsRemaining">
+                            {3 - state.playsUsed} play{3 - state.playsUsed !== 1 ? "s" : ""} remaining
+                        </span>
                         <button className="secondary" onClick={() => client?.endTurn()}>
                             End Turn
                         </button>
                     </div>
                 )}
 
-                {state.phase === "Discard" && isMyTurn && (
-                    <div className="actionBar">
-                        <span className="discardHint">Discard to 7 cards (you have {me.handCount})</span>
-                    </div>
+                {state.phase === "Discard" && isMyTurn && me.hand && (
+                    <DiscardModal
+                        hand={me.hand}
+                        maxHandSize={7}
+                        onDiscard={async (cardIds) => {
+                            for (const id of cardIds) {
+                                await client?.discardCard(id);
+                            }
+                        }}
+                    />
                 )}
 
                 <Hand

@@ -22,3 +22,18 @@
     color: #555;
     font-style: italic;
 }
+
+.hand-card-wrapper {
+    cursor: grab;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+    border-radius: 6px;
+}
+
+.hand-card-wrapper:active {
+    cursor: grabbing;
+}
+
+.hand-card-wrapper.drag-over {
+    border-left: 3px solid #e94560;
+    padding-left: 3px;
+}

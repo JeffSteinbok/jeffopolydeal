@@ -106,7 +106,7 @@ namespace JeffopolyDeal
 
         #region Game Flow
 
-        public async Task StartGameAsync(bool allowSinglePlayer = false)
+        public async Task StartGameAsync(bool allowSinglePlayer = false, bool populateBoards = false)
         {
             lock (_lock)
             {
@@ -123,8 +123,96 @@ namespace JeffopolyDeal
                 _currentPlayerIndex = 0;
                 _playsUsed = 0;
                 _phase = GamePhase.Draw;
+
+                if (populateBoards)
+                {
+                    PopulateBoardsForDebug();
+                }
             }
             await BroadcastGameStateAsync();
+        }
+
+        /// <summary>
+        /// Adds bot players to the lobby for debug purposes.
+        /// </summary>
+        public void AddBotPlayers(int count)
+        {
+            lock (_lock)
+            {
+                if (_phase != GamePhase.Lobby) return;
+                var botNames = new[] { "Alice", "Bob", "Charlie", "Diana", "Eve" };
+                for (int i = 0; i < count && _players.Count < 5; i++)
+                {
+                    var name = botNames[i % botNames.Length];
+                    var botId = $"bot-{Guid.NewGuid():N}";
+                    _players.Add(new Player { ConnectionId = botId, Name = name });
+                    _connections[botId] = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Randomly populates all players' boards with properties, money, and cards in hand.
+        /// Only used in debug mode.
+        /// </summary>
+        private void PopulateBoardsForDebug()
+        {
+            var rng = new Random(42); // deterministic seed for reproducibility
+
+            foreach (var player in _players)
+            {
+                // Give each player some bank cards (M1–M5, random mix)
+                int bankCards = rng.Next(3, 8);
+                for (int i = 0; i < bankCards; i++)
+                {
+                    var denominations = new[] { 1, 1, 2, 2, 3, 4, 5 };
+                    int val = denominations[rng.Next(denominations.Length)];
+                    player.Bank.Add(_deck.CreateCard(CardType.Money, val, $"M{val}"));
+                }
+
+                // Give each player 2-4 property sets of random colors
+                var availableColors = new List<PropertyColor>(
+                    (PropertyColor[])Enum.GetValues(typeof(PropertyColor)));
+
+                int setCount = rng.Next(2, 5);
+                for (int s = 0; s < setCount && availableColors.Count > 0; s++)
+                {
+                    int colorIdx = rng.Next(availableColors.Count);
+                    var color = availableColors[colorIdx];
+                    availableColors.RemoveAt(colorIdx);
+
+                    var propDefs = PropertyNames.ByColor.ContainsKey(color)
+                        ? PropertyNames.ByColor[color]
+                        : null;
+                    if (propDefs == null) continue;
+
+                    int setSize = GameConfig.SetSize.ContainsKey(color)
+                        ? GameConfig.SetSize[color]
+                        : propDefs.Length;
+
+                    // Add some or all properties in this color
+                    int cardsInSet = rng.Next(1, setSize + 1);
+                    var set = player.GetOrCreatePropertySet(color);
+                    for (int c = 0; c < cardsInSet && c < propDefs.Length; c++)
+                    {
+                        set.Cards.Add(_deck.CreateCard(
+                            CardType.Property, 0, propDefs[c].DisplayName,
+                            color: color, cardId: propDefs[c].CardId));
+                    }
+
+                    // Sometimes add house/hotel on complete sets
+                    if (set.IsComplete && rng.Next(3) == 0
+                        && color != PropertyColor.Railroad && color != PropertyColor.Utility)
+                    {
+                        set.HasHouse = true;
+                        if (rng.Next(2) == 0) set.HasHotel = true;
+                    }
+                }
+
+                // Give extra hand cards
+                int extraCards = rng.Next(2, 5);
+                player.Hand.AddRange(_deck.Draw(Math.Min(extraCards, _deck.DrawPileCount)));
+            }
         }
 
         public async Task DrawCardsAsync(string connectionId)
@@ -376,6 +464,7 @@ namespace JeffopolyDeal
                 {
                     Type = PendingActionType.PayRent,
                     SourcePlayerId = player.ConnectionId,
+                    SourcePlayerName = player.Name,
                     TargetPlayerIds = targets,
                     Amount = rent,
                 };
@@ -400,6 +489,7 @@ namespace JeffopolyDeal
                     {
                         Type = PendingActionType.PayDebtCollector,
                         SourcePlayerId = player.ConnectionId,
+                        SourcePlayerName = player.Name,
                         TargetPlayerIds = new List<string> { request.TargetPlayerId },
                         Amount = GameConfig.DebtCollectorAmount,
                     };
@@ -411,6 +501,7 @@ namespace JeffopolyDeal
                     {
                         Type = PendingActionType.PayBirthday,
                         SourcePlayerId = player.ConnectionId,
+                        SourcePlayerName = player.Name,
                         TargetPlayerIds = _players
                             .Where(p => p.ConnectionId != player.ConnectionId)
                             .Select(p => p.ConnectionId)
@@ -425,15 +516,18 @@ namespace JeffopolyDeal
                         var target = _players.FirstOrDefault(p => p.ConnectionId == request.TargetPlayerId);
                         if (target == null) return false;
                         var stealable = target.GetStealableProperties();
-                        if (!stealable.Any(c => c.Id == request.TargetCardId)) return false;
+                        var targetCard = stealable.FirstOrDefault(c => c.Id == request.TargetCardId);
+                        if (targetCard == null) return false;
 
                         _deck.Discard(card);
                         _pendingAction = new PendingAction
                         {
                             Type = PendingActionType.RespondToSlyDeal,
                             SourcePlayerId = player.ConnectionId,
+                            SourcePlayerName = player.Name,
                             TargetPlayerIds = new List<string> { request.TargetPlayerId },
                             TargetCardId = request.TargetCardId,
+                            TargetCardName = targetCard.Name,
                         };
                     }
                     return true;
@@ -444,18 +538,23 @@ namespace JeffopolyDeal
                         var target = _players.FirstOrDefault(p => p.ConnectionId == request.TargetPlayerId);
                         if (target == null) return false;
                         var stealable = target.GetStealableProperties();
-                        if (!stealable.Any(c => c.Id == request.TargetCardId)) return false;
+                        var targetCard = stealable.FirstOrDefault(c => c.Id == request.TargetCardId);
+                        if (targetCard == null) return false;
                         var offered = player.GetStealableProperties();
-                        if (!offered.Any(c => c.Id == request.OfferedCardId)) return false;
+                        var offeredCard = offered.FirstOrDefault(c => c.Id == request.OfferedCardId);
+                        if (offeredCard == null) return false;
 
                         _deck.Discard(card);
                         _pendingAction = new PendingAction
                         {
                             Type = PendingActionType.RespondToForceDeal,
                             SourcePlayerId = player.ConnectionId,
+                            SourcePlayerName = player.Name,
                             TargetPlayerIds = new List<string> { request.TargetPlayerId },
                             TargetCardId = request.TargetCardId,
+                            TargetCardName = targetCard.Name,
                             OfferedCardId = request.OfferedCardId,
+                            OfferedCardName = offeredCard.Name,
                         };
                     }
                     return true;
@@ -473,6 +572,7 @@ namespace JeffopolyDeal
                         {
                             Type = PendingActionType.RespondToDealBreaker,
                             SourcePlayerId = player.ConnectionId,
+                            SourcePlayerName = player.Name,
                             TargetPlayerIds = new List<string> { request.TargetPlayerId },
                             TargetSetColor = request.TargetSetColor,
                         };
@@ -561,29 +661,37 @@ namespace JeffopolyDeal
                 return;
             }
 
-            // Handle payment
-            if (response.PaymentCardIds != null && response.PaymentCardIds.Count > 0)
-            {
-                ProcessPayment(connectionId, response.PaymentCardIds);
-            }
-            else
-            {
-                // Player has nothing to pay with, auto-complete
-                _pendingAction.TargetPlayerIds.Remove(connectionId);
-            }
-
-            // Handle steal/swap completion (when no Just Say No)
-            switch (_pendingAction?.Type)
+            // Handle steal/swap actions — execute BEFORE removing from target list
+            // (ExecuteSlyDeal etc. read TargetPlayerIds[0] to find the target)
+            bool handled = false;
+            switch (_pendingAction.Type)
             {
                 case PendingActionType.RespondToSlyDeal:
                     ExecuteSlyDeal();
+                    handled = true;
                     break;
                 case PendingActionType.RespondToForceDeal:
                     ExecuteForceDeal();
+                    handled = true;
                     break;
                 case PendingActionType.RespondToDealBreaker:
                     ExecuteDealBreaker();
+                    handled = true;
                     break;
+            }
+
+            // Handle payment (for rent/debt/birthday)
+            if (!handled)
+            {
+                if (response.PaymentCardIds != null && response.PaymentCardIds.Count > 0)
+                {
+                    ProcessPayment(connectionId, response.PaymentCardIds);
+                }
+                else
+                {
+                    // Player has nothing to pay with, auto-complete
+                    _pendingAction.TargetPlayerIds.Remove(connectionId);
+                }
             }
 
             // Check if all targets have responded
@@ -750,6 +858,81 @@ namespace JeffopolyDeal
             _playsUsed = 0;
             _pendingAction = null;
             _phase = GamePhase.Draw;
+
+            // If next player is a bot, auto-play their entire turn
+            var next = GetCurrentPlayer();
+            if (next != null && BotAI.IsBot(next.ConnectionId))
+            {
+                PlayBotTurn(next);
+            }
+        }
+
+        private void PlayBotTurn(Player bot)
+        {
+            // Draw
+            int drawCount = bot.Hand.Count == 0 ? GameConfig.DrawWhenEmpty : GameConfig.DrawPerTurn;
+            bot.Hand.AddRange(_deck.Draw(drawCount));
+            _phase = GamePhase.Play;
+
+            // Play cards
+            BotAI.PlayTurn(bot, _players, _deck, (player, card, request) =>
+            {
+                player.Hand.Remove(card);
+                ProcessCardPlay(player, card, request);
+                _playsUsed++;
+
+                // If this created a pending action targeting other bots, resolve it
+                ResolveBotPendingActions();
+            }, GameConfig.MaxPlaysPerTurn);
+
+            // Discard if needed
+            if (bot.Hand.Count > GameConfig.MaxHandSize)
+            {
+                var discards = BotAI.PickDiscards(bot, GameConfig.MaxHandSize);
+                foreach (var cardId in discards)
+                {
+                    var card = bot.Hand.FirstOrDefault(c => c.Id == cardId);
+                    if (card != null)
+                    {
+                        bot.Hand.Remove(card);
+                        _deck.Discard(card);
+                    }
+                }
+            }
+
+            // Check win
+            if (bot.UniqueCompletedSetCount >= GameConfig.SetsToWin)
+            {
+                _phase = GamePhase.GameOver;
+                _winnerId = bot.ConnectionId;
+                return;
+            }
+
+            // Advance to next player
+            AdvanceTurn();
+        }
+
+        /// <summary>
+        /// If there's a pending action and all remaining targets are bots, auto-respond for them.
+        /// </summary>
+        private void ResolveBotPendingActions()
+        {
+            if (_pendingAction == null) return;
+
+            // Process bot responses until only human targets remain (or none)
+            var botTargets = _pendingAction.TargetPlayerIds
+                .Where(BotAI.IsBot)
+                .ToList();
+
+            foreach (var botId in botTargets)
+            {
+                if (_pendingAction == null) break;
+                var bot = _players.FirstOrDefault(p => p.ConnectionId == botId);
+                if (bot == null) continue;
+
+                var response = BotAI.BuildResponse(bot);
+                ProcessResponse(botId, response);
+            }
         }
 
         private Player? GetCurrentPlayer()

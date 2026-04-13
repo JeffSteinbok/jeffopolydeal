@@ -58,10 +58,13 @@ export interface PlayerState {
 export interface PendingAction {
     type: PendingActionType;
     sourcePlayerId: string;
+    sourcePlayerName: string;
     targetPlayerIds: string[];
     amount: number;
     targetCardId?: number;
+    targetCardName?: string;
     offeredCardId?: number;
+    offeredCardName?: string;
     targetSetColor?: PropertyColor;
     justSayNoResponderId?: string;
 }

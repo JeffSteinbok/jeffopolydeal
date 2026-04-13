@@ -15,6 +15,7 @@ export function ActionModal({ pendingAction, myState, onRespond }: ActionModalPr
     const hasJustSayNo = myState.hand?.some((c) => c.actionKind === "JustSayNo") ?? false;
     const isPayment = ["PayRent", "PayDebtCollector", "PayBirthday"].includes(pendingAction.type);
     const isStealResponse = ["RespondToSlyDeal", "RespondToForceDeal", "RespondToDealBreaker"].includes(pendingAction.type);
+    const who = pendingAction.sourcePlayerName || "Someone";
 
     const payableCards = [...myState.bank];
     myState.propertySets.forEach((set) => payableCards.push(...set.cards));
@@ -45,14 +46,33 @@ export function ActionModal({ pendingAction, myState, onRespond }: ActionModalPr
 
     const getTitle = (): string => {
         switch (pendingAction.type) {
-            case "PayRent": return `Pay Rent: $M{pendingAction.amount}`;
-            case "PayDebtCollector": return `Debt Collector: Pay $M{pendingAction.amount}`;
-            case "PayBirthday": return `Happy Birthday! Pay $M{pendingAction.amount}`;
-            case "RespondToSlyDeal": return "Sly Deal — Someone is stealing your property!";
-            case "RespondToForceDeal": return "Force Deal — Someone wants to swap properties!";
-            case "RespondToDealBreaker": return "Deal Breaker — Someone is taking your complete set!";
+            case "PayRent": return `${who} charges you rent!`;
+            case "PayDebtCollector": return `${who} plays Debt Collector!`;
+            case "PayBirthday": return `It's ${who}'s Birthday!`;
+            case "RespondToSlyDeal": return `${who} plays Sly Deal!`;
+            case "RespondToForceDeal": return `${who} plays Forced Deal!`;
+            case "RespondToDealBreaker": return `${who} plays Deal Breaker!`;
             case "JustSayNoChain": return "Just Say No was played! Counter it?";
             default: return "Respond";
+        }
+    };
+
+    const getDescription = (): string | null => {
+        switch (pendingAction.type) {
+            case "PayRent":
+                return `Pay M${pendingAction.amount} in rent.`;
+            case "PayDebtCollector":
+                return `Pay M${pendingAction.amount} to ${who}.`;
+            case "PayBirthday":
+                return `Pay M${pendingAction.amount} as a birthday gift.`;
+            case "RespondToSlyDeal":
+                return `${who} is stealing your "${pendingAction.targetCardName}" with a Sly Deal.`;
+            case "RespondToForceDeal":
+                return `${who} wants to swap your "${pendingAction.targetCardName}" for their "${pendingAction.offeredCardName}".`;
+            case "RespondToDealBreaker":
+                return `${who} is taking your complete ${pendingAction.targetSetColor} property set!`;
+            default:
+                return null;
         }
     };
 
@@ -60,6 +80,7 @@ export function ActionModal({ pendingAction, myState, onRespond }: ActionModalPr
         <div className="modalOverlay">
             <div className="modal">
                 <h3>{getTitle()}</h3>
+                {getDescription() && <p className="modalDescription">{getDescription()}</p>}
 
                 {isPayment && (
                     <>
@@ -84,7 +105,7 @@ export function ActionModal({ pendingAction, myState, onRespond }: ActionModalPr
                                 className="secondary"
                                 onClick={handlePay}
                             >
-                                {payableCards.length === 0 ? "I have nothing" : `Pay $M{selectedTotal}`}
+                                {payableCards.length === 0 ? "I have nothing" : `Pay M${selectedTotal}`}
                             </button>
                         </div>
                     </>

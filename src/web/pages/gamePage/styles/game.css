@@ -114,6 +114,12 @@
     padding: 8px;
 }
 
+.playsRemaining {
+    color: #aaa;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
 .discardHint {
     color: #e94560;
     font-weight: 600;

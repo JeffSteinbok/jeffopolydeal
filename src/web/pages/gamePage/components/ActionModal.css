@@ -33,6 +33,13 @@
     font-size: 0.9rem;
 }
 
+.modalDescription {
+    color: #ddd;
+    margin-bottom: 16px;
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
 .paymentCards {
     display: flex;
     flex-wrap: wrap;

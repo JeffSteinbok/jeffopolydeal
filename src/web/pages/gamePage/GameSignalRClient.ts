@@ -50,8 +50,8 @@ export class GameSignalRClient {
         await this.connection.invoke("JoinGame", gameCode, playerName);
     }
 
-    async startGame(gameCode: string, allowSinglePlayer: boolean = false): Promise<void> {
-        await this.connection.invoke("StartGame", gameCode, allowSinglePlayer);
+    async startGame(gameCode: string, allowSinglePlayer: boolean = false, populateBoards: boolean = false): Promise<void> {
+        await this.connection.invoke("StartGame", gameCode, allowSinglePlayer, populateBoards);
     }
 
     async drawCards(): Promise<void> {

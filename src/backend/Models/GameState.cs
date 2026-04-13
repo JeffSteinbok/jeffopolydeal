@@ -43,17 +43,26 @@ namespace JeffopolyDeal.Models
         /// <summary>The player who initiated the action.</summary>
         public string SourcePlayerId { get; set; } = "";
 
+        /// <summary>Display name of the source player (for UI).</summary>
+        public string SourcePlayerName { get; set; } = "";
+
         /// <summary>Players who still need to respond.</summary>
         public List<string> TargetPlayerIds { get; set; } = new();
 
         /// <summary>Amount to pay (for rent/debt/birthday).</summary>
         public int Amount { get; set; }
 
-        /// <summary>Card being stolen (for Sly Deal).</summary>
+        /// <summary>Card being stolen (for Sly Deal / Force Deal).</summary>
         public int? TargetCardId { get; set; }
+
+        /// <summary>Display name of the card being stolen (for UI).</summary>
+        public string? TargetCardName { get; set; }
 
         /// <summary>Card being offered in exchange (for Force Deal).</summary>
         public int? OfferedCardId { get; set; }
+
+        /// <summary>Display name of the card being offered (for UI).</summary>
+        public string? OfferedCardName { get; set; }
 
         /// <summary>Property set color being taken (for Deal Breaker).</summary>
         [JsonConverter(typeof(StringEnumConverter))]

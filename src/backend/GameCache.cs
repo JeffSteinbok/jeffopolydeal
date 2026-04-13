@@ -53,13 +53,18 @@ namespace JeffopolyDeal
             await game.ConnectPlayerAsync(connectionId, playerName);
         }
 
-        public async Task StartGameAsync(string gameCode, bool allowSinglePlayer = false)
+        public async Task StartGameAsync(string gameCode, bool allowSinglePlayer = false, bool populateBoards = false)
         {
             gameCode = gameCode.ToUpperInvariant();
             if (!_games.TryGetValue(gameCode, out var game))
                 return;
 
-            await game.StartGameAsync(allowSinglePlayer);
+            if (populateBoards)
+            {
+                game.AddBotPlayers(3);
+            }
+
+            await game.StartGameAsync(allowSinglePlayer, populateBoards);
         }
 
         public async Task DrawCardsAsync(string connectionId)
