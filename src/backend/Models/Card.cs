@@ -36,15 +36,19 @@ namespace JeffopolyDeal.Models
     /// </summary>
     public class Card
     {
-        /// <summary>Unique identifier for this card instance in the deck.</summary>
+        /// <summary>Unique numeric identifier for this card instance in the deck.</summary>
         public int Id { get; set; }
+
+        /// <summary>Stable string identifier for the card definition (e.g. "brown1", "passgo1").
+        /// Used for code references and tests — independent of display name.</summary>
+        public string CardId { get; set; } = "";
 
         public CardType CardType { get; set; }
 
         /// <summary>Monetary value (shown in corner of card). Used when banked or paying.</summary>
         public int MoneyValue { get; set; }
 
-        /// <summary>Display name for the card.</summary>
+        /// <summary>Display name for the card (shown in UI). Change freely to re-theme.</summary>
         public string Name { get; set; } = "";
 
         // -- Property fields --

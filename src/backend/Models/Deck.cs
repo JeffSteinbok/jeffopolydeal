@@ -28,11 +28,12 @@ namespace JeffopolyDeal.Models
         internal Card CreateCard(CardType type, int moneyValue = 0, string name = "Test Card",
             PropertyColor? color = null, PropertyColor? altColor = null,
             ActionType? actionKind = null, List<PropertyColor>? rentColors = null,
-            bool isWildRent = false, bool isMulticolorWild = false)
+            bool isWildRent = false, bool isMulticolorWild = false, string? cardId = null)
         {
             return new Card
             {
                 Id = _nextId++,
+                CardId = cardId ?? $"test{_nextId}",
                 CardType = type,
                 MoneyValue = moneyValue,
                 Name = name,
@@ -48,6 +49,17 @@ namespace JeffopolyDeal.Models
 
         /// <summary>Place a card on top of the draw pile. Internal for testing.</summary>
         internal void PlaceOnTop(Card card) => _drawPile.Add(card);
+
+        // Counters for generating stable CardIds per type
+        private readonly Dictionary<string, int> _cardIdCounters = new();
+
+        private string NextCardId(string prefix)
+        {
+            if (!_cardIdCounters.ContainsKey(prefix))
+                _cardIdCounters[prefix] = 0;
+            _cardIdCounters[prefix]++;
+            return $"{prefix}{_cardIdCounters[prefix]}";
+        }
 
         public Deck()
         {
@@ -106,9 +118,9 @@ namespace JeffopolyDeal.Models
             AddMoney(10, 1);
 
             // Property cards (28) — names come from PropertyNames registry
-            foreach (var (color, names) in PropertyNames.ByColor)
+            foreach (var (color, defs) in PropertyNames.ByColor)
             {
-                AddProperties(color, names);
+                AddProperties(color, defs);
             }
 
             // Property wildcards (11)
@@ -125,6 +137,7 @@ namespace JeffopolyDeal.Models
                 _drawPile.Add(new Card
                 {
                     Id = _nextId++,
+                    CardId = NextCardId("wildall"),
                     CardType = CardType.PropertyWildcard,
                     MoneyValue = 0,
                     Name = "Multi-color Wildcard",
@@ -144,6 +157,7 @@ namespace JeffopolyDeal.Models
                 _drawPile.Add(new Card
                 {
                     Id = _nextId++,
+                    CardId = NextCardId("wildrent"),
                     CardType = CardType.Rent,
                     MoneyValue = 3,
                     Name = "Wild Rent",
@@ -171,6 +185,7 @@ namespace JeffopolyDeal.Models
                 _drawPile.Add(new Card
                 {
                     Id = _nextId++,
+                    CardId = NextCardId($"money{value}m"),
                     CardType = CardType.Money,
                     MoneyValue = value,
                     Name = $"{value}M",
@@ -178,16 +193,17 @@ namespace JeffopolyDeal.Models
             }
         }
 
-        private void AddProperties(PropertyColor color, string[] names)
+        private void AddProperties(PropertyColor color, PropertyDef[] defs)
         {
-            foreach (var name in names)
+            foreach (var def in defs)
             {
                 _drawPile.Add(new Card
                 {
                     Id = _nextId++,
+                    CardId = def.CardId,
                     CardType = CardType.Property,
                     MoneyValue = 0,
-                    Name = name,
+                    Name = def.DisplayName,
                     Color = color,
                 });
             }
@@ -195,11 +211,13 @@ namespace JeffopolyDeal.Models
 
         private void AddPropertyWildcard(PropertyColor color1, PropertyColor color2, int moneyValue, int count)
         {
+            var prefix = $"wild{color1.ToString().ToLower()}{color2.ToString().ToLower()}";
             for (int i = 0; i < count; i++)
             {
                 _drawPile.Add(new Card
                 {
                     Id = _nextId++,
+                    CardId = NextCardId(prefix),
                     CardType = CardType.PropertyWildcard,
                     MoneyValue = moneyValue,
                     Name = $"{color1}/{color2} Wildcard",
@@ -212,11 +230,13 @@ namespace JeffopolyDeal.Models
 
         private void AddRent(PropertyColor[] colors, int count)
         {
+            var prefix = $"rent{colors[0].ToString().ToLower()}{colors[1].ToString().ToLower()}";
             for (int i = 0; i < count; i++)
             {
                 _drawPile.Add(new Card
                 {
                     Id = _nextId++,
+                    CardId = NextCardId(prefix),
                     CardType = CardType.Rent,
                     MoneyValue = 1,
                     Name = $"{colors[0]}/{colors[1]} Rent",
@@ -227,11 +247,13 @@ namespace JeffopolyDeal.Models
 
         private void AddAction(ActionType actionType, string name, int moneyValue, int count)
         {
+            var prefix = actionType.ToString().ToLower();
             for (int i = 0; i < count; i++)
             {
                 _drawPile.Add(new Card
                 {
                     Id = _nextId++,
+                    CardId = NextCardId(prefix),
                     CardType = CardType.Action,
                     MoneyValue = moneyValue,
                     Name = name,
