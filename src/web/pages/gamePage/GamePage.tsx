@@ -5,11 +5,27 @@ import { Logger } from "../../utilities/Logger";
 import { Debug, DebugFlags } from "../../utilities/Debug";
 import { CardComponent } from "./components/Card";
 import { PlayerBoard } from "./components/PlayerBoard";
+import { PlayerSummaryCard } from "./components/PlayerSummaryCard";
+import { PlayerInspectModal } from "./components/PlayerInspectModal";
 import { Hand } from "./components/Hand";
 import { ActionModal } from "./components/ActionModal";
 import { DiscardModal } from "./components/DiscardModal";
 import { DebugDeckViewer } from "./components/DebugDeckViewer";
 import "./styles/game.css";
+
+function useIsMobile(breakpoint = 680): boolean {
+    const [isMobile, setIsMobile] = useState(() => window.innerWidth <= breakpoint);
+    useEffect(() => {
+        let timer: ReturnType<typeof setTimeout>;
+        const handler = () => {
+            clearTimeout(timer);
+            timer = setTimeout(() => setIsMobile(window.innerWidth <= breakpoint), 100);
+        };
+        window.addEventListener("resize", handler);
+        return () => { window.removeEventListener("resize", handler); clearTimeout(timer); };
+    }, [breakpoint]);
+    return isMobile;
+}
 
 interface GamePageProps {
     gameCode: string;
@@ -23,7 +39,9 @@ interface GamePageProps {
 export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeResolved, onLeave }: GamePageProps) {
     const [state, setState] = useState<GameState | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [inspectedPlayer, setInspectedPlayer] = useState<PlayerState | null>(null);
     const clientRef = useRef<GameSignalRClient | null>(null);
+    const isMobile = useIsMobile();
 
     useEffect(() => {
         const client = new GameSignalRClient((newState) => {
@@ -158,10 +176,20 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 </span>
             </div>
 
-            <div className="otherPlayersArea">
-                {otherPlayers.map((p) => (
-                    <PlayerBoard key={p.connectionId} player={p} />
-                ))}
+            {/* Other players — compact summary on mobile, full boards on desktop */}
+            <div className={isMobile ? "otherPlayersArea otherPlayersArea--mobile" : "otherPlayersArea"}>
+                {otherPlayers.map((p) =>
+                    isMobile ? (
+                        <PlayerSummaryCard
+                            key={p.connectionId}
+                            player={p}
+                            isCurrentTurn={state.players[state.currentPlayerIndex]?.playerId === p.playerId}
+                            onClick={() => setInspectedPlayer(p)}
+                        />
+                    ) : (
+                        <PlayerBoard key={p.connectionId} player={p} />
+                    )
+                )}
             </div>
 
             <div className="myArea">
@@ -212,6 +240,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     myConnectionId={myConnectionId ?? ""}
                     onPlayCard={(cardId, request) => client?.playCard(cardId, request)}
                     onDiscardCard={(cardId) => client?.discardCard(cardId)}
+                    onInspectPlayer={isMobile ? setInspectedPlayer : undefined}
                 />
             </div>
 
@@ -221,6 +250,16 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     myState={me}
                     paymentError={state.paymentError}
                     onRespond={(response) => client?.respondToAction(response)}
+                    otherPlayers={otherPlayers}
+                    onInspect={setInspectedPlayer}
+                />
+            )}
+
+            {/* Player inspect bottom sheet — z-index above ActionModal */}
+            {inspectedPlayer && (
+                <PlayerInspectModal
+                    player={inspectedPlayer}
+                    onClose={() => setInspectedPlayer(null)}
                 />
             )}
 

@@ -10,11 +10,12 @@ interface PlayCardModalProps {
     myState: PlayerState;
     onPlay: (cardId: number, request: PlayCardRequest) => void;
     onCancel: () => void;
+    onInspect?: (player: PlayerState) => void;
 }
 
 type Step = "choice" | "pickColor" | "pickTarget" | "pickTargetProperty" | "pickMyProperty" | "pickMySet" | "pickTargetSet" | "pickRentColor" | "pickDoubleRent";
 
-export function PlayCardModal({ card, gameState, myState, onPlay, onCancel }: PlayCardModalProps) {
+export function PlayCardModal({ card, gameState, myState, onPlay, onCancel, onInspect }: PlayCardModalProps) {
     const [step, setStep] = useState<Step>("choice");
     const [request, setRequest] = useState<Partial<PlayCardRequest>>({});
     const otherPlayers = gameState.players.filter(p => p.connectionId !== myState.connectionId);
@@ -195,25 +196,36 @@ export function PlayCardModal({ card, gameState, myState, onPlay, onCancel }: Pl
                     <h3>Choose target player</h3>
                     <div className="targetChoices">
                         {otherPlayers.map(p => (
-                            <button
-                                key={p.connectionId}
-                                className="targetChoice"
-                                onClick={() => {
-                                    const newReq = { ...request, targetPlayerId: p.connectionId };
-                                    setRequest(newReq);
-                                    if (card.actionKind === "SlyDeal") {
-                                        setStep("pickTargetProperty");
-                                    } else if (card.actionKind === "ForceDeal") {
-                                        setStep("pickTargetProperty");
-                                    } else if (card.actionKind === "DealBreaker") {
-                                        setStep("pickTargetSet");
-                                    } else {
-                                        onPlay(card.id, { playAsMoney: false, ...newReq } as PlayCardRequest);
-                                    }
-                                }}
-                            >
-                                {p.name} — 🃏{p.handCount} | 💰{p.bank.reduce((s, c) => s + c.moneyValue, 0)}M | {p.completedSetCount}/3 sets
-                            </button>
+                            <div key={p.connectionId} className="targetChoice-row">
+                                <button
+                                    className="targetChoice"
+                                    onClick={() => {
+                                        const newReq = { ...request, targetPlayerId: p.connectionId };
+                                        setRequest(newReq);
+                                        if (card.actionKind === "SlyDeal") {
+                                            setStep("pickTargetProperty");
+                                        } else if (card.actionKind === "ForceDeal") {
+                                            setStep("pickTargetProperty");
+                                        } else if (card.actionKind === "DealBreaker") {
+                                            setStep("pickTargetSet");
+                                        } else {
+                                            onPlay(card.id, { playAsMoney: false, ...newReq } as PlayCardRequest);
+                                        }
+                                    }}
+                                >
+                                    {p.name} — 🃏{p.handCount} | 💰{p.bank.reduce((s, c) => s + c.moneyValue, 0)}M | {p.completedSetCount}/3 sets
+                                </button>
+                                {onInspect && (
+                                    <button
+                                        className="targetChoice-inspect"
+                                        onClick={e => { e.stopPropagation(); onInspect(p); }}
+                                        aria-label={`Inspect ${p.name}'s board`}
+                                        title={`Inspect ${p.name}'s board`}
+                                    >
+                                        👁
+                                    </button>
+                                )}
+                            </div>
                         ))}
                     </div>
                     <button className="secondary" onClick={onCancel}>Cancel</button>

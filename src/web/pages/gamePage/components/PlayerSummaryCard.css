@@ -1,0 +1,109 @@
+.playerSummary {
+    background: #16213e;
+    border: 1px solid #0f3460;
+    border-radius: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.playerSummary:active {
+    transform: scale(0.97);
+    background: #1e2d52;
+}
+
+.playerSummary--active {
+    border-color: #e94560;
+    box-shadow: 0 0 0 2px rgba(233, 69, 96, 0.3);
+}
+
+.playerSummary-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.playerSummary-turn-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #e94560;
+    flex-shrink: 0;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+.playerSummary-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.playerSummary-stat {
+    font-size: 0.78rem;
+    color: #ccc;
+    white-space: nowrap;
+}
+
+.playerSummary-money {
+    color: #4caf50;
+    font-weight: 700;
+}
+
+.playerSummary-sets {
+    color: #e94560;
+    font-weight: 700;
+}
+
+.playerSummary-dots {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.playerSummary-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    opacity: 0.6;
+    flex-shrink: 0;
+}
+
+.playerSummary-dot--complete {
+    opacity: 1;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 4px rgba(255, 255, 255, 0.25);
+}
+
+.playerSummary-no-props {
+    font-size: 0.7rem;
+    color: #555;
+    font-style: italic;
+}
+
+.playerSummary-hint {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    font-size: 0.7rem;
+    color: #555;
+}

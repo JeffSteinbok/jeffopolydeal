@@ -99,6 +99,30 @@
     justify-content: center;
 }
 
+/* Mobile: horizontal scrolling row of compact summary cards */
+.otherPlayersArea--mobile {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    justify-content: flex-start;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: #0f3460 transparent;
+}
+
+.otherPlayersArea--mobile::-webkit-scrollbar {
+    height: 4px;
+}
+
+.otherPlayersArea--mobile::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.otherPlayersArea--mobile::-webkit-scrollbar-thumb {
+    background: #0f3460;
+    border-radius: 2px;
+}
+
 .myArea {
     flex: 1;
     display: flex;
@@ -136,3 +160,54 @@
 .errorMessage {
     color: #e94560;
 }
+
+/* ── Mobile responsive (≤ 680px) ───────────────────────────── */
+@media (max-width: 680px) {
+    .gamePage {
+        padding: 6px;
+        gap: 6px;
+    }
+
+    /* Compact header on mobile */
+    .gameHeader {
+        padding: 6px 10px;
+        font-size: 0.78rem;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .gameCodeSmall {
+        font-size: 0.75rem;
+    }
+
+    .turnInfo {
+        font-size: 0.82rem;
+    }
+
+    .deckInfo {
+        font-size: 0.72rem;
+    }
+
+    /* Bigger tap targets in action bar */
+    .actionBar button {
+        min-height: 48px;
+        padding: 12px 20px;
+        font-size: 1rem;
+    }
+
+    /* Lobby adjustments */
+    .lobby h2 {
+        font-size: 1.6rem;
+    }
+
+    .gameCodeDisplay .code {
+        font-size: 1.6rem;
+    }
+
+    .playerList {
+        width: 100%;
+        min-width: 0;
+        padding: 14px;
+    }
+}
+

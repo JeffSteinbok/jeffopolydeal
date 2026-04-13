@@ -8,9 +8,11 @@ interface ActionModalProps {
     myState: PlayerState;
     paymentError?: string;
     onRespond: (response: ActionResponse) => void;
+    otherPlayers?: PlayerState[];
+    onInspect?: (player: PlayerState) => void;
 }
 
-export function ActionModal({ pendingAction, myState, paymentError, onRespond }: ActionModalProps) {
+export function ActionModal({ pendingAction, myState, paymentError, onRespond, otherPlayers, onInspect }: ActionModalProps) {
     const [selectedCardIds, setSelectedCardIds] = useState<number[]>([]);
 
     const hasJustSayNo = myState.hand?.some((c) => c.actionKind === "JustSayNo") ?? false;
@@ -139,6 +141,24 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond }:
                             <button className="primary" onClick={handleJustSayNo}>Counter with Just Say No!</button>
                         )}
                         <button className="secondary" onClick={handleAccept}>Let it go</button>
+                    </div>
+                )}
+
+                {/* Inspect other players' boards during the action */}
+                {onInspect && (otherPlayers?.length ?? 0) > 0 && (
+                    <div className="modalInspect">
+                        <div className="modalInspect-label">Inspect players:</div>
+                        <div className="modalInspect-buttons">
+                            {otherPlayers.map(p => (
+                                <button
+                                    key={p.connectionId}
+                                    className="modalInspect-btn"
+                                    onClick={() => onInspect(p)}
+                                >
+                                    👁 {p.name}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 )}
             </div>
