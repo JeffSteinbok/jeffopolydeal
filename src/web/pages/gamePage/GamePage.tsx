@@ -2,10 +2,12 @@ import React, { useEffect, useState, useRef } from "react";
 import { GameSignalRClient } from "./GameSignalRClient";
 import { GameState, Card, PlayCardRequest, PlayerState } from "../../Types";
 import { Logger } from "../../utilities/Logger";
+import { Debug, DebugFlags } from "../../utilities/Debug";
 import { CardComponent } from "./components/Card";
 import { PlayerBoard } from "./components/PlayerBoard";
 import { Hand } from "./components/Hand";
 import { ActionModal } from "./components/ActionModal";
+import { DebugDeckViewer } from "./components/DebugDeckViewer";
 import "./styles/game.css";
 
 interface GamePageProps {
@@ -21,6 +23,8 @@ export function GamePage({ gameCode, playerName, onLeave }: GamePageProps) {
 
     useEffect(() => {
         const client = new GameSignalRClient((newState) => {
+            console.log("Game state received:", newState.phase, "players:", newState.players.length,
+                "myHand:", newState.players.find(p => p.hand)?.hand?.length ?? "n/a");
             setState(newState);
         });
         clientRef.current = client;
@@ -31,8 +35,14 @@ export function GamePage({ gameCode, playerName, onLeave }: GamePageProps) {
 
                 if (gameCode === "") {
                     // Creating a new game
-                    const newCode = await client.createGame();
+                    const useFixedCode = Debug.isFlagSet(DebugFlags.FixedGameCode) || Debug.isFlagSet(DebugFlags.SkipLobby);
+                    const newCode = await client.createGame(useFixedCode ? "TEST" : undefined);
                     await client.joinGame(newCode, playerName);
+
+                    // Auto-start when SkipLobby is set
+                    if (Debug.isFlagSet(DebugFlags.SkipLobby)) {
+                        await client.startGame(newCode, true);
+                    }
                 } else {
                     await client.joinGame(gameCode, playerName);
                 }
@@ -68,6 +78,8 @@ export function GamePage({ gameCode, playerName, onLeave }: GamePageProps) {
         return <div className="gamePage"><div className="loading">Connecting...</div></div>;
     }
 
+    const minPlayers = Debug.isFlagSet(DebugFlags.SkipLobby) ? 1 : 2;
+
     // Lobby
     if (state.phase === "Lobby") {
         return (
@@ -88,10 +100,10 @@ export function GamePage({ gameCode, playerName, onLeave }: GamePageProps) {
                     {isCreator && (
                         <button
                             className="primary"
-                            onClick={() => client?.startGame(state.gameCode)}
-                            disabled={state.players.length < 2}
+                            onClick={() => client?.startGame(state.gameCode, minPlayers === 1)}
+                            disabled={state.players.length < minPlayers}
                         >
-                            Start Game {state.players.length < 2 ? "(need 2+ players)" : ""}
+                            Start Game {state.players.length < minPlayers ? `(need ${minPlayers}+ players)` : ""}
                         </button>
                     )}
                     {!isCreator && <p className="waitingText">Waiting for host to start...</p>}
@@ -139,7 +151,13 @@ export function GamePage({ gameCode, playerName, onLeave }: GamePageProps) {
             </div>
 
             <div className="myArea">
-                <PlayerBoard player={me} isMe={true} />
+                <PlayerBoard
+                    player={me}
+                    isMe={true}
+                    isMyTurn={isMyTurn === true && state.phase === "Play"}
+                    onFlipCard={(cardId) => client?.flipWildcard(cardId)}
+                    onMoveProperty={(cardId, targetSetId, targetColor) => client?.moveProperty(cardId, targetSetId, targetColor)}
+                />
 
                 {state.phase === "Draw" && isMyTurn && (
                     <div className="actionBar">
@@ -168,6 +186,7 @@ export function GamePage({ gameCode, playerName, onLeave }: GamePageProps) {
                     canPlay={isMyTurn === true && (state.phase === "Play" || state.phase === "Discard")}
                     phase={state.phase}
                     gameState={state}
+                    myConnectionId={myConnectionId ?? ""}
                     onPlayCard={(cardId, request) => client?.playCard(cardId, request)}
                     onDiscardCard={(cardId) => client?.discardCard(cardId)}
                 />
@@ -179,6 +198,10 @@ export function GamePage({ gameCode, playerName, onLeave }: GamePageProps) {
                     myState={me}
                     onRespond={(response) => client?.respondToAction(response)}
                 />
+            )}
+
+            {Debug.isFlagSet(DebugFlags.ShowDeck) && client && (
+                <DebugDeckViewer client={client} />
             )}
         </div>
     );

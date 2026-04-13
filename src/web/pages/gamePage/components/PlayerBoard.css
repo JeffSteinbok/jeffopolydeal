@@ -47,23 +47,135 @@
     font-weight: 600;
 }
 
-.cardRow {
+/* Bank display */
+.bank-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.bank-total {
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #4caf50;
+    min-width: 60px;
+}
+
+.bank-denoms {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
 }
 
-.propertySet {
-    margin-bottom: 6px;
+.bank-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+    border: 1px solid rgba(0,0,0,0.15);
+}
+
+/* Property sets laid out horizontally, each set stacked vertically like solitaire */
+.propertySets-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.propertySet-column {
+    display: flex;
+    flex-direction: column;
 }
 
 .propertySet-label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     padding: 3px 8px;
     border-radius: 4px;
     margin-bottom: 4px;
-    display: inline-block;
+    white-space: nowrap;
+}
+
+.propertySet-stack {
+    position: relative;
+}
+
+.propertySet-stack-item {
+    position: relative;
+    z-index: 1;
+}
+
+.propertySet-stack-item:hover {
+    z-index: 10;
+}
+
+/* Draggable cards */
+.propertySet-stack-item[draggable="true"] {
+    cursor: grab;
+}
+
+.propertySet-stack-item[draggable="true"]:active {
+    cursor: grabbing;
+    opacity: 0.6;
+}
+
+/* Droppable set columns */
+.propertySet-column--droppable {
+    border: 2px dashed transparent;
+    border-radius: 8px;
+    padding: 4px;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.propertySet-column--droppable:hover {
+    border-color: rgba(233, 69, 96, 0.4);
+}
+
+/* "New Set" drop target */
+.propertySet-new {
+    min-width: 80px;
+    min-height: 80px;
+    border: 2px dashed #555;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.propertySet-new:hover {
+    border-color: #e94560;
+    background: rgba(233, 69, 96, 0.1);
+}
+
+.propertySet-new-label {
+    color: #777;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Unbound wilds area */
+.unboundWilds {
+    margin-top: 8px;
+    padding: 8px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.unboundWilds--droppable {
+    border: 2px dashed #555;
+    transition: border-color 0.15s;
+}
+
+.unboundWilds--droppable:hover {
+    border-color: #e94560;
+    background: rgba(233, 69, 96, 0.05);
 }
 
 .emptyHint {

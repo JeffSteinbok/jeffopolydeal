@@ -1,23 +1,32 @@
 import * as React from "react";
 import { createRoot } from "react-dom/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StartPage } from "./pages/startPage/StartPage";
 import { GamePage } from "./pages/gamePage/GamePage";
-import { Debug } from "./utilities/Debug";
+import { ThemeProvider } from "./themes/ThemeContext";
+import { Debug, DebugFlags } from "./utilities/Debug";
 import "./styles/global.css";
+import "./themes/classic.css";
+import "./themes/dark.css";
 
 Debug.initFromUrl();
 
 function App() {
-    const [gameCode, setGameCode] = useState<string | null>(null);
-    const [playerName, setPlayerName] = useState<string>("");
+    const autoStart = Debug.isFlagSet(DebugFlags.SkipLobby);
+    const [gameCode, setGameCode] = useState<string | null>(autoStart ? "" : null);
+    const [playerName, setPlayerName] = useState<string>(autoStart ? "Player1" : "");
+    const [inGame, setInGame] = useState(autoStart);
 
-    if (gameCode) {
-        return <GamePage gameCode={gameCode} playerName={playerName} onLeave={() => setGameCode(null)} />;
+    if (inGame) {
+        return <GamePage gameCode={gameCode ?? ""} playerName={playerName} onLeave={() => { setInGame(false); setGameCode(null); }} />;
     }
 
-    return <StartPage onJoinGame={(code, name) => { setGameCode(code); setPlayerName(name); }} />;
+    return <StartPage onJoinGame={(code, name) => { setGameCode(code); setPlayerName(name); setInGame(true); }} />;
 }
 
 const root = document.getElementById("root")!;
-createRoot(root).render(<App />);
+createRoot(root).render(
+    <ThemeProvider>
+        <App />
+    </ThemeProvider>
+);

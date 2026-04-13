@@ -33,6 +33,7 @@ export interface Card {
 }
 
 export interface PropertySetState {
+    setId: number;
     color: PropertyColor;
     cards: Card[];
     isComplete: boolean;
@@ -49,7 +50,9 @@ export interface PlayerState {
     hand?: Card[];
     bank: Card[];
     propertySets: PropertySetState[];
+    unboundWilds: Card[];
     completedSetCount: number;
+    uniqueCompletedSetCount: number;
 }
 
 export interface PendingAction {
@@ -85,10 +88,21 @@ export interface PlayCardRequest {
     targetCardId?: number;
     offeredCardId?: number;
     targetSetColor?: PropertyColor;
-    doubleRentCardId?: number;
+    doubleRentCardIds?: number[];
 }
 
 export interface ActionResponse {
     playJustSayNo: boolean;
     paymentCardIds?: number[];
+}
+
+export interface DebugPlayerHand {
+    playerName: string;
+    cards: Card[];
+}
+
+export interface DebugDeckInfo {
+    drawPile: Card[];
+    discardPile: Card[];
+    playerHands: DebugPlayerHand[];
 }

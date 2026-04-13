@@ -18,6 +18,12 @@ namespace JeffopolyDeal.Models
         public int DiscardPileCount => _discardPile.Count;
         public Card? TopDiscard => _discardPile.Count > 0 ? _discardPile[^1] : null;
 
+        /// <summary>Returns a snapshot of all cards in the draw pile (top of pile last).</summary>
+        public List<Card> GetDrawPileSnapshot() => _drawPile.ToList();
+
+        /// <summary>Returns a snapshot of all cards in the discard pile.</summary>
+        public List<Card> GetDiscardPileSnapshot() => _discardPile.ToList();
+
         public Deck()
         {
             BuildDeck();

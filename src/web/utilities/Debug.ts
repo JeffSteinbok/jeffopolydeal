@@ -10,11 +10,13 @@ export enum DebugFlags {
     RichStart         = 1 << 7,
     InstantWin        = 1 << 8,
     SkipDraw          = 1 << 9,
+    ShowDeck          = 1 << 10,
 }
 
 // Helpful combos:
 // SkipLobby + FixedGameCode: 6
-// All debug shortcuts: 0x3FF
+// FixedGameCode + SkipLobby + ShowDeck: 406
+// All debug shortcuts: 0x7FF
 
 export class Debug {
     static flags = DebugFlags.None;

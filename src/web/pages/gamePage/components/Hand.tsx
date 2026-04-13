@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, GameState, PlayCardRequest } from "../../../Types";
 import { CardComponent } from "./Card";
+import { PlayCardModal } from "./PlayCardModal";
 import "./Hand.css";
 
 interface HandProps {
@@ -8,11 +9,14 @@ interface HandProps {
     canPlay: boolean;
     phase: string;
     gameState: GameState;
+    myConnectionId: string;
     onPlayCard: (cardId: number, request: PlayCardRequest) => void;
     onDiscardCard: (cardId: number) => void;
 }
 
-export function Hand({ cards, canPlay, phase, gameState, onPlayCard, onDiscardCard }: HandProps) {
+export function Hand({ cards, canPlay, phase, gameState, myConnectionId, onPlayCard, onDiscardCard }: HandProps) {
+    const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+
     const handleCardClick = (card: Card) => {
         if (!canPlay) return;
 
@@ -21,37 +25,23 @@ export function Hand({ cards, canPlay, phase, gameState, onPlayCard, onDiscardCa
             return;
         }
 
-        // Default: play as money for action/rent cards, or as property
-        // For now, simple play logic — modals for complex actions will come later
-        const request: PlayCardRequest = { playAsMoney: false };
-
-        switch (card.cardType) {
-            case "Money":
-                request.playAsMoney = true;
-                break;
-            case "Property":
-                // Plays directly as property
-                break;
-            case "PropertyWildcard":
-                request.wildcardColor = card.activeColor ?? card.color ?? undefined;
-                break;
-            case "Action":
-                if (card.actionKind === "PassGo") {
-                    // PassGo can just be played directly
-                    break;
-                }
-                // For complex actions, bank as money for now
-                // TODO: Action modals for targeting
-                request.playAsMoney = true;
-                break;
-            case "Rent":
-                // TODO: Rent targeting modal
-                request.playAsMoney = true;
-                break;
+        // Money → auto-bank, no modal
+        if (card.cardType === "Money") {
+            onPlayCard(card.id, { playAsMoney: true });
+            return;
         }
 
-        onPlayCard(card.id, request);
+        // Property → auto-play as property, no modal
+        if (card.cardType === "Property") {
+            onPlayCard(card.id, { playAsMoney: false });
+            return;
+        }
+
+        // Everything else (Action, Rent, PropertyWildcard) → show modal
+        setSelectedCard(card);
     };
+
+    const myState = gameState.players.find(p => p.connectionId === myConnectionId);
 
     return (
         <div className="hand">
@@ -66,6 +56,19 @@ export function Hand({ cards, canPlay, phase, gameState, onPlayCard, onDiscardCa
                 ))}
                 {cards.length === 0 && <span className="hand-empty">No cards in hand</span>}
             </div>
+
+            {selectedCard && myState && (
+                <PlayCardModal
+                    card={selectedCard}
+                    gameState={gameState}
+                    myState={myState}
+                    onPlay={(cardId, request) => {
+                        onPlayCard(cardId, request);
+                        setSelectedCard(null);
+                    }}
+                    onCancel={() => setSelectedCard(null)}
+                />
+            )}
         </div>
     );
 }

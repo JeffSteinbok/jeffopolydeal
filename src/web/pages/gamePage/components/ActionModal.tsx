@@ -45,9 +45,9 @@ export function ActionModal({ pendingAction, myState, onRespond }: ActionModalPr
 
     const getTitle = (): string => {
         switch (pendingAction.type) {
-            case "PayRent": return `Pay Rent: ${pendingAction.amount}M`;
-            case "PayDebtCollector": return `Debt Collector: Pay ${pendingAction.amount}M`;
-            case "PayBirthday": return `Happy Birthday! Pay ${pendingAction.amount}M`;
+            case "PayRent": return `Pay Rent: $M{pendingAction.amount}`;
+            case "PayDebtCollector": return `Debt Collector: Pay $M{pendingAction.amount}`;
+            case "PayBirthday": return `Happy Birthday! Pay $M{pendingAction.amount}`;
             case "RespondToSlyDeal": return "Sly Deal — Someone is stealing your property!";
             case "RespondToForceDeal": return "Force Deal — Someone wants to swap properties!";
             case "RespondToDealBreaker": return "Deal Breaker — Someone is taking your complete set!";
@@ -63,7 +63,7 @@ export function ActionModal({ pendingAction, myState, onRespond }: ActionModalPr
 
                 {isPayment && (
                     <>
-                        <p className="modalHint">Select cards to pay with ({selectedTotal}M / {pendingAction.amount}M)</p>
+                        <p className="modalHint">Select cards to pay with (M{selectedTotal} / M{pendingAction.amount})</p>
                         <div className="paymentCards">
                             {payableCards.map((card) => (
                                 <CardComponent
@@ -84,7 +84,7 @@ export function ActionModal({ pendingAction, myState, onRespond }: ActionModalPr
                                 className="secondary"
                                 onClick={handlePay}
                             >
-                                {payableCards.length === 0 ? "I have nothing" : `Pay ${selectedTotal}M`}
+                                {payableCards.length === 0 ? "I have nothing" : `Pay $M{selectedTotal}`}
                             </button>
                         </div>
                     </>

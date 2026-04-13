@@ -20,23 +20,48 @@ namespace JeffopolyDeal.Models
         /// <summary>Property sets on the table (visible to all).</summary>
         public List<PropertySet> PropertySets { get; set; } = new();
 
+        /// <summary>Multi-color wildcards not yet assigned to any set.</summary>
+        public List<Card> UnboundWilds { get; set; } = new();
+
         /// <summary>Number of completed property sets.</summary>
         public int CompletedSetCount => PropertySets.Count(s => s.IsComplete);
+
+        /// <summary>Number of complete sets of DIFFERENT colors (win condition).</summary>
+        public int UniqueCompletedSetCount => PropertySets
+            .Where(s => s.IsComplete)
+            .Select(s => s.Color)
+            .Distinct()
+            .Count();
 
         /// <summary>Total bank value.</summary>
         public int BankTotal => Bank.Sum(c => c.MoneyValue);
 
         /// <summary>
         /// Gets or creates a property set for the given color.
+        /// If all existing sets of this color are full, creates a new one.
         /// </summary>
         public PropertySet GetOrCreatePropertySet(PropertyColor color)
         {
-            var set = PropertySets.FirstOrDefault(s => s.Color == color);
+            // Find an incomplete set of this color, or create new
+            var set = PropertySets.FirstOrDefault(s => s.Color == color && !s.IsComplete);
             if (set == null)
             {
                 set = new PropertySet { Color = color };
                 PropertySets.Add(set);
             }
+            return set;
+        }
+
+        /// <summary>
+        /// Creates a new property set with this card (used when receiving cards from others).
+        /// Never merges into existing sets — player arranges on their turn.
+        /// </summary>
+        public PropertySet CreateNewPropertySet(PropertyColor color, Card card)
+        {
+            card.ActiveColor = color;
+            var set = new PropertySet { Color = color };
+            set.Cards.Add(card);
+            PropertySets.Add(set);
             return set;
         }
 

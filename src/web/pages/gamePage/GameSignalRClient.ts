@@ -42,16 +42,16 @@ export class GameSignalRClient {
         await this.connection.stop();
     }
 
-    async createGame(): Promise<string> {
-        return await this.connection.invoke<string>("CreateGame");
+    async createGame(fixedCode?: string): Promise<string> {
+        return await this.connection.invoke<string>("CreateGame", fixedCode ?? null);
     }
 
     async joinGame(gameCode: string, playerName: string): Promise<void> {
         await this.connection.invoke("JoinGame", gameCode, playerName);
     }
 
-    async startGame(gameCode: string): Promise<void> {
-        await this.connection.invoke("StartGame", gameCode);
+    async startGame(gameCode: string, allowSinglePlayer: boolean = false): Promise<void> {
+        await this.connection.invoke("StartGame", gameCode, allowSinglePlayer);
     }
 
     async drawCards(): Promise<void> {
@@ -72,6 +72,18 @@ export class GameSignalRClient {
 
     async respondToAction(response: ActionResponse): Promise<void> {
         await this.connection.invoke("RespondToAction", response);
+    }
+
+    async getDebugDeckInfo(): Promise<DebugDeckInfo | null> {
+        return await this.connection.invoke<DebugDeckInfo | null>("GetDebugDeckInfo");
+    }
+
+    async flipWildcard(cardId: number): Promise<void> {
+        await this.connection.invoke("FlipWildcard", cardId);
+    }
+
+    async moveProperty(cardId: number, targetSetId: number, targetColor: string | null): Promise<void> {
+        await this.connection.invoke("MoveProperty", cardId, targetSetId, targetColor);
     }
 
     get connectionId(): string | null {

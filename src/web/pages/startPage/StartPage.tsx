@@ -48,6 +48,9 @@ export function StartPage({ onJoinGame }: StartPageProps) {
                             onKeyDown={(e) => e.key === "Enter" && handleCreate()}
                             autoFocus
                             maxLength={20}
+                            autoComplete="off"
+                            data-1p-ignore
+                            data-lpignore="true"
                         />
                         <button className="primary" onClick={handleCreate} disabled={!playerName.trim()}>
                             Create Game
@@ -67,6 +70,9 @@ export function StartPage({ onJoinGame }: StartPageProps) {
                             onChange={(e) => setPlayerName(e.target.value)}
                             autoFocus
                             maxLength={20}
+                            autoComplete="off"
+                            data-1p-ignore
+                            data-lpignore="true"
                         />
                         <input
                             type="text"
@@ -76,6 +82,9 @@ export function StartPage({ onJoinGame }: StartPageProps) {
                             onKeyDown={(e) => e.key === "Enter" && handleJoin()}
                             maxLength={4}
                             style={{ textTransform: "uppercase", letterSpacing: "0.2em" }}
+                            autoComplete="off"
+                            data-1p-ignore
+                            data-lpignore="true"
                         />
                         <button className="primary" onClick={handleJoin} disabled={!playerName.trim() || !gameCode.trim()}>
                             Join Game

@@ -1,0 +1,59 @@
+.debugDeckButton {
+    position: fixed;
+    bottom: 12px;
+    right: 12px;
+    background: #b8860b;
+    color: white;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    z-index: 50;
+    opacity: 0.8;
+    border: 1px solid #d4a017;
+}
+
+.debugDeckButton:hover {
+    opacity: 1;
+}
+
+.debugDeckModal {
+    background: #1a1a2e;
+    border: 2px solid #b8860b;
+    border-radius: 12px;
+    padding: 20px;
+    width: 90vw;
+    max-width: 900px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.debugDeckHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.debugDeckHeader h3 {
+    color: #b8860b;
+}
+
+.debugDeckSection {
+    margin-bottom: 16px;
+    padding: 12px;
+    background: #16213e;
+    border-radius: 8px;
+}
+
+.debugDeckSection h4 {
+    margin-bottom: 8px;
+    color: #aaa;
+    font-size: 0.85rem;
+}
+
+.debugCardGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}

@@ -1,0 +1,47 @@
+/* Dark theme */
+.theme-dark {
+    /* Card frame */
+    --card-bg: #1e2a3a;
+    --card-border-width: 2px;
+    --card-border-default: #4a6a8a;
+    --card-radius: 8px;
+    --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+    --card-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.6);
+
+    /* Card text */
+    --card-text-primary: #e0e0e0;
+    --card-text-secondary: #999;
+    --card-header-size: 0.55em;
+    --card-title-size: 0.85em;
+    --card-desc-size: 0.6em;
+
+    /* Money badge */
+    --card-badge-bg: #388e3c;
+    --card-badge-text: #fff;
+    --card-badge-size: 22px;
+
+    /* Money card */
+    --card-money-bg: #1b3a2a;
+    --card-money-border: #388e3c;
+
+    /* Action card */
+    --card-action-bg: #2a2518;
+    --card-action-border: #b8860b;
+
+    /* Rent card */
+    --card-rent-bg: #1e1830;
+    --card-rent-border: #7e57c2;
+
+    /* Rent table */
+    --card-rent-table-bg: rgba(255, 255, 255, 0.05);
+    --card-rent-table-text: #aaa;
+    --card-rent-table-full-text: #ef5350;
+
+    /* Selection */
+    --card-selected-border: #e94560;
+    --card-selected-glow: rgba(233, 69, 96, 0.7);
+
+    /* Interaction */
+    --card-hover-lift: -8px;
+    --card-selected-lift: -10px;
+}

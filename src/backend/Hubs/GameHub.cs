@@ -23,11 +23,11 @@ namespace JeffopolyDeal.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
-        public string CreateGame()
+        public string CreateGame(string? fixedCode = null)
         {
             try
             {
-                return _gameCache.CreateGame();
+                return _gameCache.CreateGame(fixedCode);
             }
             catch (Exception ex)
             {
@@ -50,12 +50,12 @@ namespace JeffopolyDeal.Hubs
             }
         }
 
-        public async Task StartGame(string gameCode)
+        public async Task StartGame(string gameCode, bool allowSinglePlayer = false)
         {
             try
             {
                 if (string.IsNullOrEmpty(gameCode)) throw new ArgumentNullException(nameof(gameCode));
-                await _gameCache.StartGameAsync(gameCode);
+                await _gameCache.StartGameAsync(gameCode, allowSinglePlayer);
             }
             catch (Exception ex)
             {
@@ -120,6 +120,46 @@ namespace JeffopolyDeal.Hubs
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in RespondToAction");
+            }
+        }
+
+        public DebugDeckInfo? GetDebugDeckInfo()
+        {
+            try
+            {
+                return _gameCache.GetDebugDeckInfo(Context.ConnectionId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetDebugDeckInfo");
+                return null;
+            }
+        }
+
+        public async Task FlipWildcard(int cardId)
+        {
+            try
+            {
+                await _gameCache.FlipWildcardAsync(Context.ConnectionId, cardId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in FlipWildcard for card {CardId}", cardId);
+            }
+        }
+
+        public async Task MoveProperty(int cardId, int targetSetId, string? targetColor)
+        {
+            try
+            {
+                PropertyColor? color = null;
+                if (targetColor != null && Enum.TryParse<PropertyColor>(targetColor, out var parsed))
+                    color = parsed;
+                await _gameCache.MovePropertyAsync(Context.ConnectionId, cardId, targetSetId, color);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in MoveProperty for card {CardId}", cardId);
             }
         }
     }

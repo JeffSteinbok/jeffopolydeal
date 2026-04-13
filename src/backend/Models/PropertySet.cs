@@ -8,6 +8,9 @@ namespace JeffopolyDeal.Models
     /// </summary>
     public class PropertySet
     {
+        private static int _nextSetId = 1;
+
+        public int SetId { get; set; } = _nextSetId++;
         public PropertyColor Color { get; set; }
         public List<Card> Cards { get; set; } = new();
         public bool HasHouse { get; set; }

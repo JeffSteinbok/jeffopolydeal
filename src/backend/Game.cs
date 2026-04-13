@@ -106,11 +106,12 @@ namespace JeffopolyDeal
 
         #region Game Flow
 
-        public async Task StartGameAsync()
+        public async Task StartGameAsync(bool allowSinglePlayer = false)
         {
             lock (_lock)
             {
-                if (_phase != GamePhase.Lobby || _players.Count < 2)
+                int minPlayers = allowSinglePlayer ? 1 : 2;
+                if (_phase != GamePhase.Lobby || _players.Count < minPlayers)
                     return;
 
                 // Deal initial hands
@@ -174,7 +175,7 @@ namespace JeffopolyDeal
                 _playsUsed++;
 
                 // Check win condition
-                if (player.CompletedSetCount >= GameConfig.SetsToWin)
+                if (player.UniqueCompletedSetCount >= GameConfig.SetsToWin)
                 {
                     _phase = GamePhase.GameOver;
                     _winnerId = player.ConnectionId;
@@ -276,9 +277,26 @@ namespace JeffopolyDeal
                     return true;
 
                 case CardType.PropertyWildcard:
-                    var color = request.WildcardColor ?? card.ActiveColor ?? card.Color!.Value;
-                    card.ActiveColor = color;
-                    PlayProperty(player, card, color);
+                    if (card.IsMulticolorWild)
+                    {
+                        if (request.WildcardColor != null)
+                        {
+                            card.ActiveColor = request.WildcardColor;
+                            PlayProperty(player, card, request.WildcardColor.Value);
+                        }
+                        else
+                        {
+                            // Goes to unbound area
+                            card.ActiveColor = null;
+                            player.UnboundWilds.Add(card);
+                        }
+                    }
+                    else
+                    {
+                        var color = request.WildcardColor ?? card.ActiveColor ?? card.Color!.Value;
+                        card.ActiveColor = color;
+                        PlayProperty(player, card, color);
+                    }
                     return true;
 
                 case CardType.Rent:
@@ -316,16 +334,20 @@ namespace JeffopolyDeal
 
             int rent = set.CalculateRent();
 
-            // Check if Double the Rent was played with this
-            if (request.DoubleRentCardId != null)
+            // Apply Double the Rent cards (each doubles, and each counts as a play)
+            if (request.DoubleRentCardIds != null)
             {
-                var doubleCard = player.Hand.FirstOrDefault(c => c.Id == request.DoubleRentCardId && c.ActionKind == ActionType.DoubleTheRent);
-                if (doubleCard != null)
+                foreach (var doubleId in request.DoubleRentCardIds)
                 {
-                    player.Hand.Remove(doubleCard);
-                    _playsUsed++; // Double the Rent uses a play
-                    _deck.Discard(doubleCard);
-                    rent *= 2;
+                    if (_playsUsed >= GameConfig.MaxPlaysPerTurn) break;
+                    var doubleCard = player.Hand.FirstOrDefault(c => c.Id == doubleId && c.ActionKind == ActionType.DoubleTheRent);
+                    if (doubleCard != null)
+                    {
+                        player.Hand.Remove(doubleCard);
+                        _playsUsed++;
+                        _deck.Discard(doubleCard);
+                        rent *= 2;
+                    }
                 }
             }
 
@@ -572,7 +594,7 @@ namespace JeffopolyDeal
 
                 // Check win after receiving properties
                 var currentPlayer = GetCurrentPlayer();
-                if (currentPlayer != null && currentPlayer.CompletedSetCount >= GameConfig.SetsToWin)
+                if (currentPlayer != null && currentPlayer.UniqueCompletedSetCount >= GameConfig.SetsToWin)
                 {
                     _phase = GamePhase.GameOver;
                     _winnerId = currentPlayer.ConnectionId;
@@ -761,7 +783,9 @@ namespace JeffopolyDeal
                     Name = player.Name,
                     HandCount = player.Hand.Count,
                     Bank = player.Bank.ToList(),
+                    UnboundWilds = player.UnboundWilds.ToList(),
                     CompletedSetCount = player.CompletedSetCount,
+                    UniqueCompletedSetCount = player.UniqueCompletedSetCount,
                 };
 
                 // Only include hand for the requesting player
@@ -774,6 +798,7 @@ namespace JeffopolyDeal
                 {
                     ps.PropertySets.Add(new PropertySetState
                     {
+                        SetId = set.SetId,
                         Color = set.Color,
                         Cards = set.Cards.ToList(),
                         IsComplete = set.IsComplete,
@@ -816,6 +841,188 @@ namespace JeffopolyDeal
         }
 
         #endregion
+
+        #region Property Management
+
+        /// <summary>
+        /// Move any property card to a specific set, a new set, or unbound.
+        /// targetSetId > 0: move to existing set by ID
+        /// targetSetId = 0 with targetColor set: create new set of that color
+        /// targetSetId = -1: move to unbound (multi-color wilds only)
+        /// </summary>
+        public async Task MovePropertyAsync(string connectionId, int cardId, int targetSetId, PropertyColor? targetColor)
+        {
+            lock (_lock)
+            {
+                var player = _players.FirstOrDefault(p => p.ConnectionId == connectionId);
+                if (player == null) return;
+
+                var currentPlayer = GetCurrentPlayer();
+                if (currentPlayer == null || currentPlayer.ConnectionId != connectionId) return;
+                if (_phase != GamePhase.Play) return;
+
+                // Find and remove the card from wherever it is
+                Card? card = null;
+
+                card = player.UnboundWilds.FirstOrDefault(c => c.Id == cardId);
+                if (card != null)
+                {
+                    player.UnboundWilds.Remove(card);
+                }
+                else
+                {
+                    foreach (var set in player.PropertySets.ToList())
+                    {
+                        card = set.Cards.FirstOrDefault(c => c.Id == cardId);
+                        if (card != null)
+                        {
+                            set.Cards.Remove(card);
+                            if (!set.IsComplete)
+                            {
+                                set.HasHouse = false;
+                                set.HasHotel = false;
+                            }
+                            if (set.Cards.Count == 0)
+                                player.PropertySets.Remove(set);
+                            break;
+                        }
+                    }
+                }
+
+                if (card == null) return;
+
+                // Move to unbound
+                if (targetSetId == -1)
+                {
+                    if (!(card.CardType == CardType.PropertyWildcard && card.IsMulticolorWild)) return;
+                    card.ActiveColor = null;
+                    player.UnboundWilds.Add(card);
+                    return;
+                }
+
+                // Determine the color for validation
+                var color = targetColor;
+                if (targetSetId > 0)
+                {
+                    var existingSet = player.PropertySets.FirstOrDefault(s => s.SetId == targetSetId);
+                    if (existingSet == null) return;
+                    color = existingSet.Color;
+                }
+
+                if (color == null) return;
+
+                // Validate the card can go to this color
+                if (card.CardType == CardType.Property && card.Color != color) return;
+                if (card.CardType == CardType.PropertyWildcard && !card.IsMulticolorWild
+                    && card.Color != color && card.AltColor != color) return;
+
+                // Check set size limit
+                if (targetSetId > 0)
+                {
+                    var existingSet = player.PropertySets.First(s => s.SetId == targetSetId);
+                    if (existingSet.Cards.Count >= existingSet.RequiredSize) return;
+                    card.ActiveColor = color;
+                    existingSet.Cards.Add(card);
+                }
+                else
+                {
+                    // Create new set
+                    card.ActiveColor = color;
+                    var newSet = new PropertySet { Color = color.Value };
+                    newSet.Cards.Add(card);
+                    player.PropertySets.Add(newSet);
+                }
+            }
+            await BroadcastGameStateAsync();
+        }
+
+        /// <summary>
+        /// Flip a dual-color wildcard to its other color.
+        /// Only allowed during the owning player's turn.
+        /// </summary>
+        public async Task FlipWildcardAsync(string connectionId, int cardId)
+        {
+            lock (_lock)
+            {
+                var player = _players.FirstOrDefault(p => p.ConnectionId == connectionId);
+                if (player == null) return;
+
+                // Can only rearrange during your turn
+                var currentPlayer = GetCurrentPlayer();
+                if (currentPlayer == null || currentPlayer.ConnectionId != connectionId) return;
+                if (_phase != GamePhase.Play) return;
+
+                // Find the card in property sets
+                foreach (var set in player.PropertySets)
+                {
+                    var card = set.Cards.FirstOrDefault(c => c.Id == cardId);
+                    if (card != null && card.CardType == CardType.PropertyWildcard && !card.IsMulticolorWild)
+                    {
+                        // Flip to other color
+                        var newColor = card.ActiveColor == card.Color ? card.AltColor : card.Color;
+                        if (newColor == null) return;
+
+                        // Remove from current set
+                        set.Cards.Remove(card);
+                        if (set.Cards.Count == 0)
+                            player.PropertySets.Remove(set);
+
+                        // Update active color and add to new set
+                        card.ActiveColor = newColor;
+                        var newSet = player.GetOrCreatePropertySet(newColor.Value);
+                        newSet.Cards.Add(card);
+                        break;
+                    }
+                }
+            }
+            await BroadcastGameStateAsync();
+        }
+
+        #endregion
+
+        #region Debug
+
+        /// <summary>
+        /// Returns all cards in the draw pile, discard pile, and each player's hand.
+        /// Only for debug mode.
+        /// </summary>
+        public DebugDeckInfo GetDebugDeckInfo()
+        {
+            lock (_lock)
+            {
+                var info = new DebugDeckInfo
+                {
+                    DrawPile = _deck.GetDrawPileSnapshot(),
+                    DiscardPile = _deck.GetDiscardPileSnapshot(),
+                };
+
+                foreach (var player in _players)
+                {
+                    info.PlayerHands.Add(new DebugPlayerHand
+                    {
+                        PlayerName = player.Name,
+                        Cards = player.Hand.ToList(),
+                    });
+                }
+
+                return info;
+            }
+        }
+
+        #endregion
+    }
+
+    public class DebugDeckInfo
+    {
+        public List<Card> DrawPile { get; set; } = new();
+        public List<Card> DiscardPile { get; set; } = new();
+        public List<DebugPlayerHand> PlayerHands { get; set; } = new();
+    }
+
+    public class DebugPlayerHand
+    {
+        public string PlayerName { get; set; } = "";
+        public List<Card> Cards { get; set; } = new();
     }
 
     /// <summary>
@@ -830,7 +1037,7 @@ namespace JeffopolyDeal
         public int? TargetCardId { get; set; }
         public int? OfferedCardId { get; set; }
         public PropertyColor? TargetSetColor { get; set; }
-        public int? DoubleRentCardId { get; set; }
+        public List<int>? DoubleRentCardIds { get; set; }
     }
 
     /// <summary>

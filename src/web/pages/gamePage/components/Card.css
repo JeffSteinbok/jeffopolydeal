@@ -1,72 +1,551 @@
-.card {
-    width: 100px;
-    height: 140px;
-    border-radius: 8px;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    padding: 6px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    font-size: 0.75rem;
+/* ═══════════════════════════════════════════════════
+   Monopoly Deal Card
+   Full colored bg, inner decorative frame,
+   white oval center with bold title
+   ═══════════════════════════════════════════════════ */
+
+.md-card {
+    width: 150px;
+    height: 210px;
+    border-radius: 10px;
+    border: 3px solid #555;
     position: relative;
     user-select: none;
     transition: transform 0.15s, box-shadow 0.15s;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    overflow: hidden;
+    flex-shrink: 0;
 }
 
-.card-small {
-    width: 70px;
-    height: 98px;
-    font-size: 0.6rem;
-    padding: 4px;
+.md-card--sm {
+    width: 110px;
+    height: 154px;
 }
 
-.card-clickable {
-    cursor: pointer;
+.md-card--clickable { cursor: pointer; }
+.md-card--clickable:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 14px 28px rgba(0,0,0,0.4);
+    z-index: 10;
 }
 
-.card-clickable:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+.md-card--selected {
+    border-color: #e94560 !important;
+    box-shadow: 0 0 18px rgba(233,69,96,0.7);
+    transform: translateY(-12px);
+    z-index: 11;
 }
 
-.card-selected {
-    border-color: #e94560;
-    box-shadow: 0 0 12px rgba(233, 69, 96, 0.6);
-    transform: translateY(-8px);
+/* Inner decorative frame */
+.md-card__inner {
+    position: absolute;
+    inset: 5px;
+    border: 2px solid rgba(0,0,0,0.15);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
 }
 
-.card-value {
-    font-weight: 800;
-    font-size: 1em;
-    text-align: right;
+.md-card--sm .md-card__inner {
+    inset: 3px;
+    border-width: 1.5px;
 }
 
-.card-name {
-    font-weight: 700;
-    font-size: 1.1em;
+/* ── Header label ─────────────────────────────── */
+.md-card__header {
+    width: 100%;
+    padding: 4px 0;
     text-align: center;
-    flex: 1;
+    font-family: 'Arial Black', 'Segoe UI Black', sans-serif;
+    font-weight: 900;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: rgba(0,0,0,0.6);
+    flex-shrink: 0;
+}
+
+.md-card--sm .md-card__header {
+    font-size: 8px;
+    padding: 3px 0;
+}
+
+/* ── Central white circle with black border ───── */
+.md-card__oval {
+    width: 120px;
+    height: 120px;
+    background: #fff;
+    border-radius: 50%;
+    border: 3px solid #222;
     display: flex;
     align-items: center;
     justify-content: center;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+    text-align: center;
+    padding: 8px;
+    margin: auto 0;
 }
 
-.card-alt {
-    font-size: 0.65em;
+.md-card--sm .md-card__oval {
+    width: 86px;
+    height: 86px;
+    border-width: 2px;
+    padding: 5px;
+}
+
+.md-card__oval-text {
+    font-family: 'Arial Black', 'Segoe UI Black', sans-serif;
+    font-weight: 900;
+    font-size: 16px;
+    line-height: 1.1;
+    text-transform: uppercase;
+    color: #222;
+}
+
+.md-card--sm .md-card__oval-text {
+    font-size: 11px;
+}
+
+/* ── Description (hover reveal) ───────────────── */
+.md-card__desc {
+    font-size: 8px;
     text-align: center;
+    color: rgba(0,0,0,0.5);
+    padding: 2px 6px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+}
+
+.md-card:hover .md-card__desc {
+    opacity: 1;
+}
+
+.md-card--sm .md-card__desc {
+    font-size: 7px;
+}
+
+/* ── Money badge (corner) ─────────────────────── */
+.md-badge {
+    position: absolute;
+    top: 7px;
+    left: 7px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: #fff;
+    font-family: 'Arial Black', sans-serif;
+    font-weight: 900;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    border: 2px solid rgba(255,255,255,0.6);
+    z-index: 2;
+}
+
+.md-card--sm .md-badge {
+    width: 22px;
+    height: 22px;
+    font-size: 8px;
+    top: 5px;
+    left: 5px;
+}
+
+/* Badge also in bottom-right */
+.md-badge--br {
+    top: auto;
+    left: auto;
+    bottom: 7px;
+    right: 7px;
+}
+
+.md-card--sm .md-badge--br {
+    bottom: 5px;
+    right: 5px;
+}
+
+/* ── Money card ───────────────────────────────── */
+.md-money__amount {
+    font-family: 'Arial Black', 'Impact', sans-serif;
+    font-weight: 900;
+    font-size: 42px;
+    color: #fff;
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.15);
+}
+
+.md-card--sm .md-money__amount {
+    font-size: 30px;
+}
+
+.md-money__sym {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 0.55em;
+    opacity: 0.85;
+}
+
+.md-money__label {
+    font-family: 'Arial Black', sans-serif;
+    font-weight: 900;
+    font-size: 12px;
+    color: rgba(255,255,255,0.8);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.md-card--sm .md-money__label {
+    font-size: 9px;
+}
+
+/* ── Property card: name band ─────────────────── */
+.md-card__name-band {
+    width: 100%;
+    padding: 5px 6px;
+    text-align: center;
+    font-family: 'Arial Black', 'Segoe UI Black', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    flex-shrink: 0;
+}
+
+.md-card--sm .md-card__name-band {
+    font-size: 10px;
+    padding: 3px 4px;
+}
+
+/* ── Rent table ───────────────────────────────── */
+.md-card__body--rent {
+    flex: 1;
+    width: 100%;
+    padding: 2px 10px 4px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: #fff;
+}
+
+.md-card--sm .md-card__body--rent {
+    padding: 1px 6px 2px;
+}
+
+.md-rent-tbl {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.md-rent-tbl__hdr {
+    font-family: 'Arial Black', sans-serif;
+    font-weight: 900;
+    font-size: 11px;
+    text-align: right;
+    color: #999;
+    padding-bottom: 2px;
+}
+
+.md-card--sm .md-rent-tbl__hdr {
+    font-size: 8px;
+}
+
+.md-rent-tbl td {
+    padding: 1.5px 0;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.md-card--sm .md-rent-tbl td {
+    font-size: 8px;
+    padding: 1px 0;
+}
+
+.md-rent-tbl__icons {
+    display: flex;
+    gap: 2px;
+}
+
+.md-rent-tbl__pip {
+    width: 11px;
+    height: 13px;
+    border-radius: 2px 2px 0 0;
+    display: inline-block;
+}
+
+.md-card--sm .md-rent-tbl__pip {
+    width: 8px;
+    height: 10px;
+}
+
+.md-rent-tbl__val {
+    text-align: right;
+    color: #555;
+}
+
+.md-rent-tbl__full .md-rent-tbl__val {
+    color: #c62828;
+    font-weight: 900;
+}
+
+.md-rent-tbl__label {
+    font-size: 0.85em;
+}
+
+/* ── Footer stripe ────────────────────────────── */
+.md-card__footer {
+    width: 100%;
+    height: 5px;
+    flex-shrink: 0;
+}
+
+.md-card--sm .md-card__footer {
+    height: 3px;
+}
+
+/* ── Wildcard ─────────────────────────────────── */
+
+/* Rainbow bar (discrete color blocks) */
+.md-wild__bar {
+    display: flex;
+    width: 100%;
+    height: 8px;
+    flex-shrink: 0;
+}
+
+.md-card--sm .md-wild__bar {
+    height: 5px;
+}
+
+.md-wild__bar-block {
+    flex: 1;
+}
+
+/* Title box for multi-color wild */
+.md-wild__title-box {
+    font-family: 'Arial Black', 'Segoe UI Black', sans-serif;
+    font-weight: 900;
+    font-size: 13px;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 4px 8px;
+    border: 2px solid #222;
+    margin: 0 8px;
+    color: #222;
+}
+
+.md-card--sm .md-wild__title-box {
+    font-size: 9px;
+    padding: 3px 4px;
+    margin: 0 4px;
+}
+
+/* Placeholder icon for multi-color wild (replace with real image later) */
+.md-wild__placeholder {
+    font-size: 48px;
+    line-height: 1;
+}
+
+.md-card--sm .md-wild__placeholder {
+    font-size: 32px;
+}
+
+/* Description text for multi-color wild (always visible) */
+.md-wild__desc-text {
+    font-size: 8px;
+    text-align: center;
+    color: #555;
+    padding: 4px 8px;
+    line-height: 1.3;
+}
+
+.md-card--sm .md-wild__desc-text {
+    font-size: 6px;
+    padding: 2px 4px;
+}
+
+/* ── Dual-color wildcard (flippable) ──────────── */
+.md-wild-dual {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.3s ease;
+}
+
+.md-wild-dual--flipped {
+    transform: rotate(180deg);
+}
+
+.md-wild-dual__half {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.md-wild-dual__header {
+    padding: 4px 6px;
+    text-align: center;
+    font-family: 'Arial Black', 'Segoe UI Black', sans-serif;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.md-wild-dual__title {
+    font-size: 14px;
+    text-transform: uppercase;
+    line-height: 1.1;
+}
+
+.md-card--sm .md-wild-dual__title {
+    font-size: 10px;
+}
+
+.md-wild-dual__subtitle {
+    font-size: 7px;
     opacity: 0.8;
 }
 
-.card-type {
-    font-size: 0.6em;
-    text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    opacity: 0.7;
+.md-card--sm .md-wild-dual__subtitle {
+    font-size: 5px;
 }
 
-.card-money { background: #2d6a4f; }
-.card-action { background: #b8860b; }
-.card-rent { background: #4a1a6b; }
+/* Rent section in middle of dual wild */
+.md-wild-dual__rent {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 8px;
+    background: #fff;
+}
+
+.md-card--sm .md-wild-dual__rent {
+    padding: 0 4px;
+}
+
+/* Bottom half is upside-down */
+.md-wild-dual__half--bottom {
+    transform: rotate(180deg);
+}
+
+.md-wild-dual__half--bottom .md-wild-dual__rent {
+    border-top: 1px solid #ddd;
+}
+
+/* Double-click hint */
+.md-wild-dual:hover::after {
+    content: "double-click to flip";
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    color: #aaa;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.md-wild__dots {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.md-wild__dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid rgba(0,0,0,0.15);
+}
+
+.md-card--sm .md-wild__dot {
+    width: 18px;
+    height: 18px;
+}
+
+/* ── Rent card shapes ─────────────────────────── */
+.md-rent__wheel {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: conic-gradient(
+        #6d3b15, #72c5e8, #d9308e, #f58220,
+        #e3242b, #feed00, #1fb25a, #0055a5,
+        #1a1a1a, #b5d99c, #6d3b15
+    );
+    border: 3px solid rgba(0,0,0,0.15);
+    margin-bottom: 6px;
+}
+
+.md-card--sm .md-rent__wheel {
+    width: 35px;
+    height: 35px;
+}
+
+.md-rent__split {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.md-rent__half {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 3px solid rgba(0,0,0,0.12);
+}
+
+.md-card--sm .md-rent__half {
+    width: 22px;
+    height: 22px;
+}
+
+/* ── Body center (always vertically centered) ─── */
+.md-card__body-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Rent ring (split-color border circle) ─────── */
+.md-rent-ring {
+    width: 126px;
+    height: 126px;
+    border-radius: 50%;
+    border: 3px solid #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+.md-card--sm .md-rent-ring {
+    width: 91px;
+    height: 91px;
+    border-width: 2px;
+}
+
+.md-rent-ring__inner {
+    width: 78px;
+    height: 78px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.md-card--sm .md-rent-ring__inner {
+    width: 55px;
+    height: 55px;
+}

@@ -1,4 +1,5 @@
 using JeffopolyDeal.Hubs;
+using JeffopolyDeal.Models;
 using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Concurrent;
@@ -21,16 +22,24 @@ namespace JeffopolyDeal
             _hubContext = hubContext;
         }
 
-        public string CreateGame()
+        public string CreateGame(string? fixedCode = null)
         {
+            if (!string.IsNullOrEmpty(fixedCode))
+            {
+                var code = fixedCode.ToUpperInvariant();
+                var game = new Game(_hubContext, code);
+                _games[code] = game;
+                return code;
+            }
+
             string gameCode;
             do
             {
                 gameCode = GenerateGameCode();
             } while (_games.ContainsKey(gameCode));
 
-            var game = new Game(_hubContext, gameCode);
-            _games[gameCode] = game;
+            var newGame = new Game(_hubContext, gameCode);
+            _games[gameCode] = newGame;
             return gameCode;
         }
 
@@ -44,13 +53,13 @@ namespace JeffopolyDeal
             await game.ConnectPlayerAsync(connectionId, playerName);
         }
 
-        public async Task StartGameAsync(string gameCode)
+        public async Task StartGameAsync(string gameCode, bool allowSinglePlayer = false)
         {
             gameCode = gameCode.ToUpperInvariant();
             if (!_games.TryGetValue(gameCode, out var game))
                 return;
 
-            await game.StartGameAsync();
+            await game.StartGameAsync(allowSinglePlayer);
         }
 
         public async Task DrawCardsAsync(string connectionId)
@@ -101,6 +110,26 @@ namespace JeffopolyDeal
                     _games.TryRemove(gameCode, out _);
                 }
             }
+        }
+
+        public DebugDeckInfo? GetDebugDeckInfo(string connectionId)
+        {
+            var game = GetGameForConnection(connectionId);
+            return game?.GetDebugDeckInfo();
+        }
+
+        public async Task FlipWildcardAsync(string connectionId, int cardId)
+        {
+            var game = GetGameForConnection(connectionId);
+            if (game == null) return;
+            await game.FlipWildcardAsync(connectionId, cardId);
+        }
+
+        public async Task MovePropertyAsync(string connectionId, int cardId, int targetSetId, PropertyColor? targetColor)
+        {
+            var game = GetGameForConnection(connectionId);
+            if (game == null) return;
+            await game.MovePropertyAsync(connectionId, cardId, targetSetId, targetColor);
         }
 
         private Game? GetGameForConnection(string connectionId)

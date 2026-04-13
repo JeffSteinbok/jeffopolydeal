@@ -105,11 +105,14 @@ namespace JeffopolyDeal.Models
 
         public List<Card> Bank { get; set; } = new();
         public List<PropertySetState> PropertySets { get; set; } = new();
+        public List<Card> UnboundWilds { get; set; } = new();
         public int CompletedSetCount { get; set; }
+        public int UniqueCompletedSetCount { get; set; }
     }
 
     public class PropertySetState
     {
+        public int SetId { get; set; }
         [JsonConverter(typeof(StringEnumConverter))]
         public PropertyColor Color { get; set; }
         public List<Card> Cards { get; set; } = new();
