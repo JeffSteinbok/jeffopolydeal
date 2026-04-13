@@ -38,8 +38,21 @@ jobs:
           dotnet publish src/backend/JeffopolyDeal.csproj -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp'
 
       - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp'
+        env:
+          PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        run: |
+          USERNAME=$(echo "$PUBLISH_PROFILE" | sed -n 's/.*publishMethod="ZipDeploy".*userName="\([^"]*\)".*/\1/p')
+          PASSWORD=$(echo "$PUBLISH_PROFILE" | sed -n 's/.*publishMethod="ZipDeploy".*userPWD="\([^"]*\)".*/\1/p')
+          cd myapp && zip -qr ../deploy.zip .
+          cd ..
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -X POST \
+            --user "$USERNAME:$PASSWORD" \
+            --data-binary @deploy.zip \
+            -H "Content-Type: application/zip" \
+            "https://jeffopolydeal.scm.azurewebsites.net/api/zipdeploy")
+          echo "Deploy HTTP Status: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 400 ]; then
+            echo "::error::Deployment failed with HTTP $HTTP_STATUS"
+            exit 1
+          fi
