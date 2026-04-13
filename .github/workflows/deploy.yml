@@ -9,6 +9,7 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: jeffopolydeal
+  AZURE_WEBAPP_PACKAGE_PATH: '.'
   DOTNET_VERSION: '10.0'
 
 jobs:
@@ -34,11 +35,11 @@ jobs:
       - name: dotnet build and publish
         run: |
           dotnet build --configuration Release
-          dotnet publish src/backend/JeffopolyDeal.csproj -c Release -o './myapp'
+          dotnet publish src/backend/JeffopolyDeal.csproj -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp'
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: './myapp'
+          package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp'
