@@ -20,8 +20,8 @@ namespace JeffopolyDeal.Tests
             await h.PlayCardAsync(p1, wild.Id, new PlayCardRequest { WildcardColor = PropertyColor.Yellow });
 
             var p1State = h.GetPlayerState(p1, p1);
-            Assert.True(p1State!.PropertySets.Any(s =>
-                s.Color == PropertyColor.Yellow && s.Cards.Any(c => c.Id == wild.Id)));
+            Assert.Contains(p1State!.PropertySets, s =>
+                s.Color == PropertyColor.Yellow && s.Cards.Any(c => c.Id == wild.Id));
         }
 
         [Fact]
@@ -51,8 +51,8 @@ namespace JeffopolyDeal.Tests
             await h.PlayCardAsync(p1, wild.Id, new PlayCardRequest { WildcardColor = PropertyColor.DarkBlue });
 
             var p1State = h.GetPlayerState(p1, p1);
-            Assert.True(p1State!.PropertySets.Any(s =>
-                s.Color == PropertyColor.DarkBlue && s.Cards.Any(c => c.Id == wild.Id)));
+            Assert.Contains(p1State!.PropertySets, s =>
+                s.Color == PropertyColor.DarkBlue && s.Cards.Any(c => c.Id == wild.Id));
         }
 
         [Fact]
@@ -69,10 +69,10 @@ namespace JeffopolyDeal.Tests
             await h.Game.FlipWildcardAsync(p1, wild.Id);
 
             var p1State = h.GetPlayerState(p1, p1);
-            Assert.True(p1State!.PropertySets.Any(s =>
-                s.Color == PropertyColor.Yellow && s.Cards.Any(c => c.Id == wild.Id)));
-            Assert.False(p1State.PropertySets.Any(s =>
-                s.Color == PropertyColor.Red && s.Cards.Any(c => c.Id == wild.Id)));
+            Assert.Contains(p1State!.PropertySets, s =>
+                s.Color == PropertyColor.Yellow && s.Cards.Any(c => c.Id == wild.Id));
+            Assert.DoesNotContain(p1State.PropertySets, s =>
+                s.Color == PropertyColor.Red && s.Cards.Any(c => c.Id == wild.Id));
         }
 
         [Fact]
@@ -109,7 +109,7 @@ namespace JeffopolyDeal.Tests
 
             // Should not have moved (still in original set)
             var p2State = h.GetPlayerState(p1, p2);
-            Assert.True(p2State!.PropertySets.Any(s => s.SetId == set.SetId && s.Cards.Any(c => c.Id == card.Id)));
+            Assert.Contains(p2State!.PropertySets, s => s.SetId == set.SetId && s.Cards.Any(c => c.Id == card.Id));
         }
 
         [Fact]

@@ -35,7 +35,7 @@ namespace JeffopolyDeal.Tests
             // Action should be cancelled — P2 keeps their property
             Assert.Equal(GamePhase.Play, h.GetPhase(p1));
             var p2State = h.GetPlayerState(p1, p2);
-            Assert.True(p2State!.PropertySets.Any(s => s.Cards.Any(c => c.Id == targetCard.Id)));
+            Assert.Contains(p2State!.PropertySets, s => s.Cards.Any(c => c.Id == targetCard.Id));
         }
 
         [Fact]
@@ -67,7 +67,7 @@ namespace JeffopolyDeal.Tests
             // Sly Deal should have succeeded — P1 gets the card
             Assert.Equal(GamePhase.Play, h.GetPhase(p1));
             var p1State = h.GetPlayerState(p1, p1);
-            Assert.True(p1State!.PropertySets.Any(s => s.Cards.Any(c => c.Id == targetCard.Id)));
+            Assert.Contains(p1State!.PropertySets, s => s.Cards.Any(c => c.Id == targetCard.Id));
         }
 
         [Fact]
@@ -102,7 +102,7 @@ namespace JeffopolyDeal.Tests
             // P2 won the chain — keeps their property
             Assert.Equal(GamePhase.Play, h.GetPhase(p1));
             var p2State = h.GetPlayerState(p1, p2);
-            Assert.True(p2State!.PropertySets.Any(s => s.Cards.Any(c => c.Id == targetCard.Id)));
+            Assert.Contains(p2State!.PropertySets, s => s.Cards.Any(c => c.Id == targetCard.Id));
         }
 
         [Fact]

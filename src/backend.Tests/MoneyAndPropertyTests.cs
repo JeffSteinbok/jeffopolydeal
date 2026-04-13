@@ -35,7 +35,7 @@ namespace JeffopolyDeal.Tests
 
             await h.PlayCardAsync(p1, prop.Id, new PlayCardRequest());
             var ps = h.GetPlayerState(p1, p1);
-            Assert.True(ps!.PropertySets.Any(s => s.Cards.Any(c => c.Id == prop.Id)));
+            Assert.Contains(ps!.PropertySets, s => s.Cards.Any(c => c.Id == prop.Id));
         }
 
         [Fact]

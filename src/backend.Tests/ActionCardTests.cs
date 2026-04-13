@@ -104,7 +104,7 @@ namespace JeffopolyDeal.Tests
             // Card should now be in P1's property area
             Assert.Equal(GamePhase.Play, h.GetPhase(p1));
             var p1State = h.GetPlayerState(p1, p1);
-            Assert.True(p1State!.PropertySets.Any(s => s.Cards.Any(c => c.Id == targetCard.Id)));
+            Assert.Contains(p1State!.PropertySets, s => s.Cards.Any(c => c.Id == targetCard.Id));
         }
 
         [Fact]
@@ -157,8 +157,8 @@ namespace JeffopolyDeal.Tests
             // P1 should have green card, P2 should have red card
             var p1State = h.GetPlayerState(p1, p1);
             var p2State = h.GetPlayerState(p1, p2);
-            Assert.True(p1State!.PropertySets.Any(s => s.Cards.Any(c => c.Id == p2Card.Id)));
-            Assert.True(p2State!.PropertySets.Any(s => s.Cards.Any(c => c.Id == p1Card.Id)));
+            Assert.Contains(p1State!.PropertySets, s => s.Cards.Any(c => c.Id == p2Card.Id));
+            Assert.Contains(p2State!.PropertySets, s => s.Cards.Any(c => c.Id == p1Card.Id));
         }
 
         [Fact]

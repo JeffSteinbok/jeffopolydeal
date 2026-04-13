@@ -42,7 +42,7 @@ namespace JeffopolyDeal.Tests
 
             // Property should be in P1's property area, NOT bank
             var p1State = h.GetPlayerState(p1, p1);
-            Assert.True(p1State!.PropertySets.Any(s => s.Cards.Any(c => c.Id == propCard.Id)));
+            Assert.Contains(p1State!.PropertySets, s => s.Cards.Any(c => c.Id == propCard.Id));
             Assert.DoesNotContain(p1State.Bank, c => c.Id == propCard.Id);
         }
 
@@ -84,7 +84,7 @@ namespace JeffopolyDeal.Tests
 
             var p1State = h.GetPlayerState(p1, p1);
             Assert.Contains(p1State!.Bank, c => c.Id == bankCard.Id);
-            Assert.True(p1State.PropertySets.Any(s => s.Cards.Any(c => c.Id == propCard.Id)));
+            Assert.Contains(p1State.PropertySets, s => s.Cards.Any(c => c.Id == propCard.Id));
         }
 
         [Fact]
