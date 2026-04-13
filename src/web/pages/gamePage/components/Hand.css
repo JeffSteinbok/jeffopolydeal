@@ -1,0 +1,24 @@
+.hand {
+    background: #0f3460;
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.hand-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #aaa;
+    margin-bottom: 8px;
+}
+
+.hand-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+}
+
+.hand-empty {
+    color: #555;
+    font-style: italic;
+}

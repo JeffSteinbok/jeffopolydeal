@@ -1,0 +1,72 @@
+.card {
+    width: 100px;
+    height: 140px;
+    border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    position: relative;
+    user-select: none;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.card-small {
+    width: 70px;
+    height: 98px;
+    font-size: 0.6rem;
+    padding: 4px;
+}
+
+.card-clickable {
+    cursor: pointer;
+}
+
+.card-clickable:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+}
+
+.card-selected {
+    border-color: #e94560;
+    box-shadow: 0 0 12px rgba(233, 69, 96, 0.6);
+    transform: translateY(-8px);
+}
+
+.card-value {
+    font-weight: 800;
+    font-size: 1em;
+    text-align: right;
+}
+
+.card-name {
+    font-weight: 700;
+    font-size: 1.1em;
+    text-align: center;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.card-alt {
+    font-size: 0.65em;
+    text-align: center;
+    opacity: 0.8;
+}
+
+.card-type {
+    font-size: 0.6em;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    opacity: 0.7;
+}
+
+.card-money { background: #2d6a4f; }
+.card-action { background: #b8860b; }
+.card-rent { background: #4a1a6b; }

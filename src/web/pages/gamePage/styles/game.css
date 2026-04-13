@@ -1,0 +1,132 @@
+.gamePage {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    gap: 8px;
+}
+
+/* Lobby */
+.lobby {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 20px;
+}
+
+.gameCodeDisplay {
+    font-size: 1.2rem;
+    color: #aaa;
+}
+
+.gameCodeDisplay .code {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #e94560;
+    letter-spacing: 0.15em;
+}
+
+.playerList {
+    background: #16213e;
+    border-radius: 8px;
+    padding: 20px;
+    min-width: 200px;
+}
+
+.playerList h3 {
+    margin-bottom: 12px;
+    color: #aaa;
+}
+
+.playerName {
+    padding: 6px 0;
+    border-bottom: 1px solid #0f3460;
+}
+
+.waitingText {
+    color: #888;
+    font-style: italic;
+}
+
+/* Game Over */
+.gameOver {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 20px;
+}
+
+.winnerName {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #e94560;
+}
+
+/* Game Header */
+.gameHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    background: #16213e;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.gameCodeSmall {
+    color: #888;
+    font-family: monospace;
+}
+
+.turnInfo {
+    font-weight: 600;
+    color: #e94560;
+}
+
+.deckInfo {
+    color: #888;
+}
+
+/* Board Areas */
+.otherPlayersArea {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.myArea {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.actionBar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 8px;
+}
+
+.discardHint {
+    color: #e94560;
+    font-weight: 600;
+}
+
+.loading, .errorMessage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-size: 1.3rem;
+}
+
+.errorMessage {
+    color: #e94560;
+}

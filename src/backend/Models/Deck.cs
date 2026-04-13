@@ -1,0 +1,218 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace JeffopolyDeal.Models
+{
+    /// <summary>
+    /// Builds and manages the 106-card playable deck (110 minus 4 rule cards).
+    /// </summary>
+    public class Deck
+    {
+        private readonly List<Card> _drawPile = new();
+        private readonly List<Card> _discardPile = new();
+        private readonly Random _rng = new();
+        private int _nextId = 1;
+
+        public int DrawPileCount => _drawPile.Count;
+        public int DiscardPileCount => _discardPile.Count;
+        public Card? TopDiscard => _discardPile.Count > 0 ? _discardPile[^1] : null;
+
+        public Deck()
+        {
+            BuildDeck();
+            Shuffle();
+        }
+
+        public List<Card> Draw(int count)
+        {
+            var drawn = new List<Card>();
+            for (int i = 0; i < count; i++)
+            {
+                if (_drawPile.Count == 0)
+                {
+                    ReshuffleDiscard();
+                    if (_drawPile.Count == 0)
+                        break; // No cards left anywhere
+                }
+                var card = _drawPile[^1];
+                _drawPile.RemoveAt(_drawPile.Count - 1);
+                drawn.Add(card);
+            }
+            return drawn;
+        }
+
+        public void Discard(Card card)
+        {
+            _discardPile.Add(card);
+        }
+
+        public void Shuffle()
+        {
+            // Fisher-Yates shuffle
+            for (int i = _drawPile.Count - 1; i > 0; i--)
+            {
+                int j = _rng.Next(i + 1);
+                (_drawPile[i], _drawPile[j]) = (_drawPile[j], _drawPile[i]);
+            }
+        }
+
+        private void ReshuffleDiscard()
+        {
+            _drawPile.AddRange(_discardPile);
+            _discardPile.Clear();
+            Shuffle();
+        }
+
+        private void BuildDeck()
+        {
+            // Money cards (20)
+            AddMoney(1, 6);
+            AddMoney(2, 5);
+            AddMoney(3, 3);
+            AddMoney(4, 3);
+            AddMoney(5, 2);
+            AddMoney(10, 1);
+
+            // Property cards (28)
+            AddProperty(PropertyColor.Brown, "Mediterranean Avenue", 2);
+            AddProperty(PropertyColor.LightBlue, "Connecticut Avenue", 3);
+            AddProperty(PropertyColor.Pink, "Virginia Avenue", 3);
+            AddProperty(PropertyColor.Orange, "St. James Place", 3);
+            AddProperty(PropertyColor.Red, "Kentucky Avenue", 3);
+            AddProperty(PropertyColor.Yellow, "Ventnor Avenue", 3);
+            AddProperty(PropertyColor.Green, "Pacific Avenue", 3);
+            AddProperty(PropertyColor.DarkBlue, "Park Place", 2);
+            AddProperty(PropertyColor.Railroad, "Railroad", 4);
+            AddProperty(PropertyColor.Utility, "Utility", 2);
+
+            // Property wildcards (11)
+            AddPropertyWildcard(PropertyColor.DarkBlue, PropertyColor.Green, 4, 1);
+            AddPropertyWildcard(PropertyColor.Green, PropertyColor.Railroad, 4, 1);
+            AddPropertyWildcard(PropertyColor.Utility, PropertyColor.Railroad, 2, 1);
+            AddPropertyWildcard(PropertyColor.LightBlue, PropertyColor.Railroad, 4, 1);
+            AddPropertyWildcard(PropertyColor.LightBlue, PropertyColor.Brown, 1, 1);
+            AddPropertyWildcard(PropertyColor.Pink, PropertyColor.Orange, 2, 2);
+            AddPropertyWildcard(PropertyColor.Red, PropertyColor.Yellow, 3, 2);
+            // Multi-color wildcards (no monetary value)
+            for (int i = 0; i < 2; i++)
+            {
+                _drawPile.Add(new Card
+                {
+                    Id = _nextId++,
+                    CardType = CardType.PropertyWildcard,
+                    MoneyValue = 0,
+                    Name = "Multi-color Wildcard",
+                    IsMulticolorWild = true,
+                });
+            }
+
+            // Rent cards (13)
+            AddRent(new[] { PropertyColor.DarkBlue, PropertyColor.Green }, 2);
+            AddRent(new[] { PropertyColor.Red, PropertyColor.Yellow }, 2);
+            AddRent(new[] { PropertyColor.Pink, PropertyColor.Orange }, 2);
+            AddRent(new[] { PropertyColor.LightBlue, PropertyColor.Brown }, 2);
+            AddRent(new[] { PropertyColor.Railroad, PropertyColor.Utility }, 2);
+            // Wild rent (any color, targets one player)
+            for (int i = 0; i < 3; i++)
+            {
+                _drawPile.Add(new Card
+                {
+                    Id = _nextId++,
+                    CardType = CardType.Rent,
+                    MoneyValue = 3,
+                    Name = "Wild Rent",
+                    IsWildRent = true,
+                });
+            }
+
+            // Action cards (34)
+            AddAction(ActionType.PassGo, "Pass Go", 1, 10);
+            AddAction(ActionType.DebtCollector, "Debt Collector", 3, 3);
+            AddAction(ActionType.ItsMyBirthday, "It's My Birthday", 2, 3);
+            AddAction(ActionType.SlyDeal, "Sly Deal", 3, 3);
+            AddAction(ActionType.ForceDeal, "Force Deal", 3, 3);
+            AddAction(ActionType.DealBreaker, "Deal Breaker", 5, 2);
+            AddAction(ActionType.JustSayNo, "Just Say No", 4, 3);
+            AddAction(ActionType.DoubleTheRent, "Double the Rent", 1, 2);
+            AddAction(ActionType.House, "House", 3, 3);
+            AddAction(ActionType.Hotel, "Hotel", 4, 2);
+        }
+
+        private void AddMoney(int value, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                _drawPile.Add(new Card
+                {
+                    Id = _nextId++,
+                    CardType = CardType.Money,
+                    MoneyValue = value,
+                    Name = $"{value}M",
+                });
+            }
+        }
+
+        private void AddProperty(PropertyColor color, string name, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                _drawPile.Add(new Card
+                {
+                    Id = _nextId++,
+                    CardType = CardType.Property,
+                    MoneyValue = 0,
+                    Name = name,
+                    Color = color,
+                });
+            }
+        }
+
+        private void AddPropertyWildcard(PropertyColor color1, PropertyColor color2, int moneyValue, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                _drawPile.Add(new Card
+                {
+                    Id = _nextId++,
+                    CardType = CardType.PropertyWildcard,
+                    MoneyValue = moneyValue,
+                    Name = $"{color1}/{color2} Wildcard",
+                    Color = color1,
+                    AltColor = color2,
+                    ActiveColor = color1,
+                });
+            }
+        }
+
+        private void AddRent(PropertyColor[] colors, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                _drawPile.Add(new Card
+                {
+                    Id = _nextId++,
+                    CardType = CardType.Rent,
+                    MoneyValue = 1,
+                    Name = $"{colors[0]}/{colors[1]} Rent",
+                    RentColors = colors.ToList(),
+                });
+            }
+        }
+
+        private void AddAction(ActionType actionType, string name, int moneyValue, int count)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                _drawPile.Add(new Card
+                {
+                    Id = _nextId++,
+                    CardType = CardType.Action,
+                    MoneyValue = moneyValue,
+                    Name = name,
+                    ActionKind = actionType,
+                });
+            }
+        }
+    }
+}

@@ -1,0 +1,73 @@
+.playerBoard {
+    background: #16213e;
+    border-radius: 8px;
+    padding: 10px;
+    min-width: 250px;
+}
+
+.playerBoard-me {
+    border: 2px solid #0f3460;
+}
+
+.playerBoard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #0f3460;
+}
+
+.playerBoard-name {
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.playerBoard-cards {
+    color: #aaa;
+    font-size: 0.85rem;
+}
+
+.playerBoard-sets {
+    color: #e94560;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.playerBoard-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.section-label {
+    font-size: 0.8rem;
+    color: #aaa;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+
+.cardRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.propertySet {
+    margin-bottom: 6px;
+}
+
+.propertySet-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    display: inline-block;
+}
+
+.emptyHint {
+    color: #555;
+    font-style: italic;
+    font-size: 0.8rem;
+}

@@ -1,0 +1,54 @@
+.startPage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+}
+
+.startPageContent {
+    text-align: center;
+    padding: 40px;
+}
+
+.title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: #e94560;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: #aaa;
+    margin-bottom: 40px;
+}
+
+.menuButtons {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+}
+
+.menuButton {
+    width: 240px;
+    padding: 16px 32px;
+    font-size: 1.2rem;
+}
+
+.formSection {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.formSection input {
+    width: 100%;
+    text-align: center;
+    font-size: 1.1rem;
+}
