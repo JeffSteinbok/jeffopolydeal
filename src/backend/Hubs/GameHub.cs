@@ -36,17 +36,38 @@ namespace JeffopolyDeal.Hubs
             }
         }
 
-        public async Task JoinGame(string gameCode, string playerName)
+        public async Task JoinGame(string gameCode, string playerName, string playerId)
         {
             try
             {
                 if (string.IsNullOrEmpty(gameCode)) throw new ArgumentNullException(nameof(gameCode));
                 if (string.IsNullOrEmpty(playerName)) throw new ArgumentNullException(nameof(playerName));
-                await _gameCache.JoinGameAsync(Context.ConnectionId, gameCode, playerName);
+                if (string.IsNullOrEmpty(playerId)) throw new ArgumentNullException(nameof(playerId));
+                await _gameCache.JoinGameAsync(Context.ConnectionId, gameCode, playerName, playerId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in JoinGame for {GameCode}", gameCode);
+            }
+        }
+
+        /// <summary>
+        /// Rejoin an active game after reconnection/page reload.
+        /// Returns true if successfully reconnected.
+        /// </summary>
+        public async Task<bool> RejoinGame(string gameCode, string playerName, string playerId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(gameCode)) return false;
+                if (string.IsNullOrEmpty(playerName)) return false;
+                if (string.IsNullOrEmpty(playerId)) return false;
+                return await _gameCache.RejoinGameAsync(Context.ConnectionId, gameCode, playerName, playerId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in RejoinGame for {GameCode}", gameCode);
+                return false;
             }
         }
 

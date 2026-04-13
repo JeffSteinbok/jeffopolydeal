@@ -11,17 +11,87 @@ import "./themes/dark.css";
 
 Debug.initFromUrl();
 
+const SESSION_KEY = "jeffopolydeal_session";
+
+interface SessionInfo {
+    gameCode: string;
+    playerName: string;
+    playerId: string;
+}
+
+function getPlayerId(): string {
+    let id = localStorage.getItem("jeffopolydeal_playerId");
+    if (!id) {
+        id = crypto.randomUUID();
+        localStorage.setItem("jeffopolydeal_playerId", id);
+    }
+    return id;
+}
+
+function saveSession(info: SessionInfo) {
+    localStorage.setItem(SESSION_KEY, JSON.stringify(info));
+}
+
+function loadSession(): SessionInfo | null {
+    try {
+        const raw = localStorage.getItem(SESSION_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw) as SessionInfo;
+    } catch {
+        return null;
+    }
+}
+
+function clearSession() {
+    localStorage.removeItem(SESSION_KEY);
+}
+
 function App() {
     const autoStart = Debug.isFlagSet(DebugFlags.SkipLobby);
-    const [gameCode, setGameCode] = useState<string | null>(autoStart ? "" : null);
-    const [playerName, setPlayerName] = useState<string>(autoStart ? "Player1" : "");
-    const [inGame, setInGame] = useState(autoStart);
+    const savedSession = loadSession();
+
+    const [gameCode, setGameCode] = useState<string | null>(
+        autoStart ? "" : savedSession?.gameCode ?? null
+    );
+    const [playerName, setPlayerName] = useState<string>(
+        autoStart ? "Player1" : savedSession?.playerName ?? ""
+    );
+    const [playerId] = useState<string>(getPlayerId());
+    const [inGame, setInGame] = useState(autoStart || !!savedSession);
+    const [isRejoin, setIsRejoin] = useState(!!savedSession && !autoStart);
+
+    const handleLeave = () => {
+        clearSession();
+        setInGame(false);
+        setGameCode(null);
+        setIsRejoin(false);
+    };
+
+    const handleJoin = (code: string, name: string) => {
+        setGameCode(code);
+        setPlayerName(name);
+        setInGame(true);
+        setIsRejoin(false);
+        saveSession({ gameCode: code, playerName: name, playerId });
+    };
 
     if (inGame) {
-        return <GamePage gameCode={gameCode ?? ""} playerName={playerName} onLeave={() => { setInGame(false); setGameCode(null); }} />;
+        return (
+            <GamePage
+                gameCode={gameCode ?? ""}
+                playerName={playerName}
+                playerId={playerId}
+                isRejoin={isRejoin}
+                onGameCodeResolved={(code) => {
+                    setGameCode(code);
+                    saveSession({ gameCode: code, playerName, playerId });
+                }}
+                onLeave={handleLeave}
+            />
+        );
     }
 
-    return <StartPage onJoinGame={(code, name) => { setGameCode(code); setPlayerName(name); setInGame(true); }} />;
+    return <StartPage onJoinGame={handleJoin} />;
 }
 
 const root = document.getElementById("root")!;

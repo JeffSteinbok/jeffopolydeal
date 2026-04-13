@@ -14,10 +14,13 @@ import "./styles/game.css";
 interface GamePageProps {
     gameCode: string;
     playerName: string;
+    playerId: string;
+    isRejoin?: boolean;
+    onGameCodeResolved?: (code: string) => void;
     onLeave: () => void;
 }
 
-export function GamePage({ gameCode, playerName, onLeave }: GamePageProps) {
+export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeResolved, onLeave }: GamePageProps) {
     const [state, setState] = useState<GameState | null>(null);
     const [error, setError] = useState<string | null>(null);
     const clientRef = useRef<GameSignalRClient | null>(null);
@@ -34,11 +37,20 @@ export function GamePage({ gameCode, playerName, onLeave }: GamePageProps) {
             try {
                 await client.start();
 
-                if (gameCode === "") {
+                if (isRejoin && gameCode) {
+                    // Try to rejoin existing game
+                    const success = await client.rejoinGame(gameCode, playerName, playerId);
+                    if (!success) {
+                        Logger.warn("Rejoin failed — game may have ended");
+                        onLeave();
+                        return;
+                    }
+                } else if (gameCode === "") {
                     // Creating a new game
                     const useFixedCode = Debug.isFlagSet(DebugFlags.FixedGameCode) || Debug.isFlagSet(DebugFlags.SkipLobby);
                     const newCode = await client.createGame(useFixedCode ? "TEST" : undefined);
-                    await client.joinGame(newCode, playerName);
+                    await client.joinGame(newCode, playerName, playerId);
+                    onGameCodeResolved?.(newCode);
 
                     // Auto-start when SkipLobby is set
                     if (Debug.isFlagSet(DebugFlags.SkipLobby)) {
@@ -46,7 +58,7 @@ export function GamePage({ gameCode, playerName, onLeave }: GamePageProps) {
                         await client.startGame(newCode, true, populate);
                     }
                 } else {
-                    await client.joinGame(gameCode, playerName);
+                    await client.joinGame(gameCode, playerName, playerId);
                 }
             } catch (err) {
                 Logger.error("Connection error:", err);
@@ -62,10 +74,10 @@ export function GamePage({ gameCode, playerName, onLeave }: GamePageProps) {
     }, []);
 
     const client = clientRef.current;
-    const myConnectionId = client?.connectionId;
-    const me = state?.players.find((p) => p.connectionId === myConnectionId);
-    const isMyTurn = state && me && state.players[state.currentPlayerIndex]?.connectionId === myConnectionId;
-    const isCreator = state && me && state.players[0]?.connectionId === myConnectionId;
+    const me = state?.players.find((p) => p.playerId === playerId);
+    const myConnectionId = me?.connectionId;
+    const isMyTurn = state && me && state.players[state.currentPlayerIndex]?.playerId === playerId;
+    const isCreator = state && me && state.players[0]?.playerId === playerId;
 
     if (error) {
         return (
@@ -128,7 +140,7 @@ export function GamePage({ gameCode, playerName, onLeave }: GamePageProps) {
     }
 
     // Active Game
-    const otherPlayers = state.players.filter((p) => p.connectionId !== myConnectionId);
+    const otherPlayers = state.players.filter((p) => p.playerId !== playerId);
     const needsResponse = state.phase === "AwaitingResponse" &&
         state.pendingAction?.targetPlayerIds.includes(myConnectionId ?? "");
 
@@ -207,6 +219,7 @@ export function GamePage({ gameCode, playerName, onLeave }: GamePageProps) {
                 <ActionModal
                     pendingAction={state.pendingAction}
                     myState={me}
+                    paymentError={state.paymentError}
                     onRespond={(response) => client?.respondToAction(response)}
                 />
             )}

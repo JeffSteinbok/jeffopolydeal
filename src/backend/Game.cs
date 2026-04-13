@@ -28,6 +28,8 @@ namespace JeffopolyDeal
         private GamePhase _phase = GamePhase.Lobby;
         private PendingAction? _pendingAction;
         private string? _winnerId;
+        private string? _lastPaymentError;
+        private string? _lastPaymentErrorConnectionId;
 
         public Game(IHubContext<GameHub> hubContext, string gameCode)
         {
@@ -43,7 +45,7 @@ namespace JeffopolyDeal
 
         #region Connection Management
 
-        public async Task ConnectPlayerAsync(string connectionId, string playerName)
+        public async Task ConnectPlayerAsync(string connectionId, string playerName, string playerId)
         {
             lock (_lock)
             {
@@ -57,6 +59,7 @@ namespace JeffopolyDeal
 
                 _players.Add(new Player
                 {
+                    PlayerId = playerId,
                     ConnectionId = connectionId,
                     Name = playerName
                 });
@@ -71,7 +74,7 @@ namespace JeffopolyDeal
             lock (_lock)
             {
                 _connections.Remove(connectionId);
-                // Don't remove from _players list during active game — they may reconnect
+                // Only remove from player list during lobby — active game players may reconnect
                 if (_phase == GamePhase.Lobby)
                 {
                     _players.RemoveAll(p => p.ConnectionId == connectionId);
@@ -80,26 +83,41 @@ namespace JeffopolyDeal
             await BroadcastGameStateAsync();
         }
 
-        public async Task ReconnectPlayerAsync(string oldConnectionId, string newConnectionId, string playerName)
+        /// <summary>Whether the game can be safely deleted (no connections AND in lobby or game over).</summary>
+        public bool CanBeDeleted
         {
+            get { lock (_lock) { return _connections.Count == 0 && (_phase == GamePhase.Lobby || _phase == GamePhase.GameOver); } }
+        }
+
+        public async Task<bool> ReconnectPlayerAsync(string newConnectionId, string playerName, string playerId)
+        {
+            bool found = false;
             lock (_lock)
             {
-                _connections.Remove(oldConnectionId);
-                _connections[newConnectionId] = true;
-
-                var player = _players.FirstOrDefault(p => p.ConnectionId == oldConnectionId);
+                var player = _players.FirstOrDefault(p => p.PlayerId == playerId);
                 if (player != null)
                 {
+                    var oldConnectionId = player.ConnectionId;
+                    _connections.Remove(oldConnectionId);
+                    _connections[newConnectionId] = true;
                     player.ConnectionId = newConnectionId;
+                    found = true;
                 }
                 else if (_phase == GamePhase.Lobby)
                 {
-                    _players.Add(new Player { ConnectionId = newConnectionId, Name = playerName });
+                    // Player not found — join as new player in lobby
+                    _connections[newConnectionId] = true;
+                    _players.Add(new Player { PlayerId = playerId, ConnectionId = newConnectionId, Name = playerName });
+                    found = true;
                 }
             }
 
-            await _hubContext.Groups.AddToGroupAsync(newConnectionId, GameCode);
-            await BroadcastGameStateAsync();
+            if (found)
+            {
+                await _hubContext.Groups.AddToGroupAsync(newConnectionId, GameCode);
+                await BroadcastGameStateAsync();
+            }
+            return found;
         }
 
         #endregion
@@ -145,7 +163,7 @@ namespace JeffopolyDeal
                 {
                     var name = botNames[i % botNames.Length];
                     var botId = $"bot-{Guid.NewGuid():N}";
-                    _players.Add(new Player { ConnectionId = botId, Name = name });
+                    _players.Add(new Player { PlayerId = botId, ConnectionId = botId, Name = name });
                     _connections[botId] = true;
                 }
             }
@@ -628,6 +646,40 @@ namespace JeffopolyDeal
 
         #region Response Processing
 
+        /// <summary>
+        /// Validates that the payment meets requirements. Returns null if valid, or error message if invalid.
+        /// Rules: If player can afford the full amount, they must pay at least that much.
+        /// If player can't afford it, they must pay everything they have.
+        /// </summary>
+        private string? ValidatePayment(Player payer, List<int> cardIds, int amountOwed)
+        {
+            var payableCards = payer.GetPayableCards();
+            int totalAssets = payableCards.Sum(c => c.MoneyValue);
+            int selectedTotal = 0;
+
+            foreach (var id in cardIds)
+            {
+                var card = payableCards.FirstOrDefault(c => c.Id == id);
+                if (card == null) return "Invalid card selected.";
+                selectedTotal += card.MoneyValue;
+            }
+
+            if (totalAssets >= amountOwed)
+            {
+                // Player can afford it — must pay at least the required amount
+                if (selectedTotal < amountOwed)
+                    return $"You must pay at least M{amountOwed}. Selected: M{selectedTotal}.";
+            }
+            else
+            {
+                // Player can't afford it — must pay everything
+                if (cardIds.Count < payableCards.Count)
+                    return "You can't afford the full amount — you must pay everything you have.";
+            }
+
+            return null; // Valid
+        }
+
         private void ProcessResponse(string connectionId, ActionResponse response)
         {
             if (_pendingAction == null) return;
@@ -685,11 +737,41 @@ namespace JeffopolyDeal
             {
                 if (response.PaymentCardIds != null && response.PaymentCardIds.Count > 0)
                 {
+                    // Validate payment amount
+                    var payer = _players.FirstOrDefault(p => p.ConnectionId == connectionId);
+                    if (payer != null)
+                    {
+                        var error = ValidatePayment(payer, response.PaymentCardIds, _pendingAction.Amount);
+                        if (error != null)
+                        {
+                            // Invalid payment — store rejection reason (will be sent via state broadcast)
+                            _lastPaymentError = error;
+                            _lastPaymentErrorConnectionId = connectionId;
+                            return; // Don't process, let client retry
+                        }
+                    }
+                    _lastPaymentError = null;
+                    _lastPaymentErrorConnectionId = null;
                     ProcessPayment(connectionId, response.PaymentCardIds);
                 }
                 else
                 {
-                    // Player has nothing to pay with, auto-complete
+                    // No cards selected — check if player truly has nothing
+                    var payer = _players.FirstOrDefault(p => p.ConnectionId == connectionId);
+                    if (payer != null)
+                    {
+                        var payableCards = payer.GetPayableCards();
+                        if (payableCards.Count > 0)
+                        {
+                            // Player has assets but paid nothing — reject
+                            _lastPaymentError = "You must select cards to pay with.";
+                            _lastPaymentErrorConnectionId = connectionId;
+                            return;
+                        }
+                    }
+                    // Player truly has nothing to pay with
+                    _lastPaymentError = null;
+                    _lastPaymentErrorConnectionId = null;
                     _pendingAction.TargetPlayerIds.Remove(connectionId);
                 }
             }
@@ -956,12 +1038,14 @@ namespace JeffopolyDeal
                 PendingAction = _pendingAction,
                 WinnerId = _winnerId,
                 WinnerName = _winnerId != null ? _players.FirstOrDefault(p => p.ConnectionId == _winnerId)?.Name : null,
+                PaymentError = forConnectionId == _lastPaymentErrorConnectionId ? _lastPaymentError : null,
             };
 
             foreach (var player in _players)
             {
                 var ps = new PlayerState
                 {
+                    PlayerId = player.PlayerId,
                     ConnectionId = player.ConnectionId,
                     Name = player.Name,
                     HandCount = player.Hand.Count,

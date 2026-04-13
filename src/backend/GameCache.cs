@@ -43,14 +43,28 @@ namespace JeffopolyDeal
             return gameCode;
         }
 
-        public async Task JoinGameAsync(string connectionId, string gameCode, string playerName)
+        public async Task JoinGameAsync(string connectionId, string gameCode, string playerName, string playerId)
         {
             gameCode = gameCode.ToUpperInvariant();
             if (!_games.TryGetValue(gameCode, out var game))
                 return;
 
             _connectionToGame[connectionId] = gameCode;
-            await game.ConnectPlayerAsync(connectionId, playerName);
+            await game.ConnectPlayerAsync(connectionId, playerName, playerId);
+        }
+
+        /// <summary>
+        /// Reconnect a player to an active game using their stable PlayerId.
+        /// Returns true if the player was found and reconnected.
+        /// </summary>
+        public async Task<bool> RejoinGameAsync(string connectionId, string gameCode, string playerName, string playerId)
+        {
+            gameCode = gameCode.ToUpperInvariant();
+            if (!_games.TryGetValue(gameCode, out var game))
+                return false;
+
+            _connectionToGame[connectionId] = gameCode;
+            return await game.ReconnectPlayerAsync(connectionId, playerName, playerId);
         }
 
         public async Task StartGameAsync(string gameCode, bool allowSinglePlayer = false, bool populateBoards = false)
@@ -110,7 +124,8 @@ namespace JeffopolyDeal
             if (_games.TryGetValue(gameCode, out var game))
             {
                 await game.RemovePlayerAsync(connectionId);
-                if (game.IsEmpty)
+                // Only delete the game if it's safe (lobby or game over with no connections)
+                if (game.CanBeDeleted)
                 {
                     _games.TryRemove(gameCode, out _);
                 }

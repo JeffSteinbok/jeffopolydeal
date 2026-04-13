@@ -44,6 +44,7 @@ export interface PropertySetState {
 }
 
 export interface PlayerState {
+    playerId: string;
     connectionId: string;
     name: string;
     handCount: number;
@@ -81,6 +82,7 @@ export interface GameState {
     pendingAction?: PendingAction;
     winnerId?: string;
     winnerName?: string;
+    paymentError?: string;
 }
 
 export interface PlayCardRequest {

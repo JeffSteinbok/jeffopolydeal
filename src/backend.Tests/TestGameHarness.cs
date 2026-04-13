@@ -42,7 +42,8 @@ namespace JeffopolyDeal.Tests
         public async Task<string> AddPlayerAsync(string name)
         {
             var connectionId = $"conn-{name}";
-            await _game.ConnectPlayerAsync(connectionId, name);
+            var playerId = $"player-{name}";
+            await _game.ConnectPlayerAsync(connectionId, name, playerId);
             return connectionId;
         }
 

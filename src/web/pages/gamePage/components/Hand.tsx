@@ -21,6 +21,13 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, onPlayC
     const dragOverIndex = useRef<number | null>(null);
     const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
+    // Pointer-based drag state for mobile
+    const pointerDragging = useRef(false);
+    const pointerStartPos = useRef<{ x: number; y: number } | null>(null);
+    const dragThreshold = 8; // px before drag starts
+    const draggedElement = useRef<HTMLElement | null>(null);
+    const dragClone = useRef<HTMLElement | null>(null);
+
     // Sync orderedCards when server sends new cards (added/removed),
     // but preserve user's ordering for cards that still exist.
     useEffect(() => {
@@ -42,6 +49,7 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, onPlayC
 
     const handleCardClick = (card: Card) => {
         if (!canPlay) return;
+        if (pointerDragging.current) return; // Suppress click after drag
 
         if (phase === "Discard") {
             onDiscardCard(card.id);
@@ -64,6 +72,7 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, onPlayC
         setSelectedCard(card);
     };
 
+    // HTML5 drag handlers (desktop)
     const handleDragStart = (idx: number) => {
         dragIndex.current = idx;
     };
@@ -96,6 +105,82 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, onPlayC
         setDragOverIdx(null);
     };
 
+    // Pointer event handlers (mobile + desktop unified)
+    const handlePointerDown = (e: React.PointerEvent, idx: number) => {
+        if (e.pointerType === "mouse") return; // Let HTML5 drag handle mouse
+        pointerStartPos.current = { x: e.clientX, y: e.clientY };
+        dragIndex.current = idx;
+        pointerDragging.current = false;
+        draggedElement.current = e.currentTarget as HTMLElement;
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    };
+
+    const handlePointerMove = (e: React.PointerEvent) => {
+        if (e.pointerType === "mouse" || !pointerStartPos.current) return;
+        const dx = e.clientX - pointerStartPos.current.x;
+        const dy = e.clientY - pointerStartPos.current.y;
+
+        if (!pointerDragging.current && (Math.abs(dx) > dragThreshold || Math.abs(dy) > dragThreshold)) {
+            pointerDragging.current = true;
+            // Create visual drag clone
+            if (draggedElement.current && !dragClone.current) {
+                const clone = draggedElement.current.cloneNode(true) as HTMLElement;
+                clone.style.position = "fixed";
+                clone.style.pointerEvents = "none";
+                clone.style.zIndex = "10000";
+                clone.style.opacity = "0.8";
+                clone.style.transform = "scale(1.05)";
+                document.body.appendChild(clone);
+                dragClone.current = clone;
+                draggedElement.current.style.opacity = "0.3";
+            }
+        }
+
+        if (pointerDragging.current && dragClone.current) {
+            dragClone.current.style.left = `${e.clientX - 50}px`;
+            dragClone.current.style.top = `${e.clientY - 70}px`;
+
+            // Find drop target
+            if (dragClone.current) dragClone.current.style.display = "none";
+            const elem = document.elementFromPoint(e.clientX, e.clientY);
+            if (dragClone.current) dragClone.current.style.display = "";
+
+            const wrapper = elem?.closest(".hand-card-wrapper");
+            if (wrapper) {
+                const idx = Array.from(wrapper.parentElement?.children ?? []).indexOf(wrapper);
+                if (idx >= 0) {
+                    dragOverIndex.current = idx;
+                    setDragOverIdx(idx);
+                }
+            }
+        }
+    };
+
+    const handlePointerUp = (e: React.PointerEvent) => {
+        if (e.pointerType === "mouse") return;
+
+        // Clean up clone
+        if (dragClone.current) {
+            document.body.removeChild(dragClone.current);
+            dragClone.current = null;
+        }
+        if (draggedElement.current) {
+            draggedElement.current.style.opacity = "";
+        }
+
+        if (pointerDragging.current) {
+            handleDrop();
+            // Prevent the upcoming click
+            setTimeout(() => { pointerDragging.current = false; }, 50);
+        } else {
+            pointerDragging.current = false;
+        }
+
+        pointerStartPos.current = null;
+        draggedElement.current = null;
+        setDragOverIdx(null);
+    };
+
     const myState = gameState.players.find(p => p.connectionId === myConnectionId);
 
     return (
@@ -106,11 +191,15 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, onPlayC
                     <div
                         key={card.id}
                         className={`hand-card-wrapper${dragOverIdx === idx ? " drag-over" : ""}`}
+                        style={{ touchAction: "none" }}
                         draggable
                         onDragStart={() => handleDragStart(idx)}
                         onDragOver={(e) => handleDragOver(e, idx)}
                         onDrop={handleDrop}
                         onDragEnd={handleDragEnd}
+                        onPointerDown={(e) => handlePointerDown(e, idx)}
+                        onPointerMove={handlePointerMove}
+                        onPointerUp={handlePointerUp}
                     >
                         <CardComponent
                             card={card}

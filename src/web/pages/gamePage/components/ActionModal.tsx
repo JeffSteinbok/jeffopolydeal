@@ -6,10 +6,11 @@ import "./ActionModal.css";
 interface ActionModalProps {
     pendingAction: PendingAction;
     myState: PlayerState;
+    paymentError?: string;
     onRespond: (response: ActionResponse) => void;
 }
 
-export function ActionModal({ pendingAction, myState, onRespond }: ActionModalProps) {
+export function ActionModal({ pendingAction, myState, paymentError, onRespond }: ActionModalProps) {
     const [selectedCardIds, setSelectedCardIds] = useState<number[]>([]);
 
     const hasJustSayNo = myState.hand?.some((c) => c.actionKind === "JustSayNo") ?? false;
@@ -24,6 +25,13 @@ export function ActionModal({ pendingAction, myState, onRespond }: ActionModalPr
         const card = payableCards.find((c) => c.id === id);
         return sum + (card?.moneyValue ?? 0);
     }, 0);
+
+    const totalAssets = payableCards.reduce((sum, c) => sum + (c.moneyValue ?? 0), 0);
+    const canAfford = totalAssets >= pendingAction.amount;
+    // Disable pay button if: player can afford but hasn't selected enough, or has assets but selected none
+    const payDisabled = isPayment && payableCards.length > 0 && (
+        canAfford ? selectedTotal < pendingAction.amount : selectedCardIds.length < payableCards.length
+    );
 
     const toggleCard = (id: number) => {
         setSelectedCardIds((prev) =>
@@ -84,7 +92,11 @@ export function ActionModal({ pendingAction, myState, onRespond }: ActionModalPr
 
                 {isPayment && (
                     <>
-                        <p className="modalHint">Select cards to pay with (M{selectedTotal} / M{pendingAction.amount})</p>
+                        <p className="modalHint">
+                            Select cards to pay with (M{selectedTotal} / M{pendingAction.amount})
+                            {!canAfford && <span className="modalWarning"> — You can't afford this, you must pay everything!</span>}
+                        </p>
+                        {paymentError && <p className="modalError">{paymentError}</p>}
                         <div className="paymentCards">
                             {payableCards.map((card) => (
                                 <CardComponent
@@ -104,6 +116,7 @@ export function ActionModal({ pendingAction, myState, onRespond }: ActionModalPr
                             <button
                                 className="secondary"
                                 onClick={handlePay}
+                                disabled={payDisabled}
                             >
                                 {payableCards.length === 0 ? "I have nothing" : `Pay M${selectedTotal}`}
                             </button>

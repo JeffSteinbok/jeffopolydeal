@@ -60,6 +60,14 @@ interface PlayerBoardProps {
 export function PlayerBoard({ player, isMe, isMyTurn, onFlipCard, onMoveProperty }: PlayerBoardProps) {
     const canDrag = isMe && isMyTurn && !!onMoveProperty;
 
+    // Pointer drag state for mobile
+    const pointerDragCardId = React.useRef<number | null>(null);
+    const pointerStartPos = React.useRef<{ x: number; y: number } | null>(null);
+    const pointerDragging = React.useRef(false);
+    const dragClone = React.useRef<HTMLElement | null>(null);
+    const draggedElement = React.useRef<HTMLElement | null>(null);
+    const dragThreshold = 8;
+
     const handleDragStart = (e: React.DragEvent, cardId: number) => {
         e.dataTransfer.setData("cardId", String(cardId));
         e.dataTransfer.effectAllowed = "move";
@@ -77,9 +85,6 @@ export function PlayerBoard({ player, isMe, isMyTurn, onFlipCard, onMoveProperty
         e.preventDefault();
         const cardId = Number(e.dataTransfer.getData("cardId"));
         if (cardId && onMoveProperty) {
-            // targetSetId=0 means "new set", color will be determined by card
-            // For multi-color wilds going to new set, we'd need a color picker
-            // For now, pass null and let the server figure it out from the card
             const draggedCard = findCard(cardId);
             const color = draggedCard?.activeColor ?? draggedCard?.color ?? null;
             onMoveProperty(cardId, 0, color ?? null);
@@ -97,6 +102,81 @@ export function PlayerBoard({ player, isMe, isMyTurn, onFlipCard, onMoveProperty
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
+    };
+
+    // Pointer events for mobile property drag
+    const handlePropertyPointerDown = (e: React.PointerEvent, cardId: number) => {
+        if (e.pointerType === "mouse" || !canDrag) return;
+        pointerDragCardId.current = cardId;
+        pointerStartPos.current = { x: e.clientX, y: e.clientY };
+        pointerDragging.current = false;
+        draggedElement.current = e.currentTarget as HTMLElement;
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    };
+
+    const handlePropertyPointerMove = (e: React.PointerEvent) => {
+        if (e.pointerType === "mouse" || !pointerStartPos.current || !pointerDragCardId.current) return;
+        const dx = e.clientX - pointerStartPos.current.x;
+        const dy = e.clientY - pointerStartPos.current.y;
+
+        if (!pointerDragging.current && (Math.abs(dx) > dragThreshold || Math.abs(dy) > dragThreshold)) {
+            pointerDragging.current = true;
+            if (draggedElement.current && !dragClone.current) {
+                const clone = draggedElement.current.cloneNode(true) as HTMLElement;
+                clone.style.position = "fixed";
+                clone.style.pointerEvents = "none";
+                clone.style.zIndex = "10000";
+                clone.style.opacity = "0.8";
+                document.body.appendChild(clone);
+                dragClone.current = clone;
+                draggedElement.current.style.opacity = "0.3";
+            }
+        }
+
+        if (pointerDragging.current && dragClone.current) {
+            dragClone.current.style.left = `${e.clientX - 40}px`;
+            dragClone.current.style.top = `${e.clientY - 55}px`;
+        }
+    };
+
+    const handlePropertyPointerUp = (e: React.PointerEvent) => {
+        if (e.pointerType === "mouse") return;
+
+        const cardId = pointerDragCardId.current;
+        if (dragClone.current) {
+            document.body.removeChild(dragClone.current);
+            dragClone.current = null;
+        }
+        if (draggedElement.current) {
+            draggedElement.current.style.opacity = "";
+        }
+
+        if (pointerDragging.current && cardId && onMoveProperty) {
+            // Find drop target under pointer
+            const elem = document.elementFromPoint(e.clientX, e.clientY);
+            const setCol = elem?.closest(".propertySet-column");
+            const newSetEl = elem?.closest(".propertySet-new");
+            const unboundEl = elem?.closest(".unboundWilds");
+
+            if (newSetEl) {
+                const draggedCard = findCard(cardId);
+                const color = draggedCard?.activeColor ?? draggedCard?.color ?? null;
+                onMoveProperty(cardId, 0, color ?? null);
+            } else if (unboundEl) {
+                onMoveProperty(cardId, -1, null);
+            } else if (setCol) {
+                const setId = Number(setCol.getAttribute("data-set-id"));
+                const color = setCol.getAttribute("data-set-color");
+                if (setId && color) {
+                    onMoveProperty(cardId, setId, color);
+                }
+            }
+        }
+
+        pointerDragCardId.current = null;
+        pointerStartPos.current = null;
+        pointerDragging.current = false;
+        draggedElement.current = null;
     };
 
     const findCard = (cardId: number): Card | undefined => {
@@ -132,6 +212,8 @@ export function PlayerBoard({ player, isMe, isMyTurn, onFlipCard, onMoveProperty
                             <div
                                 key={set.setId}
                                 className={`propertySet-column ${canDrag ? "propertySet-column--droppable" : ""}`}
+                                data-set-id={set.setId}
+                                data-set-color={set.color}
                                 onDragOver={canDrag ? handleDragOver : undefined}
                                 onDrop={canDrag ? (e) => handleDropOnSet(e, set.setId, set.color) : undefined}
                             >
@@ -151,9 +233,12 @@ export function PlayerBoard({ player, isMe, isMyTurn, onFlipCard, onMoveProperty
                                         <div
                                             key={card.id}
                                             className="propertySet-stack-item"
-                                            style={{ marginTop: idx === 0 ? 0 : -100 }}
+                                            style={{ marginTop: idx === 0 ? 0 : -100, touchAction: canDrag ? "none" : "auto" }}
                                             draggable={canDrag}
                                             onDragStart={canDrag ? (e) => handleDragStart(e, card.id) : undefined}
+                                            onPointerDown={canDrag ? (e) => handlePropertyPointerDown(e, card.id) : undefined}
+                                            onPointerMove={canDrag ? handlePropertyPointerMove : undefined}
+                                            onPointerUp={canDrag ? handlePropertyPointerUp : undefined}
                                         >
                                             <CardComponent
                                                 card={card}
@@ -196,8 +281,12 @@ export function PlayerBoard({ player, isMe, isMyTurn, onFlipCard, onMoveProperty
                                 {(player.unboundWilds ?? []).map((card) => (
                                     <div
                                         key={card.id}
+                                        style={{ touchAction: canDrag ? "none" : "auto" }}
                                         draggable={canDrag}
                                         onDragStart={canDrag ? (e) => handleDragStart(e, card.id) : undefined}
+                                        onPointerDown={canDrag ? (e) => handlePropertyPointerDown(e, card.id) : undefined}
+                                        onPointerMove={canDrag ? handlePropertyPointerMove : undefined}
+                                        onPointerUp={canDrag ? handlePropertyPointerUp : undefined}
                                     >
                                         <CardComponent card={card} small />
                                     </div>

@@ -5,6 +5,9 @@ import { Logger } from "../../utilities/Logger";
 export class GameSignalRClient {
     private connection: signalR.HubConnection;
     private onGameStateUpdated: (state: GameState) => void;
+    private _gameCode: string = "";
+    private _playerName: string = "";
+    private _playerId: string = "";
 
     constructor(onGameStateUpdated: (state: GameState) => void) {
         this.onGameStateUpdated = onGameStateUpdated;
@@ -19,8 +22,18 @@ export class GameSignalRClient {
             this.onGameStateUpdated(state);
         });
 
-        this.connection.onreconnected(() => {
-            Logger.log("Reconnected to SignalR hub");
+        this.connection.onreconnected(async () => {
+            Logger.log("Reconnected to SignalR hub, rejoining game...");
+            if (this._gameCode && this._playerName && this._playerId) {
+                try {
+                    const success = await this.rejoinGame(this._gameCode, this._playerName, this._playerId);
+                    if (!success) {
+                        Logger.warn("Failed to rejoin game after reconnect");
+                    }
+                } catch (err) {
+                    Logger.error("Error rejoining game after reconnect:", err);
+                }
+            }
         });
 
         this.connection.onclose(() => {
@@ -46,8 +59,18 @@ export class GameSignalRClient {
         return await this.connection.invoke<string>("CreateGame", fixedCode ?? null);
     }
 
-    async joinGame(gameCode: string, playerName: string): Promise<void> {
-        await this.connection.invoke("JoinGame", gameCode, playerName);
+    async joinGame(gameCode: string, playerName: string, playerId: string): Promise<void> {
+        this._gameCode = gameCode;
+        this._playerName = playerName;
+        this._playerId = playerId;
+        await this.connection.invoke("JoinGame", gameCode, playerName, playerId);
+    }
+
+    async rejoinGame(gameCode: string, playerName: string, playerId: string): Promise<boolean> {
+        this._gameCode = gameCode;
+        this._playerName = playerName;
+        this._playerId = playerId;
+        return await this.connection.invoke<boolean>("RejoinGame", gameCode, playerName, playerId);
     }
 
     async startGame(gameCode: string, allowSinglePlayer: boolean = false, populateBoards: boolean = false): Promise<void> {

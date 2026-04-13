@@ -8,6 +8,8 @@ namespace JeffopolyDeal.Models
     /// </summary>
     public class Player
     {
+        /// <summary>Stable identity that survives reconnections. Set once at join.</summary>
+        public string PlayerId { get; set; } = "";
         public string ConnectionId { get; set; } = "";
         public string Name { get; set; } = "";
 

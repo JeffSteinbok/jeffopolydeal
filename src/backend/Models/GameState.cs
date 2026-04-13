@@ -97,6 +97,9 @@ namespace JeffopolyDeal.Models
 
         public string? WinnerId { get; set; }
         public string? WinnerName { get; set; }
+
+        /// <summary>Error message for the last payment attempt (if rejected).</summary>
+        public string? PaymentError { get; set; }
     }
 
     /// <summary>
@@ -105,6 +108,7 @@ namespace JeffopolyDeal.Models
     /// </summary>
     public class PlayerState
     {
+        public string PlayerId { get; set; } = "";
         public string ConnectionId { get; set; } = "";
         public string Name { get; set; } = "";
         public int HandCount { get; set; }
