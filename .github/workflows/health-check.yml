@@ -1,0 +1,37 @@
+name: Health Check
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"
+  workflow_run:
+    workflows: ["Deploy to Azure"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  site-availability:
+    name: Site Availability Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check deployed site
+        run: |
+          MAX_RETRIES=5
+          RETRY_DELAY=30
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Attempt $i of $MAX_RETRIES..."
+            HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" --max-time 30 https://jeffopolydeal.azurewebsites.net/) || HTTP_STATUS="000"
+            echo "HTTP Status: $HTTP_STATUS"
+            if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 400 ]; then
+              echo "Site is up!"
+              exit 0
+            fi
+            if [ "$i" -lt "$MAX_RETRIES" ]; then
+              echo "Retrying in ${RETRY_DELAY}s..."
+              sleep $RETRY_DELAY
+            fi
+          done
+          echo "::error::Site still unavailable after $MAX_RETRIES attempts (last HTTP $HTTP_STATUS)"
+          exit 1
