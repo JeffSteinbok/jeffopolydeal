@@ -1010,6 +1010,28 @@ namespace JeffopolyDeal
         }
 
         #endregion
+
+        #region Test Helpers (internal)
+
+        /// <summary>Get player by connectionId. Internal for testing.</summary>
+        internal Player? GetPlayer(string connectionId)
+        {
+            lock (_lock) { return _players.FirstOrDefault(p => p.ConnectionId == connectionId); }
+        }
+
+        /// <summary>Get internal deck for test manipulation.</summary>
+        internal Deck GetDeck() => _deck;
+
+        /// <summary>Get current phase.</summary>
+        internal GamePhase Phase { get { lock (_lock) { return _phase; } } }
+
+        /// <summary>Get plays used this turn.</summary>
+        internal int PlaysUsed { get { lock (_lock) { return _playsUsed; } } }
+
+        /// <summary>Get current pending action.</summary>
+        internal PendingAction? PendingAction { get { lock (_lock) { return _pendingAction; } } }
+
+        #endregion
     }
 
     public class DebugDeckInfo

@@ -24,6 +24,31 @@ namespace JeffopolyDeal.Models
         /// <summary>Returns a snapshot of all cards in the discard pile.</summary>
         public List<Card> GetDiscardPileSnapshot() => _discardPile.ToList();
 
+        /// <summary>Create a specific card for test injection. Internal for testing.</summary>
+        internal Card CreateCard(CardType type, int moneyValue = 0, string name = "Test Card",
+            PropertyColor? color = null, PropertyColor? altColor = null,
+            ActionType? actionKind = null, List<PropertyColor>? rentColors = null,
+            bool isWildRent = false, bool isMulticolorWild = false)
+        {
+            return new Card
+            {
+                Id = _nextId++,
+                CardType = type,
+                MoneyValue = moneyValue,
+                Name = name,
+                Color = color,
+                AltColor = altColor,
+                ActiveColor = color,
+                ActionKind = actionKind,
+                RentColors = rentColors,
+                IsWildRent = isWildRent,
+                IsMulticolorWild = isMulticolorWild,
+            };
+        }
+
+        /// <summary>Place a card on top of the draw pile. Internal for testing.</summary>
+        internal void PlaceOnTop(Card card) => _drawPile.Add(card);
+
         public Deck()
         {
             BuildDeck();
@@ -80,17 +105,11 @@ namespace JeffopolyDeal.Models
             AddMoney(5, 2);
             AddMoney(10, 1);
 
-            // Property cards (28)
-            AddProperty(PropertyColor.Brown, "Mediterranean Avenue", 2);
-            AddProperty(PropertyColor.LightBlue, "Connecticut Avenue", 3);
-            AddProperty(PropertyColor.Pink, "Virginia Avenue", 3);
-            AddProperty(PropertyColor.Orange, "St. James Place", 3);
-            AddProperty(PropertyColor.Red, "Kentucky Avenue", 3);
-            AddProperty(PropertyColor.Yellow, "Ventnor Avenue", 3);
-            AddProperty(PropertyColor.Green, "Pacific Avenue", 3);
-            AddProperty(PropertyColor.DarkBlue, "Park Place", 2);
-            AddProperty(PropertyColor.Railroad, "Railroad", 4);
-            AddProperty(PropertyColor.Utility, "Utility", 2);
+            // Property cards (28) — names come from PropertyNames registry
+            foreach (var (color, names) in PropertyNames.ByColor)
+            {
+                AddProperties(color, names);
+            }
 
             // Property wildcards (11)
             AddPropertyWildcard(PropertyColor.DarkBlue, PropertyColor.Green, 4, 1);
@@ -159,9 +178,9 @@ namespace JeffopolyDeal.Models
             }
         }
 
-        private void AddProperty(PropertyColor color, string name, int count)
+        private void AddProperties(PropertyColor color, string[] names)
         {
-            for (int i = 0; i < count; i++)
+            foreach (var name in names)
             {
                 _drawPile.Add(new Card
                 {
