@@ -1,4 +1,4 @@
-name: Deploy to Azure
+name: Deploy ASP.NET Core app to Azure Web App
 
 on:
   push:
@@ -6,18 +6,27 @@ on:
       - '*.md'
     branches:
       - main
-
+# CONFIGURATION
+# For help, go to https://github.com/Azure/Actions
+#
+# 1. Set up the following secrets in your repository:
+#   AZURE_WEBAPP_PUBLISH_PROFILE
+#
+# 2. Change these variables for your configuration:
 env:
-  AZURE_WEBAPP_NAME: jeffopolydeal
-  AZURE_WEBAPP_PACKAGE_PATH: '.'
-  DOTNET_VERSION: '10.0'
+  AZURE_WEBAPP_NAME: jeffopolydeal    # set this to your application's name
+  AZURE_WEBAPP_PACKAGE_PATH: '.'      # set this to the path to your web app project, defaults to the repository root
+  DOTNET_VERSION: '10.0'           # set this to the dot net version to use
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
+
+      # Checkout the repo
       - uses: actions/checkout@v5
 
+      # Setup Node.js and build frontend
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
@@ -27,32 +36,24 @@ jobs:
       - name: Build frontend
         run: npm ci && npm run build
 
-      - name: Setup .NET
+      # Setup .NET Core SDK
+      - name: Setup .NET Core
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
+          dotnet-version: ${{ env.DOTNET_VERSION }} 
+      
+      # Run dotnet build and publish
       - name: dotnet build and publish
         run: |
           dotnet build --configuration Release
           dotnet publish src/backend/JeffopolyDeal.csproj -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp'
 
-      - name: Deploy to Azure Web App
-        env:
-          PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-        run: |
-          USERNAME=$(echo "$PUBLISH_PROFILE" | sed -n 's/.*publishMethod="ZipDeploy".*userName="\([^"]*\)".*/\1/p')
-          PASSWORD=$(echo "$PUBLISH_PROFILE" | sed -n 's/.*publishMethod="ZipDeploy".*userPWD="\([^"]*\)".*/\1/p')
-          cd myapp && zip -qr ../deploy.zip .
-          cd ..
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            -X POST \
-            --user "$USERNAME:$PASSWORD" \
-            --data-binary @deploy.zip \
-            -H "Content-Type: application/zip" \
-            "https://jeffopolydeal.scm.azurewebsites.net/api/zipdeploy")
-          echo "Deploy HTTP Status: $HTTP_STATUS"
-          if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 400 ]; then
-            echo "::error::Deployment failed with HTTP $HTTP_STATUS"
-            exit 1
-          fi
+      # Deploy to Azure Web apps
+      - name: 'Run Azure webapp deploy action using publish profile credentials'
+        uses: azure/webapps-deploy@v3
+        with: 
+          app-name: ${{ env.AZURE_WEBAPP_NAME }} # Replace with your app name
+          publish-profile: ${{ secrets.azureWebAppPublishProfile  }} # Define secret variable in repository settings as per action documentation
+          package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp'
+
+# For more samples to get started with GitHub Action workflows to deploy to Azure, refer to https://github.com/Azure/actions-workflow-samples
