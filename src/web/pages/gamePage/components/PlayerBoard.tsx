@@ -233,13 +233,13 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                                         <div
                                             key={card.id}
                                             className="propertySet-stack-item"
-                                            style={{ marginTop: (!inspectMode && idx > 0) ? (compact ? -65 : -100) : 0, touchAction: canDrag ? "none" : "auto" }}
+                                            style={{ marginTop: (!inspectMode && idx > 0) ? (compact ? -65 : -100) : 0, touchAction: canDrag ? "none" : compact ? "manipulation" : "auto" }}
                                             draggable={canDrag}
                                             onDragStart={canDrag ? (e) => handleDragStart(e, card.id) : undefined}
                                             onPointerDown={canDrag ? (e) => handlePropertyPointerDown(e, card.id) : undefined}
                                             onPointerMove={canDrag ? handlePropertyPointerMove : undefined}
                                             onPointerUp={canDrag ? handlePropertyPointerUp : undefined}
-                                            onClick={compact ? () => setExpandedCard(card) : undefined}
+                                            onDoubleClick={compact ? () => setExpandedCard(card) : undefined}
                                         >
                                             <CardComponent
                                                 card={card}

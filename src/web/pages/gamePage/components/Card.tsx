@@ -202,7 +202,8 @@ function TinyPropertyLayout({ card, rent }: { card: CardType; rent: number }) {
     const info = PropertyColorMap[color];
     return (
         <>
-            <div className="md-card__header" style={{ color: info.textColor }}>Prop</div>
+            <div className="md-card__header" style={{ color: info.textColor }}>Property</div>
+            <div className="md-card__name-band md-card__name-band--tiny" style={{ color: info.textColor }}>{card.name}</div>
             <div className="md-card__body-center">
                 <div className="md-tiny__rent">M{rent}</div>
             </div>
@@ -215,8 +216,9 @@ function TinyWildcardLayout({ card, rent }: { card: CardType; rent: number }) {
         return (
             <>
                 <RainbowBar />
+                <div className="md-wild__title-box md-wild__title-box--tiny">Wild Card</div>
                 <div className="md-card__body-center">
-                    <div className="md-tiny__rent">Wild</div>
+                    <div className="md-tiny__rent">🎩</div>
                 </div>
             </>
         );
@@ -224,11 +226,14 @@ function TinyWildcardLayout({ card, rent }: { card: CardType; rent: number }) {
     const c1 = PropertyColorMap[card.color!];
     const c2 = PropertyColorMap[card.altColor!];
     return (
-        <div className="md-tiny__dual">
-            <div className="md-tiny__dual-top" style={{ backgroundColor: c1.hex }} />
-            <div className="md-tiny__rent md-tiny__rent--overlay">M{rent}</div>
-            <div className="md-tiny__dual-bot" style={{ backgroundColor: c2.hex }} />
-        </div>
+        <>
+            <div className="md-card__header">Wild Card</div>
+            <div className="md-tiny__dual">
+                <div className="md-tiny__dual-top" style={{ backgroundColor: c1.hex }} />
+                <div className="md-tiny__rent md-tiny__rent--overlay">M{rent}</div>
+                <div className="md-tiny__dual-bot" style={{ backgroundColor: c2.hex }} />
+            </div>
+        </>
     );
 }
 

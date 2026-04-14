@@ -227,6 +227,15 @@
     padding: 3px 4px;
 }
 
+/* Tiny variant: smaller text, wraps to fit */
+.md-card__name-band--tiny {
+    font-size: 7px;
+    padding: 2px 3px;
+    line-height: 1.2;
+    word-break: break-word;
+    hyphens: auto;
+}
+
 /* ── Rent table ───────────────────────────────── */
 .md-card__body--rent {
     flex: 1;
@@ -348,6 +357,14 @@
     font-size: 9px;
     padding: 3px 4px;
     margin: 0 4px;
+}
+
+/* Tiny variant for XS compact view */
+.md-wild__title-box--tiny {
+    font-size: 7px;
+    padding: 2px 3px;
+    margin: 0 2px;
+    border-width: 1px;
 }
 
 /* Placeholder icon for multi-color wild (replace with real image later) */
@@ -559,7 +576,7 @@
 .md-tiny__rent {
     font-family: 'Arial Black', sans-serif;
     font-weight: 900;
-    font-size: 14px;
+    font-size: 12px;
     color: #fff;
     text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
@@ -642,6 +659,9 @@
 .md-card--xs .md-card__name-band {
     font-size: 6px;
     padding: 2px 2px;
+    line-height: 1.2;
+    word-break: break-word;
+    hyphens: auto;
 }
 
 .md-card--xs .md-card__body--rent {
