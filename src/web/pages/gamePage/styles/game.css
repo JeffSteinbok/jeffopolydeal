@@ -257,9 +257,8 @@
         font-size: 0.72rem;
         padding: 4px 8px;
     }
-}
 
-
+    .actionBar {
         padding: 6px;
         gap: 6px;
     }
