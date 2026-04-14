@@ -195,6 +195,7 @@ namespace JeffopolyDeal.Models
 
         private void AddProperties(PropertyColor color, PropertyDef[] defs)
         {
+            int moneyValue = GameConfig.PropertyValue.TryGetValue(color, out var v) ? v : 0;
             foreach (var def in defs)
             {
                 _drawPile.Add(new Card
@@ -202,7 +203,7 @@ namespace JeffopolyDeal.Models
                     Id = _nextId++,
                     CardId = def.CardId,
                     CardType = CardType.Property,
-                    MoneyValue = 0,
+                    MoneyValue = moneyValue,
                     Name = def.DisplayName,
                     Color = color,
                 });

@@ -70,6 +70,12 @@ export interface PendingAction {
     justSayNoResponderId?: string;
 }
 
+export interface GameAction {
+    id: number;
+    playerName: string;
+    text: string;
+}
+
 export interface GameState {
     phase: GamePhase;
     gameCode: string;
@@ -83,6 +89,7 @@ export interface GameState {
     winnerId?: string;
     winnerName?: string;
     paymentError?: string;
+    recentActions: GameAction[];
 }
 
 export interface PlayCardRequest {

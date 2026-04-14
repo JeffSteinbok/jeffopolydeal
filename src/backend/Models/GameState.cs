@@ -84,6 +84,16 @@ namespace JeffopolyDeal.Models
     }
 
     /// <summary>
+    /// Represents a single player action for the activity log.
+    /// </summary>
+    public class GameAction
+    {
+        public int Id { get; set; }
+        public string PlayerName { get; set; } = "";
+        public string Text { get; set; } = "";
+    }
+
+    /// <summary>
     /// Complete snapshot of game state, sent to clients.
     /// </summary>
     public class GameState
@@ -109,6 +119,9 @@ namespace JeffopolyDeal.Models
 
         /// <summary>Error message for the last payment attempt (if rejected).</summary>
         public string? PaymentError { get; set; }
+
+        /// <summary>Recent player actions (newest last), up to 5 entries.</summary>
+        public List<GameAction> RecentActions { get; set; } = new();
     }
 
     /// <summary>
