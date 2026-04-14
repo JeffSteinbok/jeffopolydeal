@@ -295,6 +295,8 @@ namespace JeffopolyDeal
                 else if (_pendingAction != null)
                 {
                     _phase = GamePhase.AwaitingResponse;
+                    // Auto-respond for any bot targets so the game doesn't stall
+                    ResolveBotPendingActions();
                 }
             }
             await BroadcastGameStateAsync();
@@ -360,6 +362,8 @@ namespace JeffopolyDeal
                     return;
 
                 ProcessResponse(connectionId, response);
+                // Auto-respond for any bot targets created by JSN chains or action resolution
+                ResolveBotPendingActions();
             }
             await BroadcastGameStateAsync();
         }

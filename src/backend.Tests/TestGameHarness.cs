@@ -40,9 +40,14 @@ namespace JeffopolyDeal.Tests
 
         /// <summary>Add a player and return their connectionId.</summary>
         public async Task<string> AddPlayerAsync(string name)
+            => await ConnectAsync($"conn-{name}", $"player-{name}", name);
+
+        /// <summary>Add a bot player (connection ID starts with "bot-") and return their connectionId.</summary>
+        public async Task<string> AddBotAsync(string name)
+            => await ConnectAsync($"bot-{name}", $"bot-{name}", name);
+
+        private async Task<string> ConnectAsync(string connectionId, string playerId, string name)
         {
-            var connectionId = $"conn-{name}";
-            var playerId = $"player-{name}";
             await _game.ConnectPlayerAsync(connectionId, name, playerId);
             return connectionId;
         }
