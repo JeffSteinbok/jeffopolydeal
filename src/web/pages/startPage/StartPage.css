@@ -19,6 +19,13 @@
     margin-bottom: 8px;
 }
 
+.titleImage {
+    max-width: 420px;
+    width: 90%;
+    margin-bottom: 32px;
+    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.5));
+}
+
 .subtitle {
     font-size: 1.2rem;
     color: #aaa;
