@@ -261,6 +261,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     phase={state.phase}
                     gameState={state}
                     myConnectionId={myConnectionId ?? ""}
+                    smallCards={isMobile}
                     onPlayCard={(cardId, request) => client?.playCard(cardId, request)}
                     onDiscardCard={(cardId) => client?.discardCard(cardId)}
                     onInspectPlayer={isMobile ? setInspectedPlayer : undefined}
