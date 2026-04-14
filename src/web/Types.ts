@@ -30,7 +30,7 @@ export interface Card {
     isWildRent: boolean;
     actionKind?: ActionType;
     activeColor?: PropertyColor;
-    isPlayable: boolean;
+    isPlayable?: boolean;
 }
 
 export interface PropertySetState {

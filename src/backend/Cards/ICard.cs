@@ -100,23 +100,27 @@ namespace JeffopolyDeal.Cards
                     return otherPlayers.Any(p => p.GetCompletePropertySets().Count > 0);
                 case ActionType.House:
                     return context.Player.PropertySets.Any(s =>
-                        s.IsComplete &&
+                        IsEligibleForBuilding(s) &&
                         !s.HasHouse &&
-                        s.Color != PropertyColor.Railroad &&
-                        s.Color != PropertyColor.Utility);
+                        !s.HasHotel);
                 case ActionType.Hotel:
                     return context.Player.PropertySets.Any(s =>
-                        s.IsComplete &&
+                        IsEligibleForBuilding(s) &&
                         s.HasHouse &&
-                        !s.HasHotel &&
-                        s.Color != PropertyColor.Railroad &&
-                        s.Color != PropertyColor.Utility);
+                        !s.HasHotel);
                 case ActionType.JustSayNo:
                 case ActionType.DoubleTheRent:
                     return false;
                 default:
                     return false;
             }
+        }
+
+        private static bool IsEligibleForBuilding(PropertySet set)
+        {
+            return set.IsComplete &&
+                   set.Color != PropertyColor.Railroad &&
+                   set.Color != PropertyColor.Utility;
         }
     }
 
