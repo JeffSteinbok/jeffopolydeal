@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { GameSignalRClient } from "./GameSignalRClient";
-import { GameState, Card, PlayCardRequest, PlayerState } from "../../Types";
+import { GameState, Card, PlayCardRequest, PlayerState, GameAction } from "../../Types";
 import { Logger } from "../../utilities/Logger";
 import { Debug, DebugFlags } from "../../utilities/Debug";
 import { CardComponent } from "./components/Card";
@@ -10,6 +10,7 @@ import { PlayerInspectModal } from "./components/PlayerInspectModal";
 import { Hand } from "./components/Hand";
 import { ActionModal } from "./components/ActionModal";
 import { DiscardModal } from "./components/DiscardModal";
+import { FyiToast } from "./components/FyiToast";
 import { DebugDeckViewer } from "./components/DebugDeckViewer";
 import "./styles/game.css";
 
@@ -61,7 +62,11 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     const [state, setState] = useState<GameState | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [inspectedPlayer, setInspectedPlayer] = useState<PlayerState | null>(null);
+    const [toasts, setToasts] = useState<GameAction[]>([]);
     const clientRef = useRef<GameSignalRClient | null>(null);
+    const seenActionIdsRef = useRef<Set<number>>(new Set());
+    const firstStateRef = useRef(true);
+    const toastTimeoutsRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
     const isMobile = useIsMobile();
     const isLandscape = useIsLandscapePhone();
 
@@ -110,6 +115,44 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
 
         return () => {
             client.stop();
+        };
+    }, []);
+
+    // Show FYI toasts for new actions when it's not my turn
+    useEffect(() => {
+        if (!state) return;
+
+        // On first state load, mark all existing actions as already seen
+        if (firstStateRef.current) {
+            state.recentActions.forEach((a) => seenActionIdsRef.current.add(a.id));
+            firstStateRef.current = false;
+            return;
+        }
+
+        // Only show toasts when it's not the current player's turn
+        const currentIsMyTurn = state.players[state.currentPlayerIndex]?.playerId === playerId;
+        if (currentIsMyTurn) return;
+
+        const newActions = state.recentActions.filter(
+            (a) => !seenActionIdsRef.current.has(a.id)
+        );
+
+        newActions.forEach((action) => {
+            seenActionIdsRef.current.add(action.id);
+            setToasts((prev) => [...prev, action]);
+            const timeoutId = setTimeout(() => {
+                toastTimeoutsRef.current.delete(action.id);
+                setToasts((prev) => prev.filter((t) => t.id !== action.id));
+            }, 2000);
+            toastTimeoutsRef.current.set(action.id, timeoutId);
+        });
+    }, [state, playerId]);
+
+    // Clear all pending toast timeouts on unmount
+    useEffect(() => {
+        return () => {
+            toastTimeoutsRef.current.forEach(clearTimeout);
+            toastTimeoutsRef.current.clear();
         };
     }, []);
 
@@ -304,6 +347,8 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     onInspect={setInspectedPlayer}
                 />
             )}
+
+            <FyiToast toasts={toasts} />
 
             {/* Player inspect bottom sheet — z-index above ActionModal */}
             {inspectedPlayer && (
