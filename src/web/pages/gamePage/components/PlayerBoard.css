@@ -204,6 +204,44 @@
     font-size: 0.8rem;
 }
 
+/* Compact mode (mobile): single row, horizontal scroll */
+.propertySets-row--compact {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: #0f3460 transparent;
+    align-items: flex-start;
+}
+
+.propertySets-row--compact::-webkit-scrollbar {
+    height: 4px;
+}
+
+.propertySets-row--compact::-webkit-scrollbar-thumb {
+    background: #0f3460;
+    border-radius: 2px;
+}
+
+/* Card expand overlay */
+.cardExpand-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+}
+
+.cardExpand-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
 /* Inspect mode: cards within a set shown side-by-side instead of stacked */
 .propertySet-stack--inspect {
     display: flex;

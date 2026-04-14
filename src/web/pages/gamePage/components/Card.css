@@ -555,6 +555,39 @@
     height: 55px;
 }
 
+/* ── Tiny property rent display ───────────────── */
+.md-tiny__rent {
+    font-family: 'Arial Black', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.md-tiny__dual {
+    position: relative;
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.md-tiny__dual-top,
+.md-tiny__dual-bot {
+    flex: 1;
+}
+
+.md-tiny__rent--overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.45);
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
 /* ── Extra-small (--xs) for opponent boards ──── */
 .md-card--xs .md-card__inner {
     inset: 2px;
