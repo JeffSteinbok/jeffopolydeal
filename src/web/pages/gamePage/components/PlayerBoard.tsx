@@ -224,14 +224,12 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                                     className="propertySet-label"
                                     style={{ backgroundColor: PropertyColorMap[set.color].hex, color: PropertyColorMap[set.color].textColor }}
                                 >
-                                    {PropertyColorMap[set.color].short}
-                                    {" "}{set.cards.length}/{set.requiredSize}
-                                    {set.isComplete && "✓"}
-                                    {set.hasHotel ? "🏨" : set.hasHouse ? "🏠" : ""}
-                                    {" M"}{set.rent}
+                                    {`${PropertyColorMap[set.color].short} ${set.cards.length}/${set.requiredSize}${set.isComplete ? "✓" : ""}${set.hasHotel ? "🏨" : set.hasHouse ? "🏠" : ""} M${set.rent}`}
                                 </div>
                                 <div className={inspectMode ? "propertySet-stack--inspect" : "propertySet-stack"}>
-                                    {set.cards.map((card, idx) => (
+                                    {set.cards.map((card, idx) => {
+                                        const canFlipCard = !compact && isMe && card.cardType === "PropertyWildcard" && !card.isMulticolorWild && !!onFlipCard;
+                                        return (
                                         <div
                                             key={card.id}
                                             className="propertySet-stack-item"
@@ -248,14 +246,11 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                                                 small={!compact}
                                                 tiny={compact}
                                                 currentRent={compact ? set.rent : undefined}
-                                                onDoubleClick={
-                                                    !compact && isMe && card.cardType === "PropertyWildcard" && !card.isMulticolorWild && onFlipCard
-                                                        ? () => onFlipCard(card.id)
-                                                        : undefined
-                                                }
+                                                onDoubleClick={canFlipCard ? () => onFlipCard!(card.id) : undefined}
                                             />
                                         </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         ))}
