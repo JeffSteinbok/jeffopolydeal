@@ -370,6 +370,8 @@ export function PlayCardModal({ card, gameState, myState, onPlay, onCancel, onIn
     return null;
 
     function canUseAction(): boolean {
+        if (card.isPlayable !== undefined) return card.isPlayable;
+
         if (card.cardType === "Rent") {
             // Need properties matching the rent card colors
             const myColors = myState.propertySets.filter(s => s.cards.length > 0).map(s => s.color);

@@ -387,5 +387,55 @@ namespace JeffopolyDeal.Tests
             await h.PlayCardAsync(p1, dtr.Id, new PlayCardRequest());
             Assert.Equal(playsBefore, h.GetPlaysUsed(p1));
         }
+
+        [Fact]
+        public async Task House_IsMarkedUnplayable_WhenNoEligibleCompleteSet()
+        {
+            var h = new TestGameHarness();
+            var (p1, _) = await h.SetupTwoPlayerGameAsync();
+            await h.DrawAsync(p1);
+
+            var house = h.InjectAction(p1, ActionType.House, 3, "House");
+            await h.Game.BroadcastGameStateAsync();
+
+            var myState = h.GetPlayerState(p1, p1);
+            var houseInHand = myState!.Hand!.First(c => c.Id == house.Id);
+            Assert.False(houseInHand.IsPlayable);
+        }
+
+        [Fact]
+        public async Task Hotel_IsMarkedPlayable_WhenCompleteSetHasHouse()
+        {
+            var h = new TestGameHarness();
+            var (p1, _) = await h.SetupTwoPlayerGameAsync();
+            await h.DrawAsync(p1);
+
+            var set = h.PlaceCompleteSet(p1, PropertyColor.Green);
+            set.HasHouse = true;
+            var hotel = h.InjectAction(p1, ActionType.Hotel, 4, "Hotel");
+            await h.Game.BroadcastGameStateAsync();
+
+            var myState = h.GetPlayerState(p1, p1);
+            var hotelInHand = myState!.Hand!.First(c => c.Id == hotel.Id);
+            Assert.True(hotelInHand.IsPlayable);
+        }
+
+        [Fact]
+        public async Task ForceDeal_IsMarkedUnplayable_WhenOpponentsHaveNoStealableProperty()
+        {
+            var h = new TestGameHarness();
+            var (p1, p2) = await h.SetupTwoPlayerGameAsync();
+            await h.DrawAsync(p1);
+
+            h.PlacePropertyOnBoard(p1, PropertyColor.Red, 1);
+            h.PlaceCompleteSet(p2, PropertyColor.Brown);
+
+            var forceDeal = h.InjectAction(p1, ActionType.ForceDeal, 3, "Force Deal");
+            await h.Game.BroadcastGameStateAsync();
+
+            var myState = h.GetPlayerState(p1, p1);
+            var forceDealInHand = myState!.Hand!.First(c => c.Id == forceDeal.Id);
+            Assert.False(forceDealInHand.IsPlayable);
+        }
     }
 }
