@@ -694,8 +694,8 @@ namespace JeffopolyDeal
                     responder.Hand.Remove(justSayNo);
                     _deck.Discard(justSayNo);
 
-                    // Save original action info the first time a JSN is played
-                    if (_pendingAction.Type != PendingActionType.JustSayNoChain)
+                    // Save original action info the first time a JSN is played (not on subsequent counter-JSNs)
+                    if (_pendingAction.OriginalSourcePlayerId == null)
                     {
                         _pendingAction.OriginalSourcePlayerId = _pendingAction.SourcePlayerId;
                         _pendingAction.OriginalActionType = _pendingAction.Type;
@@ -715,13 +715,15 @@ namespace JeffopolyDeal
             // Handle Just Say No chain acceptance (declining to counter)
             if (_pendingAction.Type == PendingActionType.JustSayNoChain && !response.PlayJustSayNo)
             {
-                if (_pendingAction.SourcePlayerId == _pendingAction.OriginalSourcePlayerId)
+                if (_pendingAction.SourcePlayerId == _pendingAction.OriginalSourcePlayerId
+                    && _pendingAction.OriginalActionType != null
+                    && _pendingAction.OriginalTargetPlayerIds != null)
                 {
                     // The original action's source played the last JSN counter — action proceeds.
                     // Restore the original action and execute it.
-                    _pendingAction.Type = _pendingAction.OriginalActionType!.Value;
+                    _pendingAction.Type = _pendingAction.OriginalActionType.Value;
                     _pendingAction.SourcePlayerId = _pendingAction.OriginalSourcePlayerId;
-                    _pendingAction.TargetPlayerIds = new List<string>(_pendingAction.OriginalTargetPlayerIds!);
+                    _pendingAction.TargetPlayerIds = new List<string>(_pendingAction.OriginalTargetPlayerIds);
 
                     // Execute steal/swap actions immediately
                     switch (_pendingAction.Type)
