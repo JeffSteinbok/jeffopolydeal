@@ -3,7 +3,7 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    background: linear-gradient(135deg, #c8e6c9 0%, #e8f5e9 50%, #dcedc8 100%);
 }
 
 .startPageContent {
@@ -17,6 +17,13 @@
     color: #e94560;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
     margin-bottom: 8px;
+}
+
+.titleImage {
+    max-width: 420px;
+    width: 90%;
+    margin-bottom: 32px;
+    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.5));
 }
 
 .subtitle {

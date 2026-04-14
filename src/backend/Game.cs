@@ -281,7 +281,11 @@ namespace JeffopolyDeal
                 if (!played)
                     return;
 
-                LogAction(player.Name, DescribeCardPlay(player, card, request));
+                LogAction(player.Name, DescribeCardPlay(player, card, request),
+                    cardPlayed: card,
+                    targetPlayerName: request.TargetPlayerId != null
+                        ? _players.FirstOrDefault(p => p.ConnectionId == request.TargetPlayerId)?.Name
+                        : null);
                 player.Hand.Remove(card);
                 _playsUsed++;
 
@@ -702,6 +706,7 @@ namespace JeffopolyDeal
                 {
                     responder.Hand.Remove(justSayNo);
                     _deck.Discard(justSayNo);
+                    LogAction(responder.Name, "played Just Say No!", cardPlayed: justSayNo);
 
                     // Save original action info the first time a JSN is played (not on subsequent counter-JSNs)
                     if (_pendingAction.OriginalSourcePlayerId == null)
@@ -853,12 +858,16 @@ namespace JeffopolyDeal
             var receiver = _players.FirstOrDefault(p => p.ConnectionId == _pendingAction.SourcePlayerId);
             if (payer == null || receiver == null) return;
 
+            int totalPaid = 0;
+            var paidCards = new List<Card>();
             foreach (var cardId in cardIds)
             {
                 // Check bank
                 var card = payer.Bank.FirstOrDefault(c => c.Id == cardId);
                 if (card != null)
                 {
+                    totalPaid += card.MoneyValue;
+                    paidCards.Add(card);
                     payer.Bank.Remove(card);
                     receiver.Bank.Add(card);
                     continue;
@@ -870,6 +879,8 @@ namespace JeffopolyDeal
                     card = set.Cards.FirstOrDefault(c => c.Id == cardId);
                     if (card != null)
                     {
+                        totalPaid += card.MoneyValue;
+                        paidCards.Add(card);
                         set.Cards.Remove(card);
                         // Property goes to receiver's property area
                         var receiverColor = card.ActiveColor ?? card.Color ?? set.Color;
@@ -884,6 +895,11 @@ namespace JeffopolyDeal
                 }
             }
 
+            if (totalPaid > 0)
+                LogAction(payer.Name, $"paid M{totalPaid} to {receiver.Name}",
+                    targetPlayerName: receiver.Name,
+                    targetCards: paidCards);
+
             _pendingAction.TargetPlayerIds.Remove(payerId);
         }
 
@@ -895,11 +911,13 @@ namespace JeffopolyDeal
             var target = _players.FirstOrDefault(p => p.ConnectionId == _pendingAction.TargetPlayerIds[0]);
             if (source == null || target == null || _pendingAction.TargetCardId == null) return;
 
+            Card? stolenCard = null;
             foreach (var set in target.PropertySets.ToList())
             {
                 var card = set.Cards.FirstOrDefault(c => c.Id == _pendingAction.TargetCardId);
                 if (card != null)
                 {
+                    stolenCard = card;
                     set.Cards.Remove(card);
                     var color = card.ActiveColor ?? card.Color ?? set.Color;
                     PlayProperty(source, card, color);
@@ -908,6 +926,9 @@ namespace JeffopolyDeal
                 }
             }
 
+            LogAction(source.Name, $"stole {_pendingAction.TargetCardName ?? "a card"} from {target.Name}",
+                targetPlayerName: target.Name,
+                targetCards: stolenCard != null ? new List<Card> { stolenCard } : null);
             _pendingAction.TargetPlayerIds.Clear();
         }
 
@@ -958,6 +979,11 @@ namespace JeffopolyDeal
                 if (color.HasValue) PlayProperty(target, offeredCard, color.Value);
             }
 
+            LogAction(source.Name,
+                $"force-swapped with {target.Name}",
+                targetPlayerName: target.Name,
+                sourceCards: offeredCard != null ? new List<Card> { offeredCard } : null,
+                targetCards: stolenCard != null ? new List<Card> { stolenCard } : null);
             _pendingAction.TargetPlayerIds.Clear();
         }
 
@@ -980,6 +1006,9 @@ namespace JeffopolyDeal
             newSet.HasHouse = targetSet.HasHouse;
             newSet.HasHotel = targetSet.HasHotel;
 
+            LogAction(source.Name, $"took {target.Name}'s complete {targetSet.Color} set!",
+                targetPlayerName: target.Name,
+                targetCards: targetSet.Cards.ToList());
             _pendingAction.TargetPlayerIds.Clear();
         }
 
@@ -987,9 +1016,20 @@ namespace JeffopolyDeal
 
         #region Helpers
 
-        private void LogAction(string playerName, string text)
+        private void LogAction(string playerName, string text,
+            Card? cardPlayed = null, string? targetPlayerName = null,
+            List<Card>? sourceCards = null, List<Card>? targetCards = null)
         {
-            _recentActions.Add(new GameAction { Id = _nextActionId++, PlayerName = playerName, Text = text });
+            _recentActions.Add(new GameAction
+            {
+                Id = _nextActionId++,
+                PlayerName = playerName,
+                Text = text,
+                CardPlayed = cardPlayed,
+                TargetPlayerName = targetPlayerName,
+                SourceCards = sourceCards,
+                TargetCards = targetCards,
+            });
             if (_recentActions.Count > MaxRecentActions)
                 _recentActions.RemoveAt(0);
         }

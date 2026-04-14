@@ -67,6 +67,22 @@ namespace JeffopolyDeal.Models
             Shuffle();
         }
 
+        /// <summary>Returns the full deck in build order (unshuffled). For test/debug pages.</summary>
+        public static List<Card> GetOrderedDeck()
+        {
+            var deck = new Deck();
+            // deck was shuffled in ctor, but _drawPile was built in order before shuffle
+            // Rebuild without shuffle
+            var ordered = new Deck(skipShuffle: true);
+            return ordered._drawPile.ToList();
+        }
+
+        private Deck(bool skipShuffle)
+        {
+            BuildDeck();
+            if (!skipShuffle) Shuffle();
+        }
+
         public List<Card> Draw(int count)
         {
             var drawn = new List<Card>();

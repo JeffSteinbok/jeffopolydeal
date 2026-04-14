@@ -74,6 +74,10 @@ export interface GameAction {
     id: number;
     playerName: string;
     text: string;
+    cardPlayed?: Card;
+    targetPlayerName?: string;
+    sourceCards?: Card[];
+    targetCards?: Card[];
 }
 
 export interface GameState {

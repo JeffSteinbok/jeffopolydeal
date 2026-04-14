@@ -6,8 +6,8 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #1a1a2e;
-    color: #eee;
+    background: #e8f5e9;
+    color: #222;
     min-height: 100vh;
 }
 
@@ -63,13 +63,13 @@ button:disabled {
 input[type="text"] {
     padding: 10px 14px;
     border-radius: 6px;
-    border: 1px solid #0f3460;
-    background: #16213e;
-    color: #eee;
+    border: 1px solid #a5d6a7;
+    background: #fff;
+    color: #222;
     font-size: 1rem;
     outline: none;
 }
 
 input[type="text"]:focus {
-    border-color: #e94560;
+    border-color: #43a047;
 }

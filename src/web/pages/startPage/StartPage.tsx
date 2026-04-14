@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import titleImage from "../../assets/JeffopolyTitle.png";
 import "./StartPage.css";
 
 interface StartPageProps {
@@ -24,8 +25,7 @@ export function StartPage({ onJoinGame }: StartPageProps) {
     return (
         <div className="startPage">
             <div className="startPageContent">
-                <h1 className="title">Jeffopoly Deal</h1>
-                <p className="subtitle">The Card Game</p>
+                <img src={titleImage} alt="Jeffopoly Deal" className="titleImage" />
 
                 {mode === "menu" && (
                     <div className="menuButtons">

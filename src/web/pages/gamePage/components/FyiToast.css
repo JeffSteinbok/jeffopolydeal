@@ -1,0 +1,84 @@
+.fyiToast-container {
+    position: fixed;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 900;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    pointer-events: none;
+}
+
+.fyiToast {
+    background: rgba(22, 33, 62, 0.97);
+    border: 1px solid rgba(233, 69, 96, 0.5);
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 0.88rem;
+    color: #e0e0e0;
+    animation: fyiToastIn 0.25s ease-out;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+    max-width: 420px;
+}
+
+.fyiToast-header {
+    margin-bottom: 4px;
+    white-space: nowrap;
+}
+
+.fyiToast-name {
+    color: #e94560;
+    font-weight: 700;
+}
+
+.fyiToast-cards {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+    flex-wrap: wrap;
+}
+
+.fyiToast-cardGroup {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.fyiToast-label {
+    font-size: 0.75rem;
+    color: #aaa;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-right: 2px;
+}
+
+.fyiToast-cardRow {
+    display: flex;
+    gap: 3px;
+}
+
+@keyframes fyiToastIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@media (max-width: 680px) {
+    .fyiToast-container {
+        top: 52px;
+    }
+
+    .fyiToast {
+        font-size: 0.8rem;
+        padding: 10px 14px;
+        max-width: 320px;
+    }
+}

@@ -84,13 +84,25 @@ namespace JeffopolyDeal.Models
     }
 
     /// <summary>
-    /// Represents a single player action for the activity log.
+    /// Represents a single player action for the activity log / notification popover.
     /// </summary>
     public class GameAction
     {
         public int Id { get; set; }
         public string PlayerName { get; set; } = "";
         public string Text { get; set; } = "";
+
+        /// <summary>The card that was played (e.g., Debt Collector, Rent, Property).</summary>
+        public Card? CardPlayed { get; set; }
+
+        /// <summary>Name of the targeted player, if any.</summary>
+        public string? TargetPlayerName { get; set; }
+
+        /// <summary>Cards from the source player involved in the result (e.g., card given in Force Deal).</summary>
+        public List<Card>? SourceCards { get; set; }
+
+        /// <summary>Cards from the target player involved in the result (e.g., payment cards, stolen property).</summary>
+        public List<Card>? TargetCards { get; set; }
     }
 
     /// <summary>

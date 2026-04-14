@@ -258,6 +258,11 @@
         padding: 4px 8px;
     }
 
+    .gamePage {
+        padding: 6px;
+        gap: 6px;
+    }
+
     .actionBar {
         padding: 6px;
         gap: 6px;
