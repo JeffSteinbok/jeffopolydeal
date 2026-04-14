@@ -88,6 +88,7 @@ namespace JeffopolyDeal.Models
     /// </summary>
     public class GameAction
     {
+        public int Id { get; set; }
         public string PlayerName { get; set; } = "";
         public string Text { get; set; } = "";
     }

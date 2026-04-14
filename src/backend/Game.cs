@@ -32,6 +32,7 @@ namespace JeffopolyDeal
         private string? _lastPaymentErrorConnectionId;
         private readonly List<GameAction> _recentActions = new();
         private const int MaxRecentActions = 5;
+        private int _nextActionId = 1;
 
         public Game(IHubContext<GameHub> hubContext, string gameCode)
         {
@@ -984,7 +985,7 @@ namespace JeffopolyDeal
 
         private void LogAction(string playerName, string text)
         {
-            _recentActions.Add(new GameAction { PlayerName = playerName, Text = text });
+            _recentActions.Add(new GameAction { Id = _nextActionId++, PlayerName = playerName, Text = text });
             if (_recentActions.Count > MaxRecentActions)
                 _recentActions.RemoveAt(0);
         }

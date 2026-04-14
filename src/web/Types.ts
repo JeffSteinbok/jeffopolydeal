@@ -71,6 +71,7 @@ export interface PendingAction {
 }
 
 export interface GameAction {
+    id: number;
     playerName: string;
     text: string;
 }

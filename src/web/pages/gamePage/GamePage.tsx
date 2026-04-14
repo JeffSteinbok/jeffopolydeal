@@ -215,7 +215,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 <div className="activityLog">
                     {recentActions.map((action, i) => (
                         <div
-                            key={i}
+                            key={action.id}
                             className={`activityLog-entry${i === recentActions.length - 1 ? " activityLog-entry--latest" : ""}`}
                         >
                             <span className="activityLog-name">{action.playerName}</span> {action.text}
