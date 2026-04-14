@@ -348,9 +348,9 @@
     text-transform: uppercase;
     text-align: center;
     padding: 4px 8px;
-    border: 2px solid #222;
     margin: 0 8px;
     color: #222;
+    white-space: nowrap;
 }
 
 .md-card--sm .md-wild__title-box {
@@ -364,7 +364,6 @@
     font-size: 7px;
     padding: 2px 3px;
     margin: 0 2px;
-    border-width: 1px;
 }
 
 /* Placeholder icon for multi-color wild (replace with real image later) */

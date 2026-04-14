@@ -152,8 +152,9 @@
     transition: border-color 0.15s, background-color 0.15s;
 }
 
-.propertySet-column--droppable:hover {
-    border-color: rgba(233, 69, 96, 0.4);
+.propertySet-column--drag-over {
+    border-color: #e94560 !important;
+    background: rgba(233, 69, 96, 0.12);
 }
 
 /* "New Set" drop target */
@@ -168,9 +169,9 @@
     transition: border-color 0.15s, background-color 0.15s;
 }
 
-.propertySet-new:hover {
+.propertySet-new--drag-over {
     border-color: #e94560;
-    background: rgba(233, 69, 96, 0.1);
+    background: rgba(233, 69, 96, 0.15);
 }
 
 .propertySet-new-label {
@@ -193,9 +194,9 @@
     transition: border-color 0.15s;
 }
 
-.unboundWilds--droppable:hover {
-    border-color: #e94560;
-    background: rgba(233, 69, 96, 0.05);
+.unboundWilds--drag-over {
+    border-color: #e94560 !important;
+    background: rgba(233, 69, 96, 0.08);
 }
 
 .emptyHint {
@@ -213,6 +214,7 @@
     scrollbar-width: thin;
     scrollbar-color: #0f3460 transparent;
     align-items: flex-start;
+    gap: 4px;
 }
 
 .propertySets-row--compact::-webkit-scrollbar {

@@ -10,12 +10,13 @@ interface HandProps {
     phase: string;
     gameState: GameState;
     myConnectionId: string;
+    smallCards?: boolean;
     onPlayCard: (cardId: number, request: PlayCardRequest) => void;
     onDiscardCard: (cardId: number) => void;
     onInspectPlayer?: (player: PlayerState) => void;
 }
 
-export function Hand({ cards, canPlay, phase, gameState, myConnectionId, onPlayCard, onDiscardCard, onInspectPlayer }: HandProps) {
+export function Hand({ cards, canPlay, phase, gameState, myConnectionId, smallCards, onPlayCard, onDiscardCard, onInspectPlayer }: HandProps) {
     const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
     const handleCardClick = (card: Card) => {
@@ -52,6 +53,7 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, onPlayC
                     <div key={card.id} className="hand-card-wrapper">
                         <CardComponent
                             card={card}
+                            small={smallCards}
                             onClick={canPlay ? () => handleCardClick(card) : undefined}
                         />
                     </div>

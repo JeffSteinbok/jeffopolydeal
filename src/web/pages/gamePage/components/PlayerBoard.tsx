@@ -62,6 +62,7 @@ interface PlayerBoardProps {
 export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFlipCard, onMoveProperty }: PlayerBoardProps) {
     const canDrag = isMe && isMyTurn && !!onMoveProperty;
     const [expandedCard, setExpandedCard] = React.useState<Card | null>(null);
+    const [dragOverTarget, setDragOverTarget] = React.useState<string | null>(null);
 
     // Pointer drag state for mobile
     const pointerDragCardId = React.useRef<number | null>(null);
@@ -78,6 +79,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
 
     const handleDropOnSet = (e: React.DragEvent, setId: number, color: string) => {
         e.preventDefault();
+        setDragOverTarget(null);
         const cardId = Number(e.dataTransfer.getData("cardId"));
         if (cardId && onMoveProperty) {
             onMoveProperty(cardId, setId, color);
@@ -86,6 +88,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
 
     const handleDropNewSet = (e: React.DragEvent) => {
         e.preventDefault();
+        setDragOverTarget(null);
         const cardId = Number(e.dataTransfer.getData("cardId"));
         if (cardId && onMoveProperty) {
             const draggedCard = findCard(cardId);
@@ -96,6 +99,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
 
     const handleDropUnbound = (e: React.DragEvent) => {
         e.preventDefault();
+        setDragOverTarget(null);
         const cardId = Number(e.dataTransfer.getData("cardId"));
         if (cardId && onMoveProperty) {
             onMoveProperty(cardId, -1, null);
@@ -105,6 +109,17 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
     const handleDragOver = (e: React.DragEvent) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = "move";
+    };
+
+    const handleDragEnter = (e: React.DragEvent, target: string) => {
+        e.preventDefault();
+        setDragOverTarget(target);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+            setDragOverTarget(null);
+        }
     };
 
     // Pointer events for mobile property drag
@@ -214,17 +229,19 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                         {player.propertySets.map((set) => (
                             <div
                                 key={set.setId}
-                                className={`propertySet-column ${canDrag ? "propertySet-column--droppable" : ""}`}
+                                className={`propertySet-column ${canDrag ? "propertySet-column--droppable" : ""} ${dragOverTarget === `set-${set.setId}` ? "propertySet-column--drag-over" : ""}`}
                                 data-set-id={set.setId}
                                 data-set-color={set.color}
                                 onDragOver={canDrag ? handleDragOver : undefined}
+                                onDragEnter={canDrag ? (e) => handleDragEnter(e, `set-${set.setId}`) : undefined}
+                                onDragLeave={canDrag ? handleDragLeave : undefined}
                                 onDrop={canDrag ? (e) => handleDropOnSet(e, set.setId, set.color) : undefined}
                             >
                                 <div
                                     className="propertySet-label"
                                     style={{ backgroundColor: PropertyColorMap[set.color].hex, color: PropertyColorMap[set.color].textColor }}
                                 >
-                                    {`${set.cards.length}/${set.requiredSize}${set.isComplete ? "✓" : ""}${set.hasHotel ? "🏨" : set.hasHouse ? "🏠" : ""} M${set.rent}`}
+                                    {`${set.cards.length}/${set.requiredSize}${set.isComplete ? "✓" : ""}${set.hasHotel ? "🏨" : set.hasHouse ? "🏠" : ""}`}
                                 </div>
                                 <div className={inspectMode ? "propertySet-stack--inspect" : "propertySet-stack"}>
                                     {set.cards.map((card, idx) => {
@@ -258,8 +275,10 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                         {/* "New Set" drop target */}
                         {canDrag && (
                             <div
-                                className="propertySet-column propertySet-new"
+                                className={`propertySet-column propertySet-new ${dragOverTarget === "new" ? "propertySet-new--drag-over" : ""}`}
                                 onDragOver={handleDragOver}
+                                onDragEnter={(e) => handleDragEnter(e, "new")}
+                                onDragLeave={handleDragLeave}
                                 onDrop={handleDropNewSet}
                             >
                                 <div className="propertySet-new-label">+ New Set</div>
@@ -272,8 +291,10 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                     {/* Unbound wilds */}
                     {isMe && (player.unboundWilds?.length > 0 || canDrag) && (
                         <div
-                            className={`unboundWilds ${canDrag ? "unboundWilds--droppable" : ""}`}
+                            className={`unboundWilds ${canDrag ? "unboundWilds--droppable" : ""} ${dragOverTarget === "unbound" ? "unboundWilds--drag-over" : ""}`}
                             onDragOver={canDrag ? handleDragOver : undefined}
+                            onDragEnter={canDrag ? (e) => handleDragEnter(e, "unbound") : undefined}
+                            onDragLeave={canDrag ? handleDragLeave : undefined}
                             onDrop={canDrag ? handleDropUnbound : undefined}
                         >
                             <div className="section-label">Unassigned Wilds</div>

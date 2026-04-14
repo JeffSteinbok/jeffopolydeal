@@ -27,10 +27,11 @@ const VALUE_COLORS: Record<number, string> = {
 
 function cardBg(card: CardType): string {
     if (card.cardType === "Money") return VALUE_COLORS[card.moneyValue] ?? "#a0c8a0";
-    if (card.cardType === "Property" || card.cardType === "PropertyWildcard") {
+    if (card.cardType === "Property") {
         const color = card.activeColor ?? card.color;
         return color ? PropertyColorMap[color].hex : "#bbb";
     }
+    if (card.cardType === "PropertyWildcard") return "#fff";
     return VALUE_COLORS[card.moneyValue] ?? "#c8c8c8";
 }
 
@@ -168,8 +169,6 @@ function WildcardLayout({ card, small }: { card: CardType; small?: boolean }) {
 
     return (
         <>
-            <Badge value={card.moneyValue} bg="#3a7d44" />
-            <Badge value={card.moneyValue} bg="#3a7d44" br />
             <div className={`md-wild-dual ${isFlipped ? "md-wild-dual--flipped" : ""}`}>
                 {/* Top half */}
                 <div className="md-wild-dual__half">
@@ -242,8 +241,6 @@ function RentLayout({ card }: { card: CardType }) {
     if (card.isWildRent) {
         return (
             <>
-                <Badge value={card.moneyValue} bg="#3a7d44" />
-                <Badge value={card.moneyValue} bg="#3a7d44" br />
                 <div className="md-card__header">Rent</div>
                 <div className="md-card__body-center">
                     <div className="md-rent-ring" style={{
@@ -272,8 +269,6 @@ function RentLayout({ card }: { card: CardType }) {
 
     return (
         <>
-            <Badge value={card.moneyValue} bg="#3a7d44" />
-            <Badge value={card.moneyValue} bg="#3a7d44" br />
             <div className="md-card__header">Rent</div>
             <div className="md-card__body-center">
                 <div className="md-rent-ring" style={{
