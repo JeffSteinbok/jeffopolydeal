@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Card } from "../../Types";
 import { CardComponent } from "../gamePage/components/Card";
+import { GameConfig } from "../../utilities/GameConfig";
 import "./DeckPage.css";
 
-type ViewMode = "tiny" | "small" | "full";
+type ViewMode = "compact" | "tiny" | "small" | "full";
 
 interface CardGroup {
     label: string;
@@ -27,6 +28,13 @@ function groupCards(cards: Card[]): CardGroup[] {
     return groups;
 }
 
+function getRent(card: Card): number | undefined {
+    const color = card.activeColor ?? card.color;
+    if (!color) return undefined;
+    const rents = GameConfig.rentTable[color];
+    return rents ? rents[1] ?? 0 : undefined;
+}
+
 export function DeckPage() {
     const [cards, setCards] = useState<Card[]>([]);
     const [loading, setLoading] = useState(true);
@@ -45,6 +53,7 @@ export function DeckPage() {
     if (loading) return <div className="deckPage">Loading deck...</div>;
 
     const groups = groupCards(cards);
+    const isCompact = viewMode === "compact";
 
     return (
         <div className="deckPage">
@@ -52,7 +61,7 @@ export function DeckPage() {
                 <h1>Jeffopoly Deal — Full Deck ({cards.length} cards)</h1>
                 <div className="deckPage-controls">
                     <label>View:</label>
-                    {(["tiny", "small", "full"] as ViewMode[]).map((mode) => (
+                    {(["compact", "tiny", "small", "full"] as ViewMode[]).map((mode) => (
                         <button
                             key={mode}
                             className={viewMode === mode ? "active" : ""}
@@ -67,13 +76,14 @@ export function DeckPage() {
             {groups.map((group) => (
                 <div key={group.label} className="deckPage-group">
                     <h2>{group.label}</h2>
-                    <div className={`deckPage-grid deckPage-grid--${viewMode}`}>
+                    <div className={`deckPage-grid deckPage-grid--${isCompact ? "tiny" : viewMode}`}>
                         {group.cards.map((card) => (
                             <div key={card.id} className="deckPage-cardWrapper">
                                 <CardComponent
                                     card={card}
-                                    tiny={viewMode === "tiny"}
+                                    tiny={isCompact || viewMode === "tiny"}
                                     small={viewMode === "small"}
+                                    currentRent={isCompact ? getRent(card) : undefined}
                                 />
                                 <span className="deckPage-cardId">#{card.id}</span>
                             </div>
