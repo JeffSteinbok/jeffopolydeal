@@ -1,3 +1,4 @@
+using JeffopolyDeal.Cards;
 using JeffopolyDeal.Hubs;
 using JeffopolyDeal.Models;
 using Microsoft.AspNetCore.SignalR;
@@ -1222,7 +1223,7 @@ namespace JeffopolyDeal
                 // Only include hand for the requesting player
                 if (forConnectionId == player.ConnectionId)
                 {
-                    ps.Hand = player.Hand.ToList();
+                    ps.Hand = player.Hand.Select(card => CloneCardForViewer(card, player)).ToList();
                 }
 
                 foreach (var set in player.PropertySets)
@@ -1244,6 +1245,36 @@ namespace JeffopolyDeal
             }
 
             return state;
+        }
+
+        private Card CloneCardForViewer(Card card, Player player)
+        {
+            return new Card
+            {
+                Id = card.Id,
+                CardId = card.CardId,
+                CardType = card.CardType,
+                MoneyValue = card.MoneyValue,
+                Name = card.Name,
+                Color = card.Color,
+                AltColor = card.AltColor,
+                IsMulticolorWild = card.IsMulticolorWild,
+                RentColors = card.RentColors?.ToList(),
+                IsWildRent = card.IsWildRent,
+                ActionKind = card.ActionKind,
+                ActiveColor = card.ActiveColor,
+                IsPlayable = ComputeCardPlayability(card, player),
+            };
+        }
+
+        private bool ComputeCardPlayability(Card card, Player player)
+        {
+            var typedCard = CardFactory.Create(card);
+            return typedCard.IsPlayable(new CardPlayabilityContext
+            {
+                Player = player,
+                Players = _players
+            });
         }
 
         #endregion

@@ -50,7 +50,10 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, smallCa
             <div className="hand-label">Your Hand ({cards.length})</div>
             <div className={`hand-cards${!canPlay ? " hand-cards--disabled" : ""}`}>
                 {cards.map((card) => (
-                    <div key={card.id} className="hand-card-wrapper">
+                    <div
+                        key={card.id}
+                        className={`hand-card-wrapper${canPlay && card.isPlayable === false ? " hand-card-wrapper--unplayable" : ""}`}
+                    >
                         <CardComponent
                             card={card}
                             small={smallCards}
