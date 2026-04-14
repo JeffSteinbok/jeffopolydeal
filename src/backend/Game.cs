@@ -698,6 +698,7 @@ namespace JeffopolyDeal
                 {
                     responder.Hand.Remove(justSayNo);
                     _deck.Discard(justSayNo);
+                    LogAction(responder.Name, "played Just Say No!");
 
                     // Save original action info the first time a JSN is played (not on subsequent counter-JSNs)
                     if (_pendingAction.OriginalSourcePlayerId == null)
@@ -849,12 +850,14 @@ namespace JeffopolyDeal
             var receiver = _players.FirstOrDefault(p => p.ConnectionId == _pendingAction.SourcePlayerId);
             if (payer == null || receiver == null) return;
 
+            int totalPaid = 0;
             foreach (var cardId in cardIds)
             {
                 // Check bank
                 var card = payer.Bank.FirstOrDefault(c => c.Id == cardId);
                 if (card != null)
                 {
+                    totalPaid += card.MoneyValue;
                     payer.Bank.Remove(card);
                     receiver.Bank.Add(card);
                     continue;
@@ -866,6 +869,7 @@ namespace JeffopolyDeal
                     card = set.Cards.FirstOrDefault(c => c.Id == cardId);
                     if (card != null)
                     {
+                        totalPaid += card.MoneyValue;
                         set.Cards.Remove(card);
                         // Property goes to receiver's property area
                         var receiverColor = card.ActiveColor ?? card.Color ?? set.Color;
@@ -879,6 +883,9 @@ namespace JeffopolyDeal
                     }
                 }
             }
+
+            if (totalPaid > 0)
+                LogAction(payer.Name, $"paid M{totalPaid} to {receiver.Name}");
 
             _pendingAction.TargetPlayerIds.Remove(payerId);
         }
@@ -904,6 +911,7 @@ namespace JeffopolyDeal
                 }
             }
 
+            LogAction(source.Name, $"stole {_pendingAction.TargetCardName ?? "a card"} from {target.Name}");
             _pendingAction.TargetPlayerIds.Clear();
         }
 
@@ -954,6 +962,7 @@ namespace JeffopolyDeal
                 if (color.HasValue) PlayProperty(target, offeredCard, color.Value);
             }
 
+            LogAction(source.Name, $"force-swapped {offeredCard?.Name ?? "a card"} for {target.Name}'s {stolenCard?.Name ?? "a card"}");
             _pendingAction.TargetPlayerIds.Clear();
         }
 
@@ -976,6 +985,7 @@ namespace JeffopolyDeal
             newSet.HasHouse = targetSet.HasHouse;
             newSet.HasHotel = targetSet.HasHotel;
 
+            LogAction(source.Name, $"took {target.Name}'s complete {targetSet.Color} set!");
             _pendingAction.TargetPlayerIds.Clear();
         }
 
