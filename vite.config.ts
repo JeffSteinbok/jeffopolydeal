@@ -7,6 +7,7 @@ export default defineConfig({
         environment: 'jsdom',
         globals: true,
         setupFiles: ['./src/web/test-setup.ts'],
+        passWithNoTests: true,
     },
     // Dev server with HMR — proxies SignalR to the .NET backend
     server: {

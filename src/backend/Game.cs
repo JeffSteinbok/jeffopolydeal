@@ -445,7 +445,7 @@ namespace JeffopolyDeal
             {
                 foreach (var doubleId in request.DoubleRentCardIds)
                 {
-                    if (_playsUsed >= GameConfig.MaxPlaysPerTurn) break;
+                    if (_playsUsed + 1 >= GameConfig.MaxPlaysPerTurn) break;
                     var doubleCard = player.Hand.FirstOrDefault(c => c.Id == doubleId && c.ActionKind == ActionType.DoubleTheRent);
                     if (doubleCard != null)
                     {
@@ -694,6 +694,14 @@ namespace JeffopolyDeal
                     responder.Hand.Remove(justSayNo);
                     _deck.Discard(justSayNo);
 
+                    // Save original action info the first time a JSN is played
+                    if (_pendingAction.Type != PendingActionType.JustSayNoChain)
+                    {
+                        _pendingAction.OriginalSourcePlayerId = _pendingAction.SourcePlayerId;
+                        _pendingAction.OriginalActionType = _pendingAction.Type;
+                        _pendingAction.OriginalTargetPlayerIds = new List<string>(_pendingAction.TargetPlayerIds);
+                    }
+
                     // Now the source player needs to respond (they can counter with their own JSN)
                     _pendingAction.JustSayNoResponderId = _pendingAction.SourcePlayerId;
                     _pendingAction.Type = PendingActionType.JustSayNoChain;
@@ -707,10 +715,44 @@ namespace JeffopolyDeal
             // Handle Just Say No chain acceptance (declining to counter)
             if (_pendingAction.Type == PendingActionType.JustSayNoChain && !response.PlayJustSayNo)
             {
-                // The action was successfully blocked
-                _pendingAction = null;
-                _phase = GamePhase.Play;
-                return;
+                if (_pendingAction.SourcePlayerId == _pendingAction.OriginalSourcePlayerId)
+                {
+                    // The original action's source played the last JSN counter — action proceeds.
+                    // Restore the original action and execute it.
+                    _pendingAction.Type = _pendingAction.OriginalActionType!.Value;
+                    _pendingAction.SourcePlayerId = _pendingAction.OriginalSourcePlayerId;
+                    _pendingAction.TargetPlayerIds = new List<string>(_pendingAction.OriginalTargetPlayerIds!);
+
+                    // Execute steal/swap actions immediately
+                    switch (_pendingAction.Type)
+                    {
+                        case PendingActionType.RespondToSlyDeal:
+                            ExecuteSlyDeal();
+                            break;
+                        case PendingActionType.RespondToForceDeal:
+                            ExecuteForceDeal();
+                            break;
+                        case PendingActionType.RespondToDealBreaker:
+                            ExecuteDealBreaker();
+                            break;
+                    }
+
+                    // Clear pending action if all targets have responded (steal/swap actions clear TargetPlayerIds)
+                    if (_pendingAction != null && _pendingAction.TargetPlayerIds.Count == 0)
+                    {
+                        _pendingAction = null;
+                        _phase = GamePhase.Play;
+                    }
+                    // For payment actions the targets remain; the client will be prompted to pay.
+                    return;
+                }
+                else
+                {
+                    // The action was successfully blocked
+                    _pendingAction = null;
+                    _phase = GamePhase.Play;
+                    return;
+                }
             }
 
             // Handle steal/swap actions — execute BEFORE removing from target list
@@ -1119,88 +1161,96 @@ namespace JeffopolyDeal
         /// </summary>
         public async Task MovePropertyAsync(string connectionId, int cardId, int targetSetId, PropertyColor? targetColor)
         {
+            bool playerFound;
             lock (_lock)
             {
                 var player = _players.FirstOrDefault(p => p.ConnectionId == connectionId);
-                if (player == null) return;
+                playerFound = player != null;
+                if (playerFound)
+                    TryMoveProperty(player!, cardId, targetSetId, targetColor);
+            }
+            // Always broadcast when player exists so the client receives the authoritative state,
+            // even if the move was rejected (e.g. wrong turn or wrong phase).
+            if (playerFound) await BroadcastGameStateAsync();
+        }
 
-                var currentPlayer = GetCurrentPlayer();
-                if (currentPlayer == null || currentPlayer.ConnectionId != connectionId) return;
-                if (_phase != GamePhase.Play) return;
+        private void TryMoveProperty(Player player, int cardId, int targetSetId, PropertyColor? targetColor)
+        {
+            var currentPlayer = GetCurrentPlayer();
+            if (currentPlayer == null || currentPlayer.ConnectionId != player.ConnectionId) return;
+            if (_phase != GamePhase.Play) return;
 
-                // Find and remove the card from wherever it is
-                Card? card = null;
+            // Find and remove the card from wherever it is
+            Card? card = null;
 
-                card = player.UnboundWilds.FirstOrDefault(c => c.Id == cardId);
-                if (card != null)
+            card = player.UnboundWilds.FirstOrDefault(c => c.Id == cardId);
+            if (card != null)
+            {
+                player.UnboundWilds.Remove(card);
+            }
+            else
+            {
+                foreach (var set in player.PropertySets.ToList())
                 {
-                    player.UnboundWilds.Remove(card);
-                }
-                else
-                {
-                    foreach (var set in player.PropertySets.ToList())
+                    card = set.Cards.FirstOrDefault(c => c.Id == cardId);
+                    if (card != null)
                     {
-                        card = set.Cards.FirstOrDefault(c => c.Id == cardId);
-                        if (card != null)
+                        set.Cards.Remove(card);
+                        if (!set.IsComplete)
                         {
-                            set.Cards.Remove(card);
-                            if (!set.IsComplete)
-                            {
-                                set.HasHouse = false;
-                                set.HasHotel = false;
-                            }
-                            if (set.Cards.Count == 0)
-                                player.PropertySets.Remove(set);
-                            break;
+                            set.HasHouse = false;
+                            set.HasHotel = false;
                         }
+                        if (set.Cards.Count == 0)
+                            player.PropertySets.Remove(set);
+                        break;
                     }
                 }
-
-                if (card == null) return;
-
-                // Move to unbound
-                if (targetSetId == -1)
-                {
-                    if (!(card.CardType == CardType.PropertyWildcard && card.IsMulticolorWild)) return;
-                    card.ActiveColor = null;
-                    player.UnboundWilds.Add(card);
-                    return;
-                }
-
-                // Determine the color for validation
-                var color = targetColor;
-                if (targetSetId > 0)
-                {
-                    var existingSet = player.PropertySets.FirstOrDefault(s => s.SetId == targetSetId);
-                    if (existingSet == null) return;
-                    color = existingSet.Color;
-                }
-
-                if (color == null) return;
-
-                // Validate the card can go to this color
-                if (card.CardType == CardType.Property && card.Color != color) return;
-                if (card.CardType == CardType.PropertyWildcard && !card.IsMulticolorWild
-                    && card.Color != color && card.AltColor != color) return;
-
-                // Check set size limit
-                if (targetSetId > 0)
-                {
-                    var existingSet = player.PropertySets.First(s => s.SetId == targetSetId);
-                    if (existingSet.Cards.Count >= existingSet.RequiredSize) return;
-                    card.ActiveColor = color;
-                    existingSet.Cards.Add(card);
-                }
-                else
-                {
-                    // Create new set
-                    card.ActiveColor = color;
-                    var newSet = new PropertySet { Color = color.Value };
-                    newSet.Cards.Add(card);
-                    player.PropertySets.Add(newSet);
-                }
             }
-            await BroadcastGameStateAsync();
+
+            if (card == null) return;
+
+            // Move to unbound
+            if (targetSetId == -1)
+            {
+                if (!(card.CardType == CardType.PropertyWildcard && card.IsMulticolorWild)) return;
+                card.ActiveColor = null;
+                player.UnboundWilds.Add(card);
+                return;
+            }
+
+            // Determine the color for validation
+            var color = targetColor;
+            if (targetSetId > 0)
+            {
+                var existingSet = player.PropertySets.FirstOrDefault(s => s.SetId == targetSetId);
+                if (existingSet == null) return;
+                color = existingSet.Color;
+            }
+
+            if (color == null) return;
+
+            // Validate the card can go to this color
+            if (card.CardType == CardType.Property && card.Color != color) return;
+            if (card.CardType == CardType.PropertyWildcard && !card.IsMulticolorWild
+                && card.Color != color && card.AltColor != color) return;
+
+            // Check set size limit
+            if (targetSetId > 0)
+            {
+                var existingSet = player.PropertySets.First(s => s.SetId == targetSetId);
+                if (existingSet.Cards.Count >= existingSet.RequiredSize) return;
+                card.ActiveColor = color;
+                existingSet.Cards.Add(card);
+            }
+            else
+            {
+                // Create new set
+                card.ActiveColor = color;
+                var newSet = new PropertySet { Color = color.Value };
+                newSet.Cards.Add(card);
+                player.PropertySets.Add(newSet);
+            }
         }
 
         /// <summary>
