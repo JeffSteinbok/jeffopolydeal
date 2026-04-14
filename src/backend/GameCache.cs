@@ -3,6 +3,7 @@ using JeffopolyDeal.Models;
 using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace JeffopolyDeal
@@ -130,6 +131,26 @@ namespace JeffopolyDeal
                     _games.TryRemove(gameCode, out _);
                 }
             }
+        }
+
+        public Task EndGameAsync(string connectionId)
+        {
+            if (!_connectionToGame.TryGetValue(connectionId, out var gameCode))
+                return Task.CompletedTask;
+
+            _games.TryRemove(gameCode, out _);
+
+            var relatedConnections = _connectionToGame
+                .Where(kvp => kvp.Value == gameCode)
+                .Select(kvp => kvp.Key)
+                .ToList();
+
+            foreach (var relatedConnection in relatedConnections)
+            {
+                _connectionToGame.TryRemove(relatedConnection, out _);
+            }
+
+            return Task.CompletedTask;
         }
 
         public DebugDeckInfo? GetDebugDeckInfo(string connectionId)

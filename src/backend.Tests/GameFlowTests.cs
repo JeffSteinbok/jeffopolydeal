@@ -195,5 +195,18 @@ namespace JeffopolyDeal.Tests
             await h.DrawAsync(p1);
             Assert.Equal(handBefore + expectedDraw, h.GetHand(p1).Count);
         }
+
+        [Fact]
+        public async Task StartGame_WithPopulatedBoards_DoesNotExceedHandLimit()
+        {
+            var h = new TestGameHarness();
+            var p1 = await h.AddPlayerAsync("Alice");
+            var p2 = await h.AddPlayerAsync("Bob");
+
+            await h.Game.StartGameAsync(allowSinglePlayer: false, populateBoards: true);
+
+            Assert.True(h.GetHand(p1).Count <= GameConfig.MaxHandSize);
+            Assert.True(h.GetHand(p2).Count <= GameConfig.MaxHandSize);
+        }
     }
 }

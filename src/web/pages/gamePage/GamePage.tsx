@@ -92,7 +92,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     }
                 } else if (gameCode === "") {
                     // Creating a new game
-                    const useFixedCode = Debug.isFlagSet(DebugFlags.FixedGameCode) || Debug.isFlagSet(DebugFlags.SkipLobby);
+                    const useFixedCode = Debug.isFlagSet(DebugFlags.FixedGameCode);
                     const newCode = await client.createGame(useFixedCode ? "TEST" : undefined);
                     await client.joinGame(newCode, playerName, playerId);
                     onGameCodeResolved?.(newCode);
@@ -166,6 +166,15 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         if (window.confirm("Leave the game?")) onLeave();
     };
 
+    const handleEndGame = async () => {
+        if (!window.confirm("End this game for everyone?")) return;
+        try {
+            await client?.endGame();
+        } finally {
+            onLeave();
+        }
+    };
+
     if (error) {
         return (
             <div className="gamePage">
@@ -232,8 +241,6 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     const needsResponse = state.phase === "AwaitingResponse" &&
         state.pendingAction?.targetPlayerIds.includes(myConnectionId ?? "");
 
-    const recentActions = state.recentActions ?? [];
-
     return (
         <div className={`gamePage${isLandscape ? " gamePage--landscape" : ""}`}>
             <div className="gameHeader">
@@ -246,26 +253,15 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 <span className="deckInfo">
                     Draw: {state.drawPileCount} | Discard: {state.discardPileCount}
                 </span>
-                <button
-                    className="exitButton"
-                    onClick={handleExitGame}
-                >
-                    Exit
-                </button>
-            </div>
-
-            {recentActions.length > 0 && (
-                <div className="activityLog">
-                    {recentActions.map((action, i) => (
-                        <div
-                            key={action.id}
-                            className={`activityLog-entry${i === recentActions.length - 1 ? " activityLog-entry--latest" : ""}`}
-                        >
-                            <span className="activityLog-name">{action.playerName}</span> {action.text}
-                        </div>
-                    ))}
+                <div className="headerActions">
+                    <button className="endGameButton" onClick={handleEndGame}>
+                        End Game
+                    </button>
+                    <button className="exitButton" onClick={handleExitGame}>
+                        Exit
+                    </button>
                 </div>
-            )}
+            </div>
 
             {/* Other players — compact summary on mobile, full boards on desktop */}
             <div className={isMobile ? "otherPlayersArea otherPlayersArea--mobile" : "otherPlayersArea"}>

@@ -109,6 +109,10 @@ export class GameSignalRClient {
         await this.connection.invoke("MoveProperty", cardId, targetSetId, targetColor);
     }
 
+    async endGame(): Promise<void> {
+        await this.connection.invoke("EndGame");
+    }
+
     get connectionId(): string | null {
         return this.connection.connectionId ?? null;
     }

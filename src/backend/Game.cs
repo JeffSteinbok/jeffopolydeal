@@ -233,8 +233,12 @@ namespace JeffopolyDeal
                 }
 
                 // Give extra hand cards
-                int extraCards = rng.Next(2, 5);
-                player.Hand.AddRange(_deck.Draw(Math.Min(extraCards, _deck.DrawPileCount)));
+                int handSlotsRemaining = Math.Max(0, GameConfig.MaxHandSize - player.Hand.Count);
+                int extraCards = Math.Min(rng.Next(2, 5), handSlotsRemaining);
+                if (extraCards > 0)
+                {
+                    player.Hand.AddRange(_deck.Draw(Math.Min(extraCards, _deck.DrawPileCount)));
+                }
             }
         }
 

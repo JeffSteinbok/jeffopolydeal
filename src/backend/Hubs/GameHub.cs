@@ -183,5 +183,17 @@ namespace JeffopolyDeal.Hubs
                 _logger.LogError(ex, "Error in MoveProperty for card {CardId}", cardId);
             }
         }
+
+        public async Task EndGame()
+        {
+            try
+            {
+                await _gameCache.EndGameAsync(Context.ConnectionId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in EndGame");
+            }
+        }
     }
 }

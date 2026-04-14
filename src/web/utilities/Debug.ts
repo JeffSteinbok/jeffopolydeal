@@ -17,6 +17,7 @@ export enum DebugFlags {
 // Helpful combos:
 // SkipLobby + FixedGameCode: 6
 // FixedGameCode + SkipLobby + ShowDeck: 406
+// SkipLobby + PopulatedBoards: 804
 // FixedGameCode + SkipLobby + PopulatedBoards: 806
 // All debug shortcuts: 0xFFF
 
