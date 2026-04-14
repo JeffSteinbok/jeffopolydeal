@@ -8,6 +8,8 @@ interface PlayCardModalProps {
     card: Card;
     gameState: GameState;
     myState: PlayerState;
+    canPlay: boolean;
+    phase: string;
     onPlay: (cardId: number, request: PlayCardRequest) => void;
     onCancel: () => void;
     onInspect?: (player: PlayerState) => void;
@@ -15,12 +17,76 @@ interface PlayCardModalProps {
 
 type Step = "choice" | "pickColor" | "pickTarget" | "pickTargetProperty" | "pickMyProperty" | "pickMySet" | "pickTargetSet" | "pickRentColor" | "pickDoubleRent";
 
-export function PlayCardModal({ card, gameState, myState, onPlay, onCancel, onInspect }: PlayCardModalProps) {
+export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay, onCancel, onInspect }: PlayCardModalProps) {
     const [step, setStep] = useState<Step>("choice");
     const [request, setRequest] = useState<Partial<PlayCardRequest>>({});
     const otherPlayers = gameState.players.filter(p => p.connectionId !== myState.connectionId);
 
     const canPlayAsMoney = card.moneyValue > 0;
+
+    // Money card — always shows modal; Bank button only available on your turn
+    if (card.cardType === "Money") {
+        return (
+            <div className="modalOverlay" onClick={onCancel}>
+                <div className="playCardModal" onClick={e => e.stopPropagation()}>
+                    <div className="modalCardPreview">
+                        <CardComponent card={card} />
+                    </div>
+                    <h3>{card.name}</h3>
+                    {canPlay && (
+                        <div className="choiceButtons">
+                            <button className="choiceButton choiceButton--money" onClick={() => onPlay(card.id, { playAsMoney: true })}>
+                                💰 Bank as M{card.moneyValue}
+                            </button>
+                        </div>
+                    )}
+                    <button className="secondary" onClick={onCancel}>{canPlay ? "Cancel" : "Close"}</button>
+                </div>
+            </div>
+        );
+    }
+
+    // Property card — Play as property or Bank for money
+    if (card.cardType === "Property") {
+        return (
+            <div className="modalOverlay" onClick={onCancel}>
+                <div className="playCardModal" onClick={e => e.stopPropagation()}>
+                    <div className="modalCardPreview">
+                        <CardComponent card={card} />
+                    </div>
+                    <h3>{card.name}</h3>
+                    {canPlay && (
+                        <div className="choiceButtons">
+                            <button className="choiceButton choiceButton--action" onClick={() => onPlay(card.id, { playAsMoney: false })}>
+                                🏘️ Play as Property
+                            </button>
+                            {canPlayAsMoney && (
+                                <button className="choiceButton choiceButton--money" onClick={() => onPlay(card.id, { playAsMoney: true })}>
+                                    💰 Bank as M{card.moneyValue}
+                                </button>
+                            )}
+                        </div>
+                    )}
+                    <button className="secondary" onClick={onCancel}>{canPlay ? "Cancel" : "Close"}</button>
+                </div>
+            </div>
+        );
+    }
+
+    // Not your turn — read-only card view for wildcard / action / rent
+    if (!canPlay) {
+        return (
+            <div className="modalOverlay" onClick={onCancel}>
+                <div className="playCardModal" onClick={e => e.stopPropagation()}>
+                    <div className="modalCardPreview">
+                        <CardComponent card={card} />
+                    </div>
+                    <h3>{card.name}</h3>
+                    <button className="secondary" onClick={onCancel}>Close</button>
+                </div>
+            </div>
+        );
+    }
 
     // Property Wildcard — choose color
     if (card.cardType === "PropertyWildcard") {

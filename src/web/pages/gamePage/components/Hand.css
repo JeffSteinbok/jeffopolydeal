@@ -48,14 +48,3 @@
 .hand-card-wrapper {
     border-radius: 6px;
 }
-
-.hand-card-wrapper--unplayable .md-card {
-    opacity: 0.45;
-    filter: grayscale(0.35);
-}
-
-/* Greyed-out state when it's not your turn or you can't play */
-.hand-cards--disabled .md-card {
-    opacity: 0.45;
-    filter: grayscale(0.3);
-}
