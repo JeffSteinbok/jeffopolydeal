@@ -92,12 +92,11 @@ namespace JeffopolyDeal.Tests
         public async Task RespondAsync(string connectionId, ActionResponse response) =>
             await _game.RespondToActionAsync(connectionId, response);
 
-        /// <summary>Get a player's hand from the last broadcast state.</summary>
+        /// <summary>Get a player's hand from the actual player state (not the last broadcast).</summary>
         public List<Card> GetHand(string connectionId)
         {
-            var state = GetState(connectionId);
-            var playerState = state?.Players.FirstOrDefault(p => p.ConnectionId == connectionId);
-            return playerState?.Hand ?? new List<Card>();
+            var player = _game.GetPlayer(connectionId);
+            return player?.Hand.ToList() ?? new List<Card>();
         }
 
         /// <summary>Get the phase from the last broadcast.</summary>

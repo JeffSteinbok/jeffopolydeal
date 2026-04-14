@@ -72,6 +72,15 @@ namespace JeffopolyDeal.Models
         /// The player currently being asked to respond in a Just Say No chain.
         /// </summary>
         public string? JustSayNoResponderId { get; set; }
+
+        /// <summary>The original action source player before any Just Say No chain.</summary>
+        public string? OriginalSourcePlayerId { get; set; }
+
+        /// <summary>The original action type before the Just Say No chain changed it.</summary>
+        public PendingActionType? OriginalActionType { get; set; }
+
+        /// <summary>The original target player IDs before the Just Say No chain changed them.</summary>
+        public List<string>? OriginalTargetPlayerIds { get; set; }
     }
 
     /// <summary>
