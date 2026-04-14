@@ -35,17 +35,17 @@ function useIsLandscapePhone(): boolean {
         window.innerWidth < 1024 &&
         window.innerHeight < 500 &&
         window.innerWidth > window.innerHeight;
-    const [v, setV] = useState(check);
+    const [isLandscapePhone, setIsLandscapePhone] = useState(check);
     useEffect(() => {
         let timer: ReturnType<typeof setTimeout>;
         const handler = () => {
             clearTimeout(timer);
-            timer = setTimeout(() => setV(check()), 100);
+            timer = setTimeout(() => setIsLandscapePhone(check()), 100);
         };
         window.addEventListener("resize", handler);
         return () => { window.removeEventListener("resize", handler); clearTimeout(timer); };
     }, []);
-    return v;
+    return isLandscapePhone;
 }
 
 interface GamePageProps {
