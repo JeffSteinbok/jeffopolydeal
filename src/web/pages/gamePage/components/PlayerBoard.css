@@ -87,6 +87,26 @@
     align-items: flex-start;
 }
 
+/* Inspect mode: sets scroll horizontally, cards within each set shown side-by-side */
+.propertySets-row--inspect {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: #0f3460 transparent;
+    align-items: flex-start;
+}
+
+.propertySets-row--inspect::-webkit-scrollbar {
+    height: 4px;
+}
+
+.propertySets-row--inspect::-webkit-scrollbar-thumb {
+    background: #0f3460;
+    border-radius: 2px;
+}
+
 .propertySet-column {
     display: flex;
     flex-direction: column;
@@ -182,4 +202,12 @@
     color: #555;
     font-style: italic;
     font-size: 0.8rem;
+}
+
+/* Inspect mode: cards within a set shown side-by-side instead of stacked */
+.propertySet-stack--inspect {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    flex-wrap: nowrap;
 }

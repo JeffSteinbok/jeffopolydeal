@@ -18,6 +18,28 @@
     justify-content: center;
 }
 
+/* Mobile/landscape: horizontal scroll, no wrap */
+@media (max-width: 680px), (max-height: 500px) {
+    .hand-cards {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        justify-content: flex-start;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 6px;
+        scrollbar-width: thin;
+        scrollbar-color: #16213e transparent;
+    }
+
+    .hand-cards::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    .hand-cards::-webkit-scrollbar-thumb {
+        background: #16213e;
+        border-radius: 2px;
+    }
+}
+
 .hand-empty {
     color: #555;
     font-style: italic;

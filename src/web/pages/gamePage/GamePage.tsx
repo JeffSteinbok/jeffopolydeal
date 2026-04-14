@@ -14,17 +14,38 @@ import { DebugDeckViewer } from "./components/DebugDeckViewer";
 import "./styles/game.css";
 
 function useIsMobile(breakpoint = 680): boolean {
-    const [isMobile, setIsMobile] = useState(() => window.innerWidth <= breakpoint);
+    // Treat landscape phone as mobile too (wide but short screen)
+    const check = () => window.innerWidth <= breakpoint ||
+        (window.innerWidth < 900 && window.innerHeight < 500);
+    const [isMobile, setIsMobile] = useState(check);
     useEffect(() => {
         let timer: ReturnType<typeof setTimeout>;
         const handler = () => {
             clearTimeout(timer);
-            timer = setTimeout(() => setIsMobile(window.innerWidth <= breakpoint), 100);
+            timer = setTimeout(() => setIsMobile(check()), 100);
         };
         window.addEventListener("resize", handler);
         return () => { window.removeEventListener("resize", handler); clearTimeout(timer); };
     }, [breakpoint]);
     return isMobile;
+}
+
+function useIsLandscapePhone(): boolean {
+    const check = () =>
+        window.innerWidth < 1024 &&
+        window.innerHeight < 500 &&
+        window.innerWidth > window.innerHeight;
+    const [isLandscapePhone, setIsLandscapePhone] = useState(check);
+    useEffect(() => {
+        let timer: ReturnType<typeof setTimeout>;
+        const handler = () => {
+            clearTimeout(timer);
+            timer = setTimeout(() => setIsLandscapePhone(check()), 100);
+        };
+        window.addEventListener("resize", handler);
+        return () => { window.removeEventListener("resize", handler); clearTimeout(timer); };
+    }, []);
+    return isLandscapePhone;
 }
 
 interface GamePageProps {
@@ -42,6 +63,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     const [inspectedPlayer, setInspectedPlayer] = useState<PlayerState | null>(null);
     const clientRef = useRef<GameSignalRClient | null>(null);
     const isMobile = useIsMobile();
+    const isLandscape = useIsLandscapePhone();
 
     useEffect(() => {
         const client = new GameSignalRClient((newState) => {
@@ -163,7 +185,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         state.pendingAction?.targetPlayerIds.includes(myConnectionId ?? "");
 
     return (
-        <div className="gamePage">
+        <div className={`gamePage${isLandscape ? " gamePage--landscape" : ""}`}>
             <div className="gameHeader">
                 <span className="gameCodeSmall">{state.gameCode}</span>
                 <span className="turnInfo">

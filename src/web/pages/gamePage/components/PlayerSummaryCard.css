@@ -8,8 +8,9 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-    flex: 1;
-    min-width: 0;
+    flex: 0 0 auto;
+    min-width: 120px;
+    max-width: 180px;
     position: relative;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -34,6 +35,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    padding-right: 20px;
 }
 
 .playerSummary-turn-dot {
@@ -67,31 +69,41 @@
     font-weight: 700;
 }
 
-.playerSummary-sets {
-    color: #e94560;
-    font-weight: 700;
-}
-
-.playerSummary-dots {
+/* Set pills */
+.playerSummary-setpills {
     display: flex;
     gap: 4px;
     flex-wrap: wrap;
     align-items: center;
 }
 
-.playerSummary-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    opacity: 0.6;
+.playerSummary-setpill {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    white-space: nowrap;
     flex-shrink: 0;
+    line-height: 1.4;
 }
 
-.playerSummary-dot--complete {
-    opacity: 1;
-    border-color: rgba(255, 255, 255, 0.5);
-    box-shadow: 0 0 4px rgba(255, 255, 255, 0.25);
+.playerSummary-setpill--complete {
+    border-color: rgba(255, 255, 255, 0.65);
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.25);
+}
+
+.playerSummary-setpill-check {
+    font-size: 0.65rem;
+    opacity: 0.9;
+}
+
+.playerSummary-setpill-icon {
+    font-size: 0.7rem;
+    line-height: 1;
 }
 
 .playerSummary-no-props {
