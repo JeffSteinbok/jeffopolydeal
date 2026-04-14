@@ -53,11 +53,12 @@ interface PlayerBoardProps {
     player: PlayerState;
     isMe?: boolean;
     isMyTurn?: boolean;
+    inspectMode?: boolean;
     onFlipCard?: (cardId: number) => void;
     onMoveProperty?: (cardId: number, targetSetId: number, targetColor: string | null) => void;
 }
 
-export function PlayerBoard({ player, isMe, isMyTurn, onFlipCard, onMoveProperty }: PlayerBoardProps) {
+export function PlayerBoard({ player, isMe, isMyTurn, inspectMode, onFlipCard, onMoveProperty }: PlayerBoardProps) {
     const canDrag = isMe && isMyTurn && !!onMoveProperty;
 
     // Pointer drag state for mobile
@@ -207,7 +208,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, onFlipCard, onMoveProperty
                 {/* Properties */}
                 <div className="playerBoard-properties">
                     <div className="section-label">Properties</div>
-                    <div className="propertySets-row">
+                    <div className={`propertySets-row${inspectMode ? " propertySets-row--inspect" : ""}`}>
                         {player.propertySets.map((set) => (
                             <div
                                 key={set.setId}
@@ -228,12 +229,12 @@ export function PlayerBoard({ player, isMe, isMyTurn, onFlipCard, onMoveProperty
                                     {set.hasHotel && " 🏨"}
                                     {" — M" + set.rent}
                                 </div>
-                                <div className="propertySet-stack">
+                                <div className={inspectMode ? "propertySet-stack--inspect" : "propertySet-stack"}>
                                     {set.cards.map((card, idx) => (
                                         <div
                                             key={card.id}
                                             className="propertySet-stack-item"
-                                            style={{ marginTop: idx === 0 ? 0 : -100, touchAction: canDrag ? "none" : "auto" }}
+                                            style={{ marginTop: (!inspectMode && idx > 0) ? -100 : 0, touchAction: canDrag ? "none" : "auto" }}
                                             draggable={canDrag}
                                             onDragStart={canDrag ? (e) => handleDragStart(e, card.id) : undefined}
                                             onPointerDown={canDrag ? (e) => handlePropertyPointerDown(e, card.id) : undefined}

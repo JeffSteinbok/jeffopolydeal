@@ -36,17 +36,25 @@ export function PlayerSummaryCard({ player, isCurrentTurn, onClick }: PlayerSumm
             </div>
             <div className="playerSummary-row">
                 <span className="playerSummary-stat playerSummary-money">💰 M{bankTotal}</span>
-                <span className="playerSummary-stat playerSummary-sets">{player.completedSetCount}/3 ✓</span>
                 <span className="playerSummary-stat">🃏 {player.handCount}</span>
             </div>
-            <div className="playerSummary-dots">
+            <div className="playerSummary-setpills">
                 {player.propertySets.map((set, i) => (
                     <span
                         key={i}
-                        className={`playerSummary-dot${set.isComplete ? " playerSummary-dot--complete" : ""}`}
-                        style={{ backgroundColor: PropertyColorMap[set.color].hex }}
-                        title={`${PropertyColorMap[set.color].name} ${set.cards.length}/${set.requiredSize}`}
-                    />
+                        className={`playerSummary-setpill${set.isComplete ? " playerSummary-setpill--complete" : ""}`}
+                        style={{
+                            backgroundColor: PropertyColorMap[set.color].hex,
+                            color: PropertyColorMap[set.color].textColor,
+                        }}
+                        title={`${PropertyColorMap[set.color].name} ${set.cards.length}/${set.requiredSize}${set.hasHouse ? " 🏠" : ""}${set.hasHotel ? " 🏨" : ""}`}
+                    >
+                        {set.cards.length}/{set.requiredSize}
+                        {set.isComplete && <span className="playerSummary-setpill-check">✓</span>}
+                        {set.hasHotel ? <span className="playerSummary-setpill-icon">🏨</span>
+                            : set.hasHouse ? <span className="playerSummary-setpill-icon">🏠</span>
+                            : null}
+                    </span>
                 ))}
                 {player.propertySets.length === 0 && (
                     <span className="playerSummary-no-props">no props</span>

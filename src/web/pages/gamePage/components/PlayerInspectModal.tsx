@@ -39,7 +39,7 @@ export function PlayerInspectModal({ player, onClose }: PlayerInspectModalProps)
                     <button className="inspectDrawer-close" onClick={onClose} aria-label="Close">✕</button>
                 </div>
                 <div className="inspectDrawer-body">
-                    <PlayerBoard player={player} />
+                    <PlayerBoard player={player} inspectMode />
                 </div>
             </div>
         </div>

@@ -161,7 +161,55 @@
     color: #e94560;
 }
 
-/* ── Mobile responsive (≤ 680px) ───────────────────────────── */
+/* ── Landscape phone layout (wide but short screen) ────────── */
+.gamePage--landscape {
+    flex-direction: row;
+    flex-wrap: wrap;
+    height: 100dvh;
+    overflow: hidden;
+    padding: 4px;
+    gap: 4px;
+}
+
+/* Header spans full width */
+.gamePage--landscape .gameHeader {
+    width: 100%;
+    flex: 0 0 auto;
+    padding: 4px 10px;
+}
+
+/* Other players become a vertical sidebar on the left */
+.gamePage--landscape .otherPlayersArea--mobile {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 0 0 150px;
+    width: 150px;
+    height: 0;           /* let flex-basis + flex to handle height */
+    flex-grow: 1;
+    align-items: stretch;
+    padding-bottom: 0;
+    justify-content: flex-start;
+}
+
+/* Force summary cards to take full width of the sidebar */
+.gamePage--landscape .playerSummary {
+    max-width: none;
+    width: 100%;
+}
+
+/* My area takes the remaining width */
+.gamePage--landscape .myArea {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    height: 0;
+    flex-grow: 1;
+}
+
 @media (max-width: 680px) {
     .gamePage {
         padding: 6px;
