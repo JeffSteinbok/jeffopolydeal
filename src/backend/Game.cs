@@ -30,6 +30,8 @@ namespace JeffopolyDeal
         private string? _winnerId;
         private string? _lastPaymentError;
         private string? _lastPaymentErrorConnectionId;
+        private readonly List<GameAction> _recentActions = new();
+        private const int MaxRecentActions = 5;
 
         public Game(IHubContext<GameHub> hubContext, string gameCode)
         {
@@ -213,8 +215,9 @@ namespace JeffopolyDeal
                     var set = player.GetOrCreatePropertySet(color);
                     for (int c = 0; c < cardsInSet && c < propDefs.Length; c++)
                     {
+                        int propValue = GameConfig.PropertyValue.TryGetValue(color, out var pv) ? pv : 0;
                         set.Cards.Add(_deck.CreateCard(
-                            CardType.Property, 0, propDefs[c].DisplayName,
+                            CardType.Property, propValue, propDefs[c].DisplayName,
                             color: color, cardId: propDefs[c].CardId));
                     }
 
@@ -277,6 +280,7 @@ namespace JeffopolyDeal
                 if (!played)
                     return;
 
+                LogAction(player.Name, DescribeCardPlay(player, card, request));
                 player.Hand.Remove(card);
                 _playsUsed++;
 
@@ -978,6 +982,80 @@ namespace JeffopolyDeal
 
         #region Helpers
 
+        private void LogAction(string playerName, string text)
+        {
+            _recentActions.Add(new GameAction { PlayerName = playerName, Text = text });
+            if (_recentActions.Count > MaxRecentActions)
+                _recentActions.RemoveAt(0);
+        }
+
+        private string DescribeCardPlay(Player player, Card card, PlayCardRequest request)
+        {
+            if (request.PlayAsMoney)
+                return card.CardType == CardType.Money
+                    ? $"banked M{card.MoneyValue}"
+                    : $"banked {card.Name}";
+
+            switch (card.CardType)
+            {
+                case CardType.Money:
+                    return $"banked M{card.MoneyValue}";
+                case CardType.Property:
+                    return $"placed {card.Name}";
+                case CardType.PropertyWildcard:
+                    return $"placed {card.Name}";
+                case CardType.Rent:
+                {
+                    var color = request.RentColor?.ToString() ?? "?";
+                    return $"charged {color} Rent";
+                }
+                case CardType.Action:
+                    return DescribeAction(card, request);
+                default:
+                    return $"played {card.Name}";
+            }
+        }
+
+        private string DescribeAction(Card card, PlayCardRequest request)
+        {
+            switch (card.ActionKind)
+            {
+                case ActionType.PassGo:
+                    return "played Pass Go";
+                case ActionType.DebtCollector:
+                {
+                    var target = _players.FirstOrDefault(p => p.ConnectionId == request.TargetPlayerId);
+                    return $"played Debt Collector on {target?.Name ?? "a player"}";
+                }
+                case ActionType.ItsMyBirthday:
+                    return "played It's My Birthday";
+                case ActionType.SlyDeal:
+                {
+                    var target = _players.FirstOrDefault(p => p.ConnectionId == request.TargetPlayerId);
+                    return $"played Sly Deal on {target?.Name ?? "a player"}";
+                }
+                case ActionType.ForceDeal:
+                {
+                    var target = _players.FirstOrDefault(p => p.ConnectionId == request.TargetPlayerId);
+                    return $"played Force Deal with {target?.Name ?? "a player"}";
+                }
+                case ActionType.DealBreaker:
+                {
+                    var target = _players.FirstOrDefault(p => p.ConnectionId == request.TargetPlayerId);
+                    var color = request.TargetSetColor?.ToString() ?? "?";
+                    return $"played Deal Breaker on {target?.Name ?? "a player"}'s {color} set";
+                }
+                case ActionType.JustSayNo:
+                    return "played Just Say No!";
+                case ActionType.House:
+                    return $"added House to {request.TargetSetColor} set";
+                case ActionType.Hotel:
+                    return $"added Hotel to {request.TargetSetColor} set";
+                default:
+                    return $"played {card.Name}";
+            }
+        }
+
         private void AdvanceTurn()
         {
             _currentPlayerIndex = (_currentPlayerIndex + 1) % _players.Count;
@@ -1083,6 +1161,7 @@ namespace JeffopolyDeal
                 WinnerId = _winnerId,
                 WinnerName = _winnerId != null ? _players.FirstOrDefault(p => p.ConnectionId == _winnerId)?.Name : null,
                 PaymentError = forConnectionId == _lastPaymentErrorConnectionId ? _lastPaymentError : null,
+                RecentActions = _recentActions.ToList(),
             };
 
             foreach (var player in _players)

@@ -54,5 +54,22 @@ namespace JeffopolyDeal.Models
 
         public const int DebtCollectorAmount = 5;
         public const int BirthdayAmount = 2;
+
+        /// <summary>
+        /// Monetary value of each property card by color (used when banked or paying).
+        /// </summary>
+        public static readonly Dictionary<PropertyColor, int> PropertyValue = new()
+        {
+            { PropertyColor.Brown, 1 },
+            { PropertyColor.LightBlue, 1 },
+            { PropertyColor.Pink, 2 },
+            { PropertyColor.Orange, 2 },
+            { PropertyColor.Red, 3 },
+            { PropertyColor.Yellow, 3 },
+            { PropertyColor.Green, 4 },
+            { PropertyColor.DarkBlue, 4 },
+            { PropertyColor.Railroad, 2 },
+            { PropertyColor.Utility, 2 },
+        };
     }
 }

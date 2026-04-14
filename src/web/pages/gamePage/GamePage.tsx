@@ -189,6 +189,8 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     const needsResponse = state.phase === "AwaitingResponse" &&
         state.pendingAction?.targetPlayerIds.includes(myConnectionId ?? "");
 
+    const recentActions = state.recentActions ?? [];
+
     return (
         <div className={`gamePage${isLandscape ? " gamePage--landscape" : ""}`}>
             <div className="gameHeader">
@@ -208,6 +210,19 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     Exit
                 </button>
             </div>
+
+            {recentActions.length > 0 && (
+                <div className="activityLog">
+                    {recentActions.map((action, i) => (
+                        <div
+                            key={i}
+                            className={`activityLog-entry${i === recentActions.length - 1 ? " activityLog-entry--latest" : ""}`}
+                        >
+                            <span className="activityLog-name">{action.playerName}</span> {action.text}
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* Other players — compact summary on mobile, full boards on desktop */}
             <div className={isMobile ? "otherPlayersArea otherPlayersArea--mobile" : "otherPlayersArea"}>
