@@ -263,6 +263,11 @@
         gap: 6px;
     }
 
+    .actionBar {
+        padding: 6px;
+        gap: 6px;
+    }
+
     /* Compact header on mobile */
     .gameHeader {
         padding: 6px 10px;
