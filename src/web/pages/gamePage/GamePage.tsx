@@ -119,6 +119,10 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     const isMyTurn = state && me && state.players[state.currentPlayerIndex]?.playerId === playerId;
     const isCreator = state && me && state.players[0]?.playerId === playerId;
 
+    const handleExitGame = () => {
+        if (window.confirm("Leave the game?")) onLeave();
+    };
+
     if (error) {
         return (
             <div className="gamePage">
@@ -161,6 +165,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                         </button>
                     )}
                     {!isCreator && <p className="waitingText">Waiting for host to start...</p>}
+                    <button className="secondary" onClick={onLeave}>Exit Game</button>
                 </div>
             </div>
         );
@@ -196,6 +201,12 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 <span className="deckInfo">
                     Draw: {state.drawPileCount} | Discard: {state.discardPileCount}
                 </span>
+                <button
+                    className="exitButton"
+                    onClick={handleExitGame}
+                >
+                    Exit
+                </button>
             </div>
 
             {/* Other players — compact summary on mobile, full boards on desktop */}
