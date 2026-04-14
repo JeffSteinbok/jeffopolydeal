@@ -92,7 +92,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     }
                 } else if (gameCode === "") {
                     // Creating a new game
-                    const useFixedCode = Debug.isFlagSet(DebugFlags.FixedGameCode) || Debug.isFlagSet(DebugFlags.SkipLobby);
+                    const useFixedCode = Debug.isFlagSet(DebugFlags.FixedGameCode);
                     const newCode = await client.createGame(useFixedCode ? "TEST" : undefined);
                     await client.joinGame(newCode, playerName, playerId);
                     onGameCodeResolved?.(newCode);
@@ -100,7 +100,8 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     // Auto-start when SkipLobby is set
                     if (Debug.isFlagSet(DebugFlags.SkipLobby)) {
                         const populate = Debug.isFlagSet(DebugFlags.PopulatedBoards);
-                        await client.startGame(newCode, true, populate);
+                        const addBots = populate || Debug.isFlagSet(DebugFlags.PlayVsAi);
+                        await client.startGame(newCode, true, populate, addBots);
                     }
                 } else {
                     await client.joinGame(gameCode, playerName, playerId);
@@ -166,6 +167,15 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         if (window.confirm("Leave the game?")) onLeave();
     };
 
+    const handleEndGame = async () => {
+        if (!window.confirm("End this game? All players will be disconnected and the game state will be cleared.")) return;
+        try {
+            await client?.endGame();
+        } finally {
+            onLeave();
+        }
+    };
+
     if (error) {
         return (
             <div className="gamePage">
@@ -179,7 +189,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         return <div className="gamePage"><div className="loading">Connecting...</div></div>;
     }
 
-    const minPlayers = Debug.isFlagSet(DebugFlags.SkipLobby) ? 1 : 2;
+    const minPlayers = (Debug.isFlagSet(DebugFlags.SkipLobby) || Debug.isFlagSet(DebugFlags.PlayVsAi)) ? 1 : 2;
 
     // Lobby
     if (state.phase === "Lobby") {
@@ -201,7 +211,12 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     {isCreator && (
                         <button
                             className="primary"
-                            onClick={() => client?.startGame(state.gameCode, minPlayers === 1)}
+                            onClick={() => client?.startGame(
+                                state.gameCode,
+                                minPlayers === 1,
+                                Debug.isFlagSet(DebugFlags.PopulatedBoards),
+                                Debug.isFlagSet(DebugFlags.PlayVsAi) || Debug.isFlagSet(DebugFlags.PopulatedBoards)
+                            )}
                             disabled={state.players.length < minPlayers}
                         >
                             Start Game {state.players.length < minPlayers ? `(need ${minPlayers}+ players)` : ""}
@@ -232,8 +247,6 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     const needsResponse = state.phase === "AwaitingResponse" &&
         state.pendingAction?.targetPlayerIds.includes(myConnectionId ?? "");
 
-    const recentActions = state.recentActions ?? [];
-
     return (
         <div className={`gamePage${isLandscape ? " gamePage--landscape" : ""}`}>
             <div className="gameHeader">
@@ -246,26 +259,15 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 <span className="deckInfo">
                     Draw: {state.drawPileCount} | Discard: {state.discardPileCount}
                 </span>
-                <button
-                    className="exitButton"
-                    onClick={handleExitGame}
-                >
-                    Exit
-                </button>
-            </div>
-
-            {recentActions.length > 0 && (
-                <div className="activityLog">
-                    {recentActions.map((action, i) => (
-                        <div
-                            key={action.id}
-                            className={`activityLog-entry${i === recentActions.length - 1 ? " activityLog-entry--latest" : ""}`}
-                        >
-                            <span className="activityLog-name">{action.playerName}</span> {action.text}
-                        </div>
-                    ))}
+                <div className="headerActions">
+                    <button className="endGameButton" onClick={handleEndGame}>
+                        End Game
+                    </button>
+                    <button className="exitButton" onClick={handleExitGame}>
+                        Exit
+                    </button>
                 </div>
-            )}
+            </div>
 
             {/* Other players — compact summary on mobile, full boards on desktop */}
             <div className={isMobile ? "otherPlayersArea otherPlayersArea--mobile" : "otherPlayersArea"}>

@@ -91,6 +91,25 @@
     color: #888;
 }
 
+.headerActions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.endGameButton {
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    background: transparent;
+    color: #ffb347;
+    border: 1px solid #ffb347;
+    border-radius: 4px;
+}
+
+.endGameButton:hover {
+    background: rgba(255, 179, 71, 0.15);
+}
+
 .exitButton {
     padding: 4px 10px;
     font-size: 0.78rem;
@@ -223,41 +242,7 @@
     flex-grow: 1;
 }
 
-/* Activity Log */
-.activityLog {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 6px 12px;
-    background: rgba(15, 52, 96, 0.4);
-    border-radius: 6px;
-    font-size: 0.78rem;
-    max-height: 80px;
-    overflow-y: auto;
-}
-
-.activityLog-entry {
-    color: #bbb;
-    line-height: 1.3;
-}
-
-.activityLog-entry--latest {
-    color: #e0e0e0;
-    font-weight: 500;
-}
-
-.activityLog-name {
-    color: #e94560;
-    font-weight: 600;
-}
-
 @media (max-width: 680px) {
-    .activityLog {
-        max-height: 48px;
-        font-size: 0.72rem;
-        padding: 4px 8px;
-    }
-
     .gamePage {
         padding: 6px;
         gap: 6px;
@@ -310,4 +295,3 @@
         padding: 14px;
     }
 }
-

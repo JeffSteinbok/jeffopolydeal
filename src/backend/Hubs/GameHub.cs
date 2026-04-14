@@ -71,12 +71,16 @@ namespace JeffopolyDeal.Hubs
             }
         }
 
-        public async Task StartGame(string gameCode, bool allowSinglePlayer = false, bool populateBoards = false)
+        public async Task StartGame(
+            string gameCode,
+            bool allowSinglePlayer = false,
+            bool populateBoards = false,
+            bool addBots = false)
         {
             try
             {
                 if (string.IsNullOrEmpty(gameCode)) throw new ArgumentNullException(nameof(gameCode));
-                await _gameCache.StartGameAsync(gameCode, allowSinglePlayer, populateBoards);
+                await _gameCache.StartGameAsync(gameCode, allowSinglePlayer, populateBoards, addBots);
             }
             catch (Exception ex)
             {
@@ -181,6 +185,18 @@ namespace JeffopolyDeal.Hubs
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in MoveProperty for card {CardId}", cardId);
+            }
+        }
+
+        public async Task EndGame()
+        {
+            try
+            {
+                await _gameCache.EndGameAsync(Context.ConnectionId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in EndGame");
             }
         }
     }

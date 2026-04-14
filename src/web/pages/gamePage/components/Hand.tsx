@@ -20,26 +20,13 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, smallCa
     const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
     const handleCardClick = (card: Card) => {
-        if (!canPlay) return;
-
-        if (phase === "Discard") {
+        // Discard phase: direct discard on click (DiscardModal is already visible)
+        if (canPlay && phase === "Discard") {
             onDiscardCard(card.id);
             return;
         }
 
-        // Money → auto-bank, no modal
-        if (card.cardType === "Money") {
-            onPlayCard(card.id, { playAsMoney: true });
-            return;
-        }
-
-        // Property → auto-play as property, no modal
-        if (card.cardType === "Property") {
-            onPlayCard(card.id, { playAsMoney: false });
-            return;
-        }
-
-        // Everything else (Action, Rent, PropertyWildcard) → show modal
+        // All other cases: show modal with full card + contextual options
         setSelectedCard(card);
     };
 
@@ -48,16 +35,16 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, smallCa
     return (
         <div className="hand">
             <div className="hand-label">Your Hand ({cards.length})</div>
-            <div className={`hand-cards${!canPlay ? " hand-cards--disabled" : ""}`}>
+            <div className="hand-cards">
                 {cards.map((card) => (
                     <div
                         key={card.id}
-                        className={`hand-card-wrapper${canPlay && card.isPlayable === false ? " hand-card-wrapper--unplayable" : ""}`}
+                        className="hand-card-wrapper"
                     >
                         <CardComponent
                             card={card}
-                            small={smallCards}
-                            onClick={canPlay ? () => handleCardClick(card) : undefined}
+                            tiny={smallCards}
+                            onClick={() => handleCardClick(card)}
                         />
                     </div>
                 ))}
@@ -69,6 +56,8 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, smallCa
                     card={selectedCard}
                     gameState={gameState}
                     myState={myState}
+                    canPlay={canPlay}
+                    phase={phase}
                     onPlay={(cardId, request) => {
                         onPlayCard(cardId, request);
                         setSelectedCard(null);

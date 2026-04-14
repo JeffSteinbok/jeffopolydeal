@@ -73,8 +73,12 @@ export class GameSignalRClient {
         return await this.connection.invoke<boolean>("RejoinGame", gameCode, playerName, playerId);
     }
 
-    async startGame(gameCode: string, allowSinglePlayer: boolean = false, populateBoards: boolean = false): Promise<void> {
-        await this.connection.invoke("StartGame", gameCode, allowSinglePlayer, populateBoards);
+    async startGame(
+        gameCode: string,
+        allowSinglePlayer: boolean = false,
+        populateBoards: boolean = false,
+        addBots: boolean = false): Promise<void> {
+        await this.connection.invoke("StartGame", gameCode, allowSinglePlayer, populateBoards, addBots);
     }
 
     async drawCards(): Promise<void> {
@@ -107,6 +111,10 @@ export class GameSignalRClient {
 
     async moveProperty(cardId: number, targetSetId: number, targetColor: string | null): Promise<void> {
         await this.connection.invoke("MoveProperty", cardId, targetSetId, targetColor);
+    }
+
+    async endGame(): Promise<void> {
+        await this.connection.invoke("EndGame");
     }
 
     get connectionId(): string | null {
