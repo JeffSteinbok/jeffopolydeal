@@ -224,7 +224,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                                     className="propertySet-label"
                                     style={{ backgroundColor: PropertyColorMap[set.color].hex, color: PropertyColorMap[set.color].textColor }}
                                 >
-                                    {`${PropertyColorMap[set.color].short} ${set.cards.length}/${set.requiredSize}${set.isComplete ? "✓" : ""}${set.hasHotel ? "🏨" : set.hasHouse ? "🏠" : ""} M${set.rent}`}
+                                    {`${set.cards.length}/${set.requiredSize}${set.isComplete ? "✓" : ""}${set.hasHotel ? "🏨" : set.hasHouse ? "🏠" : ""} M${set.rent}`}
                                 </div>
                                 <div className={inspectMode ? "propertySet-stack--inspect" : "propertySet-stack"}>
                                     {set.cards.map((card, idx) => {
