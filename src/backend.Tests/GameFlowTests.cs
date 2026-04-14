@@ -157,15 +157,15 @@ namespace JeffopolyDeal.Tests
         public async Task HandLimit_ForcesDiscard()
         {
             var h = new TestGameHarness();
-            var (p1, p2) = await h.SetupTwoPlayerGameAsync();
+            var (p1, _) = await h.SetupTwoPlayerGameAsync();
             await h.DrawAsync(p1);
 
-            // If hand is <= 7, no discard needed
-            if (h.GetHand(p1).Count <= GameConfig.MaxHandSize)
-            {
-                await h.EndTurnAsync(p1);
-                Assert.Equal(GamePhase.Draw, h.GetPhase(p1)); // Advanced to next player
-            }
+            // Force hand above max so EndTurn should switch to Discard phase.
+            h.InjectMoney(p1, 1);
+            Assert.True(h.GetHand(p1).Count > GameConfig.MaxHandSize);
+
+            await h.EndTurnAsync(p1);
+            Assert.Equal(GamePhase.Discard, h.GetPhase(p1));
         }
 
         [Fact]

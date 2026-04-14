@@ -100,7 +100,8 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     // Auto-start when SkipLobby is set
                     if (Debug.isFlagSet(DebugFlags.SkipLobby)) {
                         const populate = Debug.isFlagSet(DebugFlags.PopulatedBoards);
-                        await client.startGame(newCode, true, populate);
+                        const addBots = populate || Debug.isFlagSet(DebugFlags.PlayVsAi);
+                        await client.startGame(newCode, true, populate, addBots);
                     }
                 } else {
                     await client.joinGame(gameCode, playerName, playerId);
@@ -167,7 +168,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     };
 
     const handleEndGame = async () => {
-        if (!window.confirm("End this game for everyone?")) return;
+        if (!window.confirm("End this game? All players will be disconnected and the game state will be cleared.")) return;
         try {
             await client?.endGame();
         } finally {
@@ -188,7 +189,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         return <div className="gamePage"><div className="loading">Connecting...</div></div>;
     }
 
-    const minPlayers = Debug.isFlagSet(DebugFlags.SkipLobby) ? 1 : 2;
+    const minPlayers = (Debug.isFlagSet(DebugFlags.SkipLobby) || Debug.isFlagSet(DebugFlags.PlayVsAi)) ? 1 : 2;
 
     // Lobby
     if (state.phase === "Lobby") {
@@ -210,7 +211,12 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     {isCreator && (
                         <button
                             className="primary"
-                            onClick={() => client?.startGame(state.gameCode, minPlayers === 1)}
+                            onClick={() => client?.startGame(
+                                state.gameCode,
+                                minPlayers === 1,
+                                Debug.isFlagSet(DebugFlags.PopulatedBoards),
+                                Debug.isFlagSet(DebugFlags.PlayVsAi) || Debug.isFlagSet(DebugFlags.PopulatedBoards)
+                            )}
                             disabled={state.players.length < minPlayers}
                         >
                             Start Game {state.players.length < minPlayers ? `(need ${minPlayers}+ players)` : ""}

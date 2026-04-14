@@ -326,10 +326,11 @@ namespace JeffopolyDeal
                 if (player.Hand.Count > GameConfig.MaxHandSize)
                 {
                     _phase = GamePhase.Discard;
-                    return;
                 }
-
-                AdvanceTurn();
+                else
+                {
+                    AdvanceTurn();
+                }
             }
             await BroadcastGameStateAsync();
         }

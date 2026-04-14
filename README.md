@@ -24,10 +24,12 @@ All flags are defined in `/src/web/utilities/Debug.ts`.
 | `SkipDraw` | `0x200` | Reserved debug flag (currently not used in gameplay flow). |
 | `ShowDeck` | `0x400` | Shows the in-game debug deck viewer. |
 | `PopulatedBoards` | `0x800` | Auto-starts with 3 AI bots and pre-populated boards (debug setup). |
+| `PlayVsAi` | `0x1000` | Adds 3 AI bots and starts a normal game flow (no pre-populated boards unless `PopulatedBoards` is also set). |
 
 ### Helpful combinations
 
 - `0x006` = `SkipLobby + FixedGameCode`
 - `0x406` = `SkipLobby + FixedGameCode + ShowDeck`
+- `0x1004` = `SkipLobby + PlayVsAi` (fast random-code game vs AI)
 - `0x806` = `SkipLobby + FixedGameCode + PopulatedBoards`
-- `0xFFF` = all current flags
+- `0x1FFF` = all current flags
