@@ -91,6 +91,19 @@
     color: #888;
 }
 
+.exitButton {
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    background: transparent;
+    color: #e94560;
+    border: 1px solid #e94560;
+    border-radius: 4px;
+}
+
+.exitButton:hover {
+    background: rgba(233, 69, 96, 0.15);
+}
+
 /* Board Areas */
 .otherPlayersArea {
     display: flex;
