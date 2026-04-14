@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Card, GameState, PlayCardRequest } from "../../../Types";
+import { Card, GameState, PlayCardRequest, PlayerState } from "../../../Types";
 import { CardComponent } from "./Card";
 import { PlayCardModal } from "./PlayCardModal";
 import "./Hand.css";
@@ -12,9 +12,10 @@ interface HandProps {
     myConnectionId: string;
     onPlayCard: (cardId: number, request: PlayCardRequest) => void;
     onDiscardCard: (cardId: number) => void;
+    onInspectPlayer?: (player: PlayerState) => void;
 }
 
-export function Hand({ cards, canPlay, phase, gameState, myConnectionId, onPlayCard, onDiscardCard }: HandProps) {
+export function Hand({ cards, canPlay, phase, gameState, myConnectionId, onPlayCard, onDiscardCard, onInspectPlayer }: HandProps) {
     const [selectedCard, setSelectedCard] = useState<Card | null>(null);
     const [orderedCards, setOrderedCards] = useState<Card[]>(cards);
     const dragIndex = useRef<number | null>(null);
@@ -220,6 +221,7 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, onPlayC
                         setSelectedCard(null);
                     }}
                     onCancel={() => setSelectedCard(null)}
+                    onInspect={onInspectPlayer}
                 />
             )}
         </div>

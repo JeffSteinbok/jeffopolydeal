@@ -70,7 +70,70 @@
     font-size: 0.9rem;
 }
 
-.modalButtons button:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
+/* Inspect players section */
+.modalInspect {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid #0f3460;
+}
+
+.modalInspect-label {
+    font-size: 0.8rem;
+    color: #888;
+    margin-bottom: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.modalInspect-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.modalInspect-btn {
+    padding: 6px 14px;
+    background: #0f3460;
+    color: #ccc;
+    border: 1px solid #1a4a7a;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.modalInspect-btn:hover {
+    background: #1a4a7a;
+    color: #eee;
+    transform: none;
+}
+
+/* Mobile adjustments */
+@media (max-width: 680px) {
+    .modal {
+        width: 96%;
+        padding: 16px;
+        max-height: 85vh;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .modalOverlay {
+        align-items: flex-end;
+    }
+
+    .modalButtons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .modalButtons button {
+        min-height: 48px;
+    }
+
+    .paymentCards {
+        max-height: 200px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
 }

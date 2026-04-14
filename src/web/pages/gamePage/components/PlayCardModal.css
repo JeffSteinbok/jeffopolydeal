@@ -62,10 +62,35 @@
     background: #1a4a7a;
 }
 
-.bankOption {
-    margin-top: 8px;
-    font-size: 0.85rem;
+.targetChoice-row {
+    display: flex;
+    gap: 6px;
+    align-items: stretch;
+    width: 100%;
 }
+
+.targetChoice-row .targetChoice {
+    flex: 1;
+}
+
+.targetChoice-inspect {
+    padding: 8px 12px;
+    background: #0f3460;
+    color: #aaa;
+    border: 1px solid #1a4a7a;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+}
+
+.targetChoice-inspect:hover {
+    background: #1a4a7a;
+    color: #eee;
+    transform: none;
+}
+
 
 /* Action vs Money choice buttons */
 .choiceButtons {
@@ -101,4 +126,44 @@
     background: #2e7d32;
     color: #fff;
     border-color: #1b5e20;
+}
+
+/* Mobile adjustments */
+@media (max-width: 680px) {
+    .playCardModal {
+        width: 96%;
+        padding: 16px;
+        max-height: 85vh;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .modalOverlay:has(.playCardModal) {
+        align-items: flex-end;
+    }
+
+    .targetChoice {
+        min-height: 52px;
+        font-size: 0.9rem;
+    }
+
+    .targetChoice-inspect {
+        min-height: 52px;
+        min-width: 44px;
+        font-size: 1.1rem;
+    }
+
+    .choiceButton {
+        min-height: 52px;
+        padding: 14px 16px;
+    }
+
+    .modalCardPreview {
+        display: none;
+    }
+
+    .cardChoices {
+        max-height: 180px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
 }
