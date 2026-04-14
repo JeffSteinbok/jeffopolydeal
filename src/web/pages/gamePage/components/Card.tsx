@@ -11,6 +11,7 @@ interface CardProps {
     selected?: boolean;
     small?: boolean;
     tiny?: boolean;
+    currentRent?: number;
 }
 
 // Background color keyed to money value (matching real cards)
@@ -41,7 +42,7 @@ function borderColor(card: CardType): string {
     return "#888";
 }
 
-export function CardComponent({ card, onClick, onDoubleClick, selected, small, tiny }: CardProps) {
+export function CardComponent({ card, onClick, onDoubleClick, selected, small, tiny, currentRent }: CardProps) {
     const cls = [
         "md-card",
         tiny ? "md-card--xs" : small ? "md-card--sm" : "",
@@ -55,7 +56,7 @@ export function CardComponent({ card, onClick, onDoubleClick, selected, small, t
     return (
         <div className={cls} onClick={onClick} onDoubleClick={onDoubleClick} style={{ backgroundColor: bg, borderColor: bc }}>
             <div className="md-card__inner">
-                {renderCard(card, small || tiny)}
+                {renderCard(card, small || tiny, tiny, currentRent)}
             </div>
             {/* Corner badges */}
             {card.moneyValue > 0 && <Badge value={card.moneyValue} bg="#3a7d44" />}
@@ -64,11 +65,15 @@ export function CardComponent({ card, onClick, onDoubleClick, selected, small, t
     );
 }
 
-function renderCard(card: CardType, small?: boolean) {
+function renderCard(card: CardType, small?: boolean, tiny?: boolean, currentRent?: number) {
     switch (card.cardType) {
         case "Money": return <MoneyLayout card={card} />;
-        case "Property": return <PropertyLayout card={card} small={small} />;
-        case "PropertyWildcard": return <WildcardLayout card={card} small={small} />;
+        case "Property":
+            if (tiny && currentRent !== undefined) return <TinyPropertyLayout card={card} rent={currentRent} />;
+            return <PropertyLayout card={card} small={small} />;
+        case "PropertyWildcard":
+            if (tiny && currentRent !== undefined) return <TinyWildcardLayout card={card} rent={currentRent} />;
+            return <WildcardLayout card={card} small={small} />;
         case "Rent": return <RentLayout card={card} />;
         case "Action": return <ActionLayout card={card} />;
     }
@@ -188,6 +193,42 @@ function WildcardLayout({ card, small }: { card: CardType; small?: boolean }) {
                 </div>
             </div>
         </>
+    );
+}
+
+/* ── Tiny property layouts (mobile compact view) ── */
+function TinyPropertyLayout({ card, rent }: { card: CardType; rent: number }) {
+    const color = card.color!;
+    const info = PropertyColorMap[color];
+    return (
+        <>
+            <div className="md-card__header" style={{ color: info.textColor }}>Prop</div>
+            <div className="md-card__body-center">
+                <div className="md-tiny__rent">M{rent}</div>
+            </div>
+        </>
+    );
+}
+
+function TinyWildcardLayout({ card, rent }: { card: CardType; rent: number }) {
+    if (card.isMulticolorWild) {
+        return (
+            <>
+                <RainbowBar />
+                <div className="md-card__body-center">
+                    <div className="md-tiny__rent">Wild</div>
+                </div>
+            </>
+        );
+    }
+    const c1 = PropertyColorMap[card.color!];
+    const c2 = PropertyColorMap[card.altColor!];
+    return (
+        <div className="md-tiny__dual">
+            <div className="md-tiny__dual-top" style={{ backgroundColor: c1.hex }} />
+            <div className="md-tiny__rent md-tiny__rent--overlay">M{rent}</div>
+            <div className="md-tiny__dual-bot" style={{ backgroundColor: c2.hex }} />
+        </div>
     );
 }
 

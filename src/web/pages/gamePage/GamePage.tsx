@@ -219,6 +219,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     player={me}
                     isMe={true}
                     isMyTurn={isMyTurn === true && state.phase === "Play"}
+                    compact={isMobile}
                     onFlipCard={(cardId) => client?.flipWildcard(cardId)}
                     onMoveProperty={(cardId, targetSetId, targetColor) => client?.moveProperty(cardId, targetSetId, targetColor)}
                 />

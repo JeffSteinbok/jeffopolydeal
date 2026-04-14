@@ -46,16 +46,11 @@
 }
 
 .hand-card-wrapper {
-    cursor: grab;
-    transition: transform 0.15s ease, opacity 0.15s ease;
     border-radius: 6px;
 }
 
-.hand-card-wrapper:active {
-    cursor: grabbing;
-}
-
-.hand-card-wrapper.drag-over {
-    border-left: 3px solid #e94560;
-    padding-left: 3px;
+/* Greyed-out state when it's not your turn or you can't play */
+.hand-cards--disabled .md-card {
+    opacity: 0.45;
+    filter: grayscale(0.3);
 }
