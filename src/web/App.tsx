@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { useState, useEffect } from "react";
 import { StartPage } from "./pages/startPage/StartPage";
 import { GamePage } from "./pages/gamePage/GamePage";
+import { DeckPage } from "./pages/deckPage/DeckPage";
 import { ThemeProvider } from "./themes/ThemeContext";
 import { Debug, DebugFlags } from "./utilities/Debug";
 import "./styles/global.css";
@@ -47,6 +48,12 @@ function clearSession() {
 }
 
 function App() {
+    // Route to deck test page via ?page=deck
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("page") === "deck") {
+        return <DeckPage />;
+    }
+
     const autoStart = Debug.isFlagSet(DebugFlags.SkipLobby);
     const savedSession = loadSession();
 

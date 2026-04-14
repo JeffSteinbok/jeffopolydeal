@@ -18,6 +18,10 @@ export default defineConfig({
                 secure: false,
                 ws: true,  // WebSocket support for SignalR
             },
+            '/api': {
+                target: 'https://localhost:5011',
+                secure: false,
+            },
         },
     },
     // Production build outputs to wwwroot/ for .NET to serve

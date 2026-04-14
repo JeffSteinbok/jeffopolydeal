@@ -36,4 +36,15 @@ else
 app.UseRouting();
 app.MapHub<GameHub>("/hub/game");
 
+// API endpoint: returns the full unshuffled deck for the test/debug page
+app.MapGet("/api/deck", () =>
+{
+    var cards = JeffopolyDeal.Models.Deck.GetOrderedDeck();
+    return Microsoft.AspNetCore.Http.Results.Json(cards, new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = { new JsonStringEnumConverter() }
+    });
+});
+
 app.Run();
