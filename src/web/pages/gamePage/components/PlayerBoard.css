@@ -302,3 +302,11 @@
     align-items: center;
     gap: 4px;
 }
+
+
+@media (max-width: 680px) {
+    .playerBoard-me .playerBoard-sections {
+        min-height: 180px;
+        max-height: 180px;
+    }
+}

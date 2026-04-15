@@ -5,6 +5,7 @@ import "./FyiToast.css";
 
 interface FyiToastProps {
     toasts: GameAction[];
+    smallCards?: boolean;
 }
 
 interface ToastEntry {
@@ -12,7 +13,7 @@ interface ToastEntry {
     leaving: boolean;
 }
 
-export function FyiToast({ toasts }: FyiToastProps) {
+export function FyiToast({ toasts, smallCards }: FyiToastProps) {
     const [entries, setEntries] = useState<ToastEntry[]>([]);
     const prevIdsRef = useRef<Set<number>>(new Set());
 
@@ -65,7 +66,7 @@ export function FyiToast({ toasts }: FyiToastProps) {
                         <div className="fyiToast-cards">
                             {entry.action.cardPlayed && (
                                 <div className="fyiToast-cardGroup">
-                                    <CardComponent card={entry.action.cardPlayed} />
+                                    <CardComponent card={entry.action.cardPlayed} small={smallCards} />
                                 </div>
                             )}
                             {entry.action.sourceCards && entry.action.sourceCards.length > 0 && (

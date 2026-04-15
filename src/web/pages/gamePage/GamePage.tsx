@@ -413,7 +413,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 />
             )}
 
-            <FyiToast toasts={toasts} />
+            <FyiToast toasts={toasts} smallCards={isMobile} />
 
             {/* Player inspect bottom sheet — z-index above ActionModal */}
             {inspectedPlayer && (

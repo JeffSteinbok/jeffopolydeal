@@ -345,12 +345,7 @@
     }
 
     .mainControls {
-        flex-wrap: wrap;
-    }
-
-    .mainControls-right {
-        width: 100%;
-        justify-content: flex-end;
+        flex-wrap: nowrap;
     }
 
     /* Lobby adjustments */
