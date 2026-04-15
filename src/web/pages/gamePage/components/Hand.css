@@ -2,6 +2,7 @@
     background: #0f3460;
     border-radius: 8px;
     padding: 12px;
+    overflow: hidden;
 }
 
 .hand-label {
@@ -74,4 +75,9 @@
 .hand-cards--disabled .md-card {
     opacity: 0.45;
     filter: grayscale(0.3);
+}
+
+.hand-cards--disabled .hand-card-wrapper:hover {
+    transform: none;
+    z-index: auto;
 }

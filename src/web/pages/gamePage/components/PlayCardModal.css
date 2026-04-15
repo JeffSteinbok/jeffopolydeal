@@ -138,6 +138,28 @@
     border-color: #1b5e20;
 }
 
+/* Button bar — cancel left, actions right */
+.modalButtonBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.modalButtonBar-right {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.modalButtonBar-right .choiceButton {
+    width: auto;
+    padding: 10px 18px;
+    font-size: 0.9rem;
+}
+
 /* Mobile adjustments */
 @media (max-width: 680px) {
     .playCardModal {

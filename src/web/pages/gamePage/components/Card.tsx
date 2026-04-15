@@ -2,6 +2,8 @@ import React from "react";
 import { Card as CardType, PropertyColor } from "../../../Types";
 import { PropertyColorMap } from "../../../utilities/PropertyColors";
 import { GameConfig } from "../../../utilities/GameConfig";
+import CurrencyBackground from "../../../assets/CurrencyBackground.png";
+import { RentIcon } from "./RentIcon";
 import "./Card.css";
 
 interface CardProps {
@@ -10,7 +12,7 @@ interface CardProps {
     onDoubleClick?: () => void;
     selected?: boolean;
     small?: boolean;
-    tiny?: boolean;
+    compact?: boolean;
     currentRent?: number;
 }
 
@@ -43,10 +45,10 @@ function borderColor(card: CardType): string {
     return "#888";
 }
 
-export function CardComponent({ card, onClick, onDoubleClick, selected, small, tiny, currentRent }: CardProps) {
+export function CardComponent({ card, onClick, onDoubleClick, selected, small, compact, currentRent }: CardProps) {
     const cls = [
         "md-card",
-        tiny ? "md-card--xs" : small ? "md-card--sm" : "",
+        compact ? "md-card--xs" : small ? "md-card--sm" : "",
         selected ? "md-card--selected" : "",
         onClick ? "md-card--clickable" : "",
     ].filter(Boolean).join(" ");
@@ -61,22 +63,22 @@ export function CardComponent({ card, onClick, onDoubleClick, selected, small, t
     return (
         <div className={cls} onClick={onClick} onDoubleClick={onDoubleClick} style={{ backgroundColor: bg, borderColor: bc }}>
             <div className="md-card__inner">
-                {renderCard(card, small || tiny, tiny, currentRent)}
+                {renderCard(card, small || compact, compact, currentRent)}
             </div>
             {/* Corner badge */}
-            {card.moneyValue > 0 && <Badge value={card.moneyValue} bg={badgeBg} light={badgeLight} />}
+            {card.moneyValue > 0 && <Badge value={card.moneyValue} bg={badgeBg} light={badgeLight} compact={!!(small || compact)} />}
         </div>
     );
 }
 
-function renderCard(card: CardType, small?: boolean, tiny?: boolean, currentRent?: number) {
+function renderCard(card: CardType, small?: boolean, compact?: boolean, currentRent?: number) {
     switch (card.cardType) {
         case "Money": return <MoneyLayout card={card} />;
         case "Property":
-            if (tiny && currentRent !== undefined) return <TinyPropertyLayout card={card} rent={currentRent} />;
+            if (compact && currentRent !== undefined) return <TinyPropertyLayout card={card} rent={currentRent} />;
             return <PropertyLayout card={card} small={small} />;
         case "PropertyWildcard":
-            if (tiny && currentRent !== undefined) return <TinyWildcardLayout card={card} rent={currentRent} />;
+            if (compact && currentRent !== undefined) return <TinyWildcardLayout card={card} rent={currentRent} />;
             return <WildcardLayout card={card} small={small} />;
         case "Rent": return <RentLayout card={card} />;
         case "Action": return <ActionLayout card={card} />;
@@ -87,9 +89,10 @@ function renderCard(card: CardType, small?: boolean, tiny?: boolean, currentRent
 function MoneyLayout({ card }: { card: CardType }) {
     return (
         <>
+            <img src={CurrencyBackground} className="md-money__watermark" alt="" />
             <div className="md-card__body-center">
                 <div className="md-money__amount">
-                    <span className="md-money__sym">M</span>{card.moneyValue}
+                    {card.moneyValue}
                 </div>
             </div>
         </>
@@ -109,7 +112,7 @@ function PropertyLayout({ card, small }: { card: CardType; small?: boolean }) {
                 {card.name}
             </div>
             <div className="md-card__body--rent">
-                <RentTable rents={rents} setSize={setSize} color={info.hex} />
+                <RentTable rents={rents} setSize={setSize} color={info.hex} small={small} />
             </div>
         </>
     );
@@ -165,6 +168,8 @@ function WildcardLayout({ card, small }: { card: CardType; small?: boolean }) {
     const inactiveInfo = PropertyColorMap[inactiveColor];
     const activeRents = GameConfig.rentTable[activeColor];
     const activeSetSize = GameConfig.setSize[activeColor];
+    const inactiveRents = GameConfig.rentTable[inactiveColor];
+    const inactiveSetSize = GameConfig.setSize[inactiveColor];
 
     return (
         <>
@@ -175,9 +180,18 @@ function WildcardLayout({ card, small }: { card: CardType; small?: boolean }) {
                     <div className="md-wild-dual__title">Wild Card</div>
                     <div className="md-wild-dual__subtitle">(Use card either way up.)</div>
                 </div>
-                {/* Rent area — only active color */}
-                <div className="md-wild-dual__rent-shared">
-                    <RentTable rents={activeRents} setSize={activeSetSize} color={activeInfo.hex} />
+                {/* Rent area: label + tables + flipped label */}
+                <div className="md-wild-dual__rent-area">
+                    <div className="md-wild-dual__rent-label">RENT</div>
+                    <div className="md-wild-dual__rent-row">
+                        <div className="md-wild-dual__rent-side md-wild-dual__rent--flipped">
+                            <RentTable rents={inactiveRents} setSize={inactiveSetSize} color={inactiveInfo.hex} hideHeader />
+                        </div>
+                        <div className="md-wild-dual__rent-side">
+                            <RentTable rents={activeRents} setSize={activeSetSize} color={activeInfo.hex} hideHeader />
+                        </div>
+                    </div>
+                    <div className="md-wild-dual__rent-label md-wild-dual__rent--flipped">RENT</div>
                 </div>
                 {/* Inactive color header (upside down) */}
                 <div className="md-wild-dual__header md-wild-dual__header--bottom" style={{ backgroundColor: inactiveInfo.hex }}>
@@ -198,7 +212,7 @@ function TinyPropertyLayout({ card, rent }: { card: CardType; rent: number }) {
         <>
             <div className="md-card__name-band md-card__name-band--tiny" style={{ color: info.textColor }}>{card.name}</div>
             <div className="md-card__body-center">
-                <div className="md-tiny__rent"><span className="md-sym">M</span>{rent}</div>
+                <div className="md-tiny__rent">{rent}</div>
             </div>
         </>
     );
@@ -223,7 +237,7 @@ function TinyWildcardLayout({ card, rent }: { card: CardType; rent: number }) {
             <div className="md-card__header">Wild Card</div>
             <div className="md-tiny__dual">
                 <div className="md-tiny__dual-top" style={{ backgroundColor: c1.hex }} />
-                <div className="md-tiny__rent md-tiny__rent--overlay"><span className="md-sym">M</span>{rent}</div>
+                <div className="md-tiny__rent md-tiny__rent--overlay">{rent}</div>
                 <div className="md-tiny__dual-bot" style={{ backgroundColor: c2.hex }} />
             </div>
         </>
@@ -279,15 +293,15 @@ function RentLayout({ card }: { card: CardType }) {
 /* ── Action ────────────────────────────────────── */
 const ACTION_META: Record<string, { title: string; desc: string }> = {
     PassGo:        { title: "Pass Go",            desc: "Draw 2 extra cards" },
-    DebtCollector: { title: "Debt Collector",      desc: "Any player pays you M5" },
-    ItsMyBirthday: { title: "It's My Birthday",    desc: "All players pay you M2" },
+    DebtCollector: { title: "Debt Collector",      desc: "Any player pays you 5" },
+    ItsMyBirthday: { title: "It's My Birthday",    desc: "All players pay you 2" },
     SlyDeal:       { title: "Sly Deal",            desc: "Steal 1 property" },
     ForceDeal:     { title: "Forced Deal",         desc: "Swap properties with any player" },
     DealBreaker:   { title: "Deal Breaker",        desc: "Steal a complete set!" },
     JustSayNo:     { title: "Just Say No!",        desc: "Cancel any action against you" },
     DoubleTheRent: { title: "Double The Rent!",    desc: "Play with a rent card" },
-    House:         { title: "House",               desc: "+M3 rent on a complete set" },
-    Hotel:         { title: "Hotel",               desc: "+M4 rent (needs house)" },
+    House:         { title: "House",               desc: "+3 rent on a complete set" },
+    Hotel:         { title: "Hotel",               desc: "+4 rent (needs house)" },
 };
 
 function ActionLayout({ card }: { card: CardType }) {
@@ -307,30 +321,38 @@ function ActionLayout({ card }: { card: CardType }) {
 }
 
 /* ── Shared parts ──────────────────────────────── */
-function Badge({ value, bg, light }: { value: number; bg: string; light?: boolean }) {
+function Badge({ value, bg, light, compact }: { value: number; bg: string; light?: boolean; compact?: boolean }) {
     const cls = `md-badge ${light ? "md-badge--light" : ""}`;
-    return <div className={cls} style={{ backgroundColor: bg }}><span className="md-sym">M</span>{value}</div>;
+    return <div className={cls} style={{ backgroundColor: bg }}><span className="md-badge__num">{value}</span></div>;
 }
 
-function RentTable({ rents, setSize, color }: { rents: number[]; setSize: number; color: string }) {
+function RentTable({ rents, setSize, color, reversed, hideHeader, small }: { rents: number[]; setSize: number; color: string; reversed?: boolean; hideHeader?: boolean; small?: boolean }) {
     return (
         <table className="md-rent-tbl">
-            <thead>
-                <tr><th colSpan={2} className="md-rent-tbl__hdr">RENT</th></tr>
-            </thead>
+            {!hideHeader && (
+                <thead>
+                    <tr><th colSpan={2} className="md-rent-tbl__hdr">RENT</th></tr>
+                </thead>
+            )}
             <tbody>
                 {rents.slice(1).map((rent, i) => {
                     const n = i + 1;
                     const full = n === setSize;
+                    const label = small ? "SET " : "FULL SET ";
+                    const iconCell = (
+                        <td className="md-rent-tbl__icons">
+                            <RentIcon count={n} color={color} className="md-rent-tbl__rent-icon" />
+                        </td>
+                    );
+                    const valCell = (
+                        <td className="md-rent-tbl__val">
+                            {full && <span className="md-rent-tbl__label">{label}</span>}
+                            {rent}
+                        </td>
+                    );
                     return (
                         <tr key={n} className={full ? "md-rent-tbl__full" : ""}>
-                            <td className="md-rent-tbl__icons">
-                                <span className="md-rent-tbl__card-icon">{n}</span>
-                            </td>
-                            <td className="md-rent-tbl__val">
-                                {full && <span className="md-rent-tbl__label">FULL SET </span>}
-                                <span className="md-sym">M</span>{rent}
-                            </td>
+                            {reversed ? <>{valCell}{iconCell}</> : <>{iconCell}{valCell}</>}
                         </tr>
                     );
                 })}

@@ -30,7 +30,7 @@ function BankDisplay({ bank }: { bank: Card[] }) {
         <div className="bank-display">
             <div className="bank-header-row">
                 <span className="section-label">Bank</span>
-                <span className="bank-total">💰 M{total}</span>
+                <span className="bank-total">💰 {total}</span>
             </div>
             <div className="bank-denoms">
                 {denoms.map(d => (
@@ -41,7 +41,7 @@ function BankDisplay({ bank }: { bank: Card[] }) {
                             backgroundColor: moneyColors[d.value] || "#4caf50",
                             color: d.value === 5 ? "#fff" : "#333",
                         }}
-                        title={`${d.count}x M${d.value}`}
+                        title={`${d.count}x ${d.value}`}
                     >
                         M{d.value} ×{d.count}
                     </span>
@@ -210,10 +210,12 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
 
     return (
         <div className={`playerBoard ${isMe ? "playerBoard-me" : "playerBoard--opponent"}`}>
-            <div className="playerBoard-header">
-                <span className="playerBoard-name">{player.name}{isMe ? " (You)" : ""}</span>
-                <span className="playerBoard-cards">🃏 {player.handCount}</span>
-            </div>
+            {!isMe && (
+                <div className="playerBoard-header">
+                    <span className="playerBoard-name">{player.name}</span>
+                    <span className="playerBoard-cards">🃏 {player.handCount}</span>
+                </div>
+            )}
 
             <div className="playerBoard-sections">
                 {/* Bank */}
@@ -263,7 +265,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                                             <CardComponent
                                                 card={card}
                                                 small={!compact}
-                                                tiny={compact}
+                                                compact={compact}
                                                 currentRent={compact ? set.rent : undefined}
                                                 onDoubleClick={canFlipCard ? () => onFlipCard!(card.id) : undefined}
                                             />
@@ -296,7 +298,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                                             onPointerMove={canDrag ? handlePropertyPointerMove : undefined}
                                             onPointerUp={canDrag ? handlePropertyPointerUp : undefined}
                                         >
-                                            <CardComponent card={card} small={!compact} tiny={compact} />
+                                            <CardComponent card={card} small={!compact} compact={compact} />
                                         </div>
                                     ))}
                                 </div>

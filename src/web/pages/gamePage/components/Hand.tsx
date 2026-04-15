@@ -21,28 +21,36 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, smallCa
     const [needsOverlap, setNeedsOverlap] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Calculate dynamic overlap margin
+    // Calculate dynamic overlap margin using ResizeObserver
     const [overlapMargin, setOverlapMargin] = useState(0);
     useEffect(() => {
         const el = containerRef.current;
-        if (!el || cards.length <= 1) {
-            setNeedsOverlap(false);
-            setOverlapMargin(0);
-            return;
-        }
-        const cardWidth = smallCards ? 100 : 156;
-        const totalWidth = cards.length * cardWidth;
-        const available = el.clientWidth;
-        if (totalWidth > available) {
-            setNeedsOverlap(true);
-            // How much to shrink: spread excess evenly across gaps
-            const excess = totalWidth - available;
-            const margin = Math.ceil(excess / (cards.length - 1));
-            setOverlapMargin(margin);
-        } else {
-            setNeedsOverlap(false);
-            setOverlapMargin(0);
-        }
+        if (!el) return;
+
+        const recalc = () => {
+            if (cards.length <= 1) {
+                setNeedsOverlap(false);
+                setOverlapMargin(0);
+                return;
+            }
+            const cardWidth = smallCards ? 88 : 156;
+            const totalWidth = cards.length * cardWidth;
+            const available = el.clientWidth;
+            if (totalWidth > available) {
+                setNeedsOverlap(true);
+                const excess = totalWidth - available;
+                const margin = Math.ceil(excess / (cards.length - 1));
+                setOverlapMargin(margin);
+            } else {
+                setNeedsOverlap(false);
+                setOverlapMargin(0);
+            }
+        };
+
+        recalc();
+        const ro = new ResizeObserver(recalc);
+        ro.observe(el);
+        return () => ro.disconnect();
     }, [cards.length, smallCards]);
 
     const handleCardClick = (card: Card) => {
@@ -73,7 +81,7 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, smallCa
                     >
                         <CardComponent
                             card={card}
-                            tiny={smallCards}
+                            small={smallCards}
                             onClick={() => handleCardClick(card)}
                         />
                     </div>

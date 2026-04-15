@@ -34,15 +34,16 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                     <div className="modalCardPreview">
                         <CardComponent card={card} />
                     </div>
-                    <h3>{card.name}</h3>
-                    {canPlay && (
-                        <div className="choiceButtons">
-                            <button className="choiceButton choiceButton--money" onClick={() => onPlay(card.id, { playAsMoney: true })}>
-                                💰 Bank as M{card.moneyValue}
-                            </button>
-                        </div>
-                    )}
-                    <button className="secondary" onClick={onCancel}>{canPlay ? "Cancel" : "Close"}</button>
+                    <div className="modalButtonBar">
+                        <button className="secondary" onClick={onCancel}>{canPlay ? "Cancel" : "Close"}</button>
+                        {canPlay && (
+                            <div className="modalButtonBar-right">
+                                <button className="choiceButton choiceButton--money" onClick={() => onPlay(card.id, { playAsMoney: true })}>
+                                    💰 Bank
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         );
@@ -56,15 +57,16 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                     <div className="modalCardPreview">
                         <CardComponent card={card} />
                     </div>
-                    <h3>{card.name}</h3>
-                    {canPlay && (
-                        <div className="choiceButtons">
-                            <button className="choiceButton choiceButton--action" onClick={() => onPlay(card.id, { playAsMoney: false })}>
-                                🏘️ Play as Property
-                            </button>
-                        </div>
-                    )}
-                    <button className="secondary" onClick={onCancel}>{canPlay ? "Cancel" : "Close"}</button>
+                    <div className="modalButtonBar">
+                        <button className="secondary" onClick={onCancel}>{canPlay ? "Cancel" : "Close"}</button>
+                        {canPlay && (
+                            <div className="modalButtonBar-right">
+                                <button className="choiceButton choiceButton--action" onClick={() => onPlay(card.id, { playAsMoney: false })}>
+                                    🏘️ Place
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         );
@@ -78,8 +80,9 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                     <div className="modalCardPreview">
                         <CardComponent card={card} />
                     </div>
-                    <h3>{card.name}</h3>
-                    <button className="secondary" onClick={onCancel}>Close</button>
+                    <div className="modalButtonBar">
+                        <button className="secondary" onClick={onCancel}>Close</button>
+                    </div>
                 </div>
             </div>
         );
@@ -88,7 +91,9 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
     // Property Wildcard — choose color
     if (card.cardType === "PropertyWildcard") {
         const colorOptions: PropertyColor[] = card.isMulticolorWild
-            ? (Object.keys(PropertyColorMap) as PropertyColor[])
+            ? (Object.keys(PropertyColorMap) as PropertyColor[]).filter(
+                  c => myState.propertySets.some(s => s.color === c)
+              )
             : [card.color!, card.altColor!].filter(Boolean) as PropertyColor[];
 
         return (
@@ -97,21 +102,24 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                     <div className="modalCardPreview">
                         <CardComponent card={card} />
                     </div>
-                    <h3>Play {card.name}</h3>
-                    <p className="modalHint">Choose which color to play as:</p>
+                    <h3>Play as which color?</h3>
                     <div className="colorChoices">
                         {colorOptions.map(color => (
                             <button
                                 key={color}
-                                className="colorChoice"
-                                style={{ backgroundColor: PropertyColorMap[color].hex, color: PropertyColorMap[color].textColor }}
+                                className="colorChoice colorChoice--swatch"
+                                style={{ backgroundColor: PropertyColorMap[color].hex }}
                                 onClick={() => onPlay(card.id, { playAsMoney: false, wildcardColor: color })}
-                            >
-                                {PropertyColorMap[color].name}
-                            </button>
+                                title={PropertyColorMap[color].name}
+                            />
                         ))}
                     </div>
-                    <button className="secondary" onClick={onCancel}>Cancel</button>
+                    {colorOptions.length === 0 && (
+                        <p className="colorChoices-empty">No property sets to join. Play a property first.</p>
+                    )}
+                    <div className="modalButtonBar">
+                        <button className="secondary" onClick={onCancel}>Cancel</button>
+                    </div>
                 </div>
             </div>
         );
@@ -126,22 +134,23 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                     <div className="modalCardPreview">
                         <CardComponent card={card} />
                     </div>
-                    <h3>{card.name}</h3>
-                    <div className="choiceButtons">
-                        <button
-                            className="choiceButton choiceButton--action"
-                            disabled={!actionPlayable}
-                            onClick={() => handlePlayAsAction()}
-                        >
-                            {card.cardType === "Rent" ? "⚡ Charge Rent" : "⚡ Use Action"}
-                        </button>
-                        {canPlayAsMoney && (
-                            <button className="choiceButton choiceButton--money" onClick={() => onPlay(card.id, { playAsMoney: true })}>
-                                💰 Bank as M{card.moneyValue}
+                    <div className="modalButtonBar">
+                        <button className="secondary" onClick={onCancel}>Cancel</button>
+                        <div className="modalButtonBar-right">
+                            <button
+                                className="choiceButton choiceButton--action"
+                                disabled={!actionPlayable}
+                                onClick={() => handlePlayAsAction()}
+                            >
+                                {card.cardType === "Rent" ? "⚡ Charge Rent" : "⚡ Use Action"}
                             </button>
-                        )}
+                            {canPlayAsMoney && (
+                                <button className="choiceButton choiceButton--money" onClick={() => onPlay(card.id, { playAsMoney: true })}>
+                                    💰 Bank
+                                </button>
+                            )}
+                        </div>
                     </div>
-                    <button className="secondary" onClick={onCancel}>Cancel</button>
                 </div>
             </div>
         );
@@ -240,8 +249,8 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                     <div className="choiceButtons">
                         <button className="choiceButton choiceButton--action" onClick={finishRent}>
                             {selectedDoubles.length > 0
-                                ? `⚡ Charge M${multiplied} (${selectedDoubles.length}x doubled)`
-                                : `⚡ Charge M${baseRent} (no double)`}
+                                ? `⚡ Charge ${multiplied} (${selectedDoubles.length}x doubled)`
+                                : `⚡ Charge ${baseRent} (no double)`}
                         </button>
                     </div>
                     <button className="secondary" onClick={onCancel}>Cancel</button>
@@ -275,7 +284,7 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                                         }
                                     }}
                                 >
-                                    {p.name} — 🃏{p.handCount} | 💰{p.bank.reduce((s, c) => s + c.moneyValue, 0)}M | {p.completedSetCount}/3 sets
+                                    {p.name} — 🃏{p.handCount} | 💰{p.bank.reduce((s, c) => s + c.moneyValue, 0)} | {p.completedSetCount}/3 sets
                                 </button>
                                 {onInspect && (
                                     <button

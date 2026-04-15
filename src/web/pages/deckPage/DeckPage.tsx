@@ -4,9 +4,9 @@ import { CardComponent } from "../gamePage/components/Card";
 import { GameConfig } from "../../utilities/GameConfig";
 import "./DeckPage.css";
 
-type ViewMode = "compact" | "tiny" | "small" | "full";
+type ViewMode = "tiny" | "small" | "full";
 
-const VIEW_MODES: ViewMode[] = ["compact", "tiny", "small", "full"];
+const VIEW_MODES: ViewMode[] = ["tiny", "small", "full"];
 
 function getViewFromHash(): ViewMode {
     const hash = window.location.hash.replace("#", "");
@@ -66,7 +66,7 @@ export function DeckPage() {
     if (loading) return <div className="deckPage">Loading deck...</div>;
 
     const groups = groupCards(cards);
-    const isCompact = viewMode === "compact";
+    const isTiny = viewMode === "tiny";
 
     return (
         <div className="deckPage">
@@ -89,14 +89,14 @@ export function DeckPage() {
             {groups.map((group) => (
                 <div key={group.label} className="deckPage-group">
                     <h2>{group.label}</h2>
-                    <div className={`deckPage-grid deckPage-grid--${isCompact ? "tiny" : viewMode}`}>
+                    <div className={`deckPage-grid deckPage-grid--${viewMode}`}>
                         {group.cards.map((card) => (
                             <div key={card.id} className="deckPage-cardWrapper">
                                 <CardComponent
                                     card={card}
-                                    tiny={isCompact || viewMode === "tiny"}
+                                    compact={isTiny}
                                     small={viewMode === "small"}
-                                    currentRent={isCompact ? getRent(card) : undefined}
+                                    currentRent={isTiny ? getRent(card) : undefined}
                                 />
                                 <span className="deckPage-cardId">#{card.id}</span>
                             </div>

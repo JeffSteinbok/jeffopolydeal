@@ -71,11 +71,11 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
     const getDescription = (): string | null => {
         switch (pendingAction.type) {
             case "PayRent":
-                return `Pay M${pendingAction.amount} in rent.`;
+                return `Pay ${pendingAction.amount} in rent.`;
             case "PayDebtCollector":
-                return `Pay M${pendingAction.amount} to ${who}.`;
+                return `Pay ${pendingAction.amount} to ${who}.`;
             case "PayBirthday":
-                return `Pay M${pendingAction.amount} as a birthday gift.`;
+                return `Pay ${pendingAction.amount} as a birthday gift.`;
             case "RespondToSlyDeal":
                 return `${who} is stealing your "${pendingAction.targetCardName}" with a Sly Deal.`;
             case "RespondToForceDeal":
@@ -129,8 +129,8 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                                 {payableCards.length === 0
                                     ? "I have nothing"
                                     : canAfford
-                                        ? `Pay M${selectedTotal}`
-                                        : `Give Everything (M${totalAssets})`}
+                                        ? `Pay ${selectedTotal}`
+                                        : `Give Everything (${totalAssets})`}
                             </button>
                         </div>
                     </>

@@ -1,9 +1,10 @@
 .gamePage {
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
     flex-direction: column;
     padding: 8px;
     gap: 8px;
+    overflow: hidden;
 }
 
 /* Lobby */
@@ -71,9 +72,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 16px;
-    background: #16213e;
-    border-radius: 8px;
+    padding: 0 16px;
     font-size: 0.9rem;
 }
 
@@ -83,7 +82,7 @@
 }
 
 .gameHeaderTitleImage {
-    height: 28px;
+    height: 50px;
     width: auto;
     filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));
 }
@@ -168,7 +167,6 @@
     flex: 1;
     gap: 10px;
     min-height: 0;
-    overflow: hidden;
 }
 
 .opponentSidebar {
@@ -178,7 +176,6 @@
     flex-direction: column;
     gap: 6px;
     overflow-y: auto;
-    max-height: calc(100vh - 60px);
     scrollbar-width: thin;
     scrollbar-color: #0f3460 transparent;
 }
@@ -195,6 +192,8 @@
 .myArea--desktop {
     flex: 1;
     min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
 }
 
 .actionBar {
@@ -224,6 +223,11 @@
 
 .mainControls-right {
     justify-content: flex-end;
+}
+
+.mainControls--page {
+    justify-content: flex-start;
+    padding: 4px 8px;
 }
 
 .playsRemaining {

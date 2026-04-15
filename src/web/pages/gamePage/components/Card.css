@@ -18,13 +18,13 @@
 }
 
 .md-card--sm {
-    width: 110px;
-    height: 154px;
+    width: 88px;
+    height: 123px;
 }
 
 .md-card--xs {
-    width: 72px;
-    height: 100px;
+    width: 54px;
+    height: 75px;
 }
 
 .md-card--clickable { cursor: pointer; }
@@ -133,8 +133,8 @@
 /* ── Money badge (corner) ─────────────────────── */
 .md-badge {
     position: absolute;
-    top: 3px;
-    left: 3px;
+    top: 0px;
+    left: 0px;
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -150,12 +150,21 @@
     z-index: 2;
 }
 
+.md-badge__num {
+    font-size: 16px;
+    line-height: 1;
+}
+
 .md-card--sm .md-badge {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
     font-size: 10px;
-    top: 2px;
-    left: 2px;
+    top: -2px;
+    left: -2px;
+}
+
+.md-card--sm .md-badge__num {
+    font-size: 15px;
 }
 
 /* Badge also in bottom-right */
@@ -178,6 +187,23 @@
 }
 
 /* ── Money card ───────────────────────────────── */
+.md-money__watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+    opacity: 0.12;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.md-card--xs .md-money__watermark {
+    display: none;
+}
+
 .md-money__amount {
     font-family: 'Arial Black', 'Impact', sans-serif;
     font-weight: 900;
@@ -263,7 +289,7 @@
 .md-card__body--rent {
     flex: 1;
     width: 100%;
-    padding: 2px 10px 4px;
+    padding: 2px 20px 4px 10px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -275,14 +301,15 @@
 }
 
 .md-rent-tbl {
-    width: 100%;
+    width: auto;
+    margin: 0 auto;
     border-collapse: collapse;
 }
 
 .md-rent-tbl__hdr {
     font-family: 'Arial Black', sans-serif;
     font-weight: 900;
-    font-size: 11px;
+    font-size: 13px;
     text-align: right;
     color: #999;
     padding-bottom: 2px;
@@ -293,19 +320,19 @@
 }
 
 .md-rent-tbl td {
-    padding: 1.5px 0;
-    font-size: 10px;
+    padding: 2px 0;
+    font-size: 13px;
     font-weight: 700;
-}
-
-.md-card--sm .md-rent-tbl td {
-    font-size: 8px;
-    padding: 1px 0;
 }
 
 .md-rent-tbl__icons {
     display: flex;
     align-items: center;
+    padding-right: 14px;
+}
+
+.md-rent-tbl__val {
+    padding-left: 22px;
 }
 
 /* Mini card icon with count number */
@@ -324,6 +351,11 @@
     background: #fff;
 }
 
+.md-rent-tbl__rent-icon {
+    width: 32px;
+    height: 26px;
+}
+
 .md-card--sm .md-rent-tbl__card-icon {
     width: 12px;
     height: 16px;
@@ -331,11 +363,21 @@
     border-width: 1px;
 }
 
+.md-card--sm .md-rent-tbl__rent-icon {
+    width: 18px;
+    height: 15px;
+}
+
 .md-card--xs .md-rent-tbl__card-icon {
     width: 8px;
     height: 11px;
     font-size: 5px;
     border-width: 1px;
+}
+
+.md-card--xs .md-rent-tbl__rent-icon {
+    width: 12px;
+    height: 10px;
 }
 
 .md-rent-tbl__val {
@@ -349,7 +391,7 @@
 }
 
 .md-rent-tbl__label {
-    font-size: 0.85em;
+    font-size: 0.7em;
 }
 
 /* ── Footer stripe ────────────────────────────── */
@@ -489,55 +531,106 @@
     font-size: 4px;
 }
 
-/* Shared rent area in center of dual wild */
-.md-wild-dual__rent-shared {
+/* Side-by-side rent tables in dual wild */
+.md-wild-dual__rent-label {
+    font-family: 'Arial Black', sans-serif;
+    font-weight: 900;
+    font-size: 13px;
+    text-align: right;
+    color: #999;
+    background: #fff;
+    padding: 0 6px;
+}
+
+.md-card--sm .md-wild-dual__rent-label {
+    font-size: 8px;
+}
+
+.md-card--xs .md-wild-dual__rent-label {
+    font-size: 5px;
+    padding: 1px 0 0;
+}
+
+.md-wild-dual__rent-area {
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 0 6px;
     background: #fff;
+}
+
+.md-wild-dual__rent-row {
+    display: flex;
+    flex-direction: row;
     overflow: hidden;
-}
-
-.md-wild-dual__rent-shared .md-rent-tbl__hdr {
-    font-size: 9px;
-    padding-bottom: 0;
-}
-
-.md-wild-dual__rent-shared .md-rent-tbl td {
-    padding: 0.5px 0;
-    font-size: 8px;
-}
-
-.md-wild-dual__rent-shared .md-rent-tbl__card-icon {
-    width: 12px;
-    height: 15px;
-    font-size: 7px;
-    border-width: 1px;
-}
-
-.md-wild-dual__rent-shared .md-rent-tbl__label {
-    font-size: 0.75em;
-}
-
-.md-card--sm .md-wild-dual__rent-shared {
     padding: 0 3px;
 }
 
-.md-card--sm .md-wild-dual__rent-shared .md-rent-tbl__hdr {
-    font-size: 7px;
+.md-wild-dual__rent-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0;
 }
 
-.md-card--sm .md-wild-dual__rent-shared .md-rent-tbl td {
-    padding: 0;
+.md-wild-dual__rent--flipped {
+    transform: rotate(180deg);
+}
+
+.md-wild-dual__rent-side .md-rent-tbl {
+    margin: 0;
+}
+
+.md-wild-dual__rent-side .md-rent-tbl__hdr {
+    font-size: 8px;
+    padding-bottom: 0;
+}
+
+.md-wild-dual__rent-side .md-rent-tbl td {
+    padding: 0.5px 0;
+    font-size: 10px;
+}
+
+.md-wild-dual__rent-side .md-rent-tbl__icons {
+    padding-right: 0;
+    width: 20px;
+}
+
+.md-wild-dual__rent-side .md-rent-tbl__val {
+    padding-left: 1px;
+    white-space: nowrap;
+}
+
+.md-wild-dual__rent-side .md-rent-tbl__rent-icon {
+    width: 20px;
+    height: 16px;
+}
+
+.md-wild-dual__rent-side .md-rent-tbl__label {
+    font-size: 0.65em;
+}
+
+.md-card--sm .md-wild-dual__rent-side .md-rent-tbl__hdr {
     font-size: 6px;
 }
 
-.md-card--sm .md-wild-dual__rent-shared .md-rent-tbl__card-icon {
-    width: 9px;
-    height: 12px;
+.md-card--sm .md-wild-dual__rent-side .md-rent-tbl td {
+    padding: 0;
     font-size: 5px;
+}
+
+.md-card--sm .md-wild-dual__rent-side .md-rent-tbl__rent-icon {
+    width: 12px;
+    height: 10px;
+}
+
+.md-card--sm .md-wild-dual__rent-side .md-rent-tbl__icons {
+    padding-right: 2px;
+}
+
+.md-card--sm .md-wild-dual__rent-side .md-rent-tbl__val {
+    padding-left: 2px;
 }
 
 /* Double-click hint */
@@ -718,7 +811,7 @@
 .md-card--xs .md-badge {
     width: 18px;
     height: 18px;
-    font-size: 7px;
+    font-size: 8px;
     top: 1px;
     left: 1px;
     border-width: 1px;
@@ -762,10 +855,11 @@
 .md-card--xs .md-wild-dual__pretitle { font-size: 4px; }
 .md-card--xs .md-wild-dual__title { font-size: 6px; }
 .md-card--xs .md-wild-dual__subtitle { font-size: 4px; }
-.md-card--xs .md-wild-dual__rent-shared { padding: 0 2px; }
-.md-card--xs .md-wild-dual__rent-shared .md-rent-tbl__hdr { font-size: 5px; }
-.md-card--xs .md-wild-dual__rent-shared .md-rent-tbl td { font-size: 4px; padding: 0; }
-.md-card--xs .md-wild-dual__rent-shared .md-rent-tbl__card-icon { width: 6px; height: 8px; font-size: 4px; }
+.md-card--xs .md-wild-dual__rent-side .md-rent-tbl__hdr { font-size: 4px; }
+.md-card--xs .md-wild-dual__rent-side .md-rent-tbl td { font-size: 3px; padding: 0; }
+.md-card--xs .md-wild-dual__rent-side .md-rent-tbl__rent-icon { width: 8px; height: 7px; }
+.md-card--xs .md-wild-dual__rent-side .md-rent-tbl__icons { padding-right: 1px; }
+.md-card--xs .md-wild-dual__rent-side .md-rent-tbl__val { padding-left: 1px; }
 .md-card--xs .md-wild-dual__header { padding: 1px 2px; }
 
 .md-card--xs .md-rent-ring {

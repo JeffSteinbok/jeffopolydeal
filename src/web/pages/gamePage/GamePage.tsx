@@ -12,7 +12,7 @@ import { ActionModal } from "./components/ActionModal";
 import { DiscardModal } from "./components/DiscardModal";
 import { FyiToast } from "./components/FyiToast";
 import { DebugDeckViewer } from "./components/DebugDeckViewer";
-import titleImage from "../../assets/JeffopolyTitle.png";
+import titleImage from "../../assets/JeffopolyDeal.png";
 import "./styles/game.css";
 
 function useIsMobile(breakpoint = 680): boolean {
@@ -273,13 +273,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     return (
         <div className={`gamePage${isLandscape ? " gamePage--landscape" : ""}`}>
             <div className="gameHeader">
-                <span className="gameCodeSmall">{state.gameCode}</span>
                 <img src={titleImage} alt="Jeffopoly Deal" className="gameHeaderTitleImage" />
-                <span className="turnInfo">
-                    {isMyTurn
-                        ? `Your turn — ${3 - state.playsUsed} play${3 - state.playsUsed !== 1 ? "s" : ""} left`
-                        : `${state.players[state.currentPlayerIndex]?.name}'s turn`}
-                </span>
                 <span className="deckInfo">
                     Draw: {state.drawPileCount} | Discard: {state.discardPileCount}
                 </span>
@@ -377,20 +371,9 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 </>
             ) : (
                 /* Desktop: opponents sidebar + main play area */
+                <>
                 <div className="desktopLayout">
                     <div className="opponentSidebar">
-                        {state.recentActions && state.recentActions.length > 0 && (
-                            <div className="activityLog">
-                                {state.recentActions.map((action, i) => (
-                                    <div
-                                        key={action.id}
-                                        className={`activityLog-entry${i === state.recentActions!.length - 1 ? " activityLog-entry--latest" : ""}`}
-                                    >
-                                        <span className="activityLog-name">{action.playerName}</span> {action.text}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
                         {otherPlayers.map((p) => (
                             <PlayerBoard key={p.connectionId} player={p} compact />
                         ))}
@@ -404,25 +387,6 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                             onFlipCard={(cardId) => client?.flipWildcard(cardId)}
                             onMoveProperty={(cardId, targetSetId, targetColor) => client?.moveProperty(cardId, targetSetId, targetColor)}
                         />
-
-                        {state.phase === "Draw" && isMyTurn && (
-                            <div className="actionBar">
-                                <button className="primary" onClick={() => client?.drawCards()}>
-                                    Draw Cards
-                                </button>
-                            </div>
-                        )}
-
-                        {state.phase === "Play" && isMyTurn && (
-                            <div className="actionBar">
-                                <span className="playsRemaining">
-                                    {3 - state.playsUsed} play{3 - state.playsUsed !== 1 ? "s" : ""} remaining
-                                </span>
-                                <button className="secondary" onClick={() => client?.endTurn()}>
-                                    End Turn
-                                </button>
-                            </div>
-                        )}
 
                         {state.phase === "Discard" && isMyTurn && me.hand && (
                             <DiscardModal
@@ -442,12 +406,42 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                             phase={state.phase}
                             gameState={state}
                             myConnectionId={myConnectionId ?? ""}
+                            smallCards={true}
                             onPlayCard={(cardId, request) => client?.playCard(cardId, request)}
                             onDiscardCard={(cardId) => client?.discardCard(cardId)}
                         />
                     </div>
                 </div>
+                </>
             )}
+
+            <div className="mainControls">
+                <div className="mainControls-left">
+                    <button className="endGameButton" onClick={handleEndGame}>
+                        End Game
+                    </button>
+                    <button className="exitButton" onClick={handleExitGame}>
+                        Exit
+                    </button>
+                </div>
+                <div className="mainControls-right">
+                    {state.phase === "Play" && isMyTurn && (
+                        <span className="playsRemaining">
+                            {3 - state.playsUsed} play{3 - state.playsUsed !== 1 ? "s" : ""} remaining
+                        </span>
+                    )}
+                    {state.phase === "Draw" && isMyTurn && (
+                        <button className="primary" onClick={() => client?.drawCards()}>
+                            Draw Cards
+                        </button>
+                    )}
+                    {state.phase === "Play" && isMyTurn && (
+                        <button className="secondary" onClick={() => client?.endTurn()}>
+                            End Turn
+                        </button>
+                    )}
+                </div>
+            </div>
 
             {needsResponse && state.pendingAction && (
                 <ActionModal

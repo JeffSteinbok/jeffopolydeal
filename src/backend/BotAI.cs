@@ -19,7 +19,7 @@ namespace JeffopolyDeal
         /// Mutates game state directly (caller holds the lock).
         /// Returns the list of actions taken for logging.
         /// </summary>
-        public static void PlayTurn(Player bot, List<Player> allPlayers, Deck deck, Action<Player, Card, PlayCardRequest> playCard, int maxPlays)
+        public static void PlayTurn(Player bot, List<Player> allPlayers, Deck deck, Func<Player, Card, PlayCardRequest, bool> playCard, int maxPlays)
         {
             // Play up to maxPlays cards
             int plays = 0;
@@ -35,8 +35,9 @@ namespace JeffopolyDeal
                     request = new PlayCardRequest { PlayAsMoney = true };
                 }
 
-                playCard(bot, card, request);
+                bool shouldContinue = playCard(bot, card, request);
                 plays++;
+                if (!shouldContinue) break;
             }
         }
 

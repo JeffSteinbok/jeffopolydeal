@@ -9,6 +9,12 @@
     border: 2px solid #0f3460;
 }
 
+.playerBoard-me .playerBoard-sections {
+    min-height: 280px;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
 .playerBoard-header {
     display: flex;
     justify-content: space-between;
@@ -21,6 +27,7 @@
 .playerBoard-name {
     font-weight: 700;
     font-size: 1rem;
+    color: #fff;
 }
 
 .playerBoard-cards {

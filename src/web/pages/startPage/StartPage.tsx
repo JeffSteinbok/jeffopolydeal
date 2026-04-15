@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import titleImage from "../../assets/JeffopolyTitle.png";
+import titleImage from "../../assets/JeffopolyDeal.png";
 import "./StartPage.css";
 
 interface StartPageProps {

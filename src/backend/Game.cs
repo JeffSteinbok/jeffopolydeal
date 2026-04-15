@@ -853,6 +853,11 @@ namespace JeffopolyDeal
                     _phase = GamePhase.GameOver;
                     _winnerId = currentPlayer.ConnectionId;
                 }
+                // If current player is a bot, resume their turn
+                else if (currentPlayer != null && BotAI.IsBot(currentPlayer.ConnectionId))
+                {
+                    ResumeBotTurn(currentPlayer);
+                }
             }
         }
 
@@ -1148,6 +1153,7 @@ namespace JeffopolyDeal
             _phase = GamePhase.Play;
 
             // Play cards
+            bool stoppedForPending = false;
             BotAI.PlayTurn(bot, _players, _deck, (player, card, request) =>
             {
                 player.Hand.Remove(card);
@@ -1162,7 +1168,20 @@ namespace JeffopolyDeal
 
                 // If this created a pending action targeting other bots, resolve it
                 ResolveBotPendingActions();
+
+                // If there's still a pending action with human targets, stop the bot turn
+                if (_pendingAction != null && _pendingAction.TargetPlayerIds.Any(id => !BotAI.IsBot(id)))
+                {
+                    _phase = GamePhase.AwaitingResponse;
+                    stoppedForPending = true;
+                    return false; // stop playing
+                }
+                return true; // continue playing
             }, GameConfig.MaxPlaysPerTurn);
+
+            // If we stopped for a pending action, don't advance the turn
+            if (stoppedForPending)
+                return;
 
             // Discard if needed
             if (bot.Hand.Count > GameConfig.MaxHandSize)
@@ -1188,6 +1207,67 @@ namespace JeffopolyDeal
             }
 
             // Advance to next player
+            AdvanceTurn();
+        }
+
+        /// <summary>
+        /// Resumes a bot's turn after a pending action (e.g. birthday/rent) was resolved by human players.
+        /// Continues remaining plays, discards, and advances.
+        /// </summary>
+        private void ResumeBotTurn(Player bot)
+        {
+            int remainingPlays = GameConfig.MaxPlaysPerTurn - _playsUsed;
+            if (remainingPlays > 0)
+            {
+                bool stoppedForPending = false;
+                BotAI.PlayTurn(bot, _players, _deck, (player, card, request) =>
+                {
+                    player.Hand.Remove(card);
+                    ProcessCardPlay(player, card, request);
+                    _playsUsed++;
+
+                    LogAction(player.Name, DescribeCardPlay(player, card, request),
+                        cardPlayed: card,
+                        targetPlayerName: request.TargetPlayerId != null
+                            ? _players.FirstOrDefault(p => p.ConnectionId == request.TargetPlayerId)?.Name
+                            : null);
+
+                    ResolveBotPendingActions();
+
+                    if (_pendingAction != null && _pendingAction.TargetPlayerIds.Any(id => !BotAI.IsBot(id)))
+                    {
+                        _phase = GamePhase.AwaitingResponse;
+                        stoppedForPending = true;
+                        return false;
+                    }
+                    return true;
+                }, remainingPlays);
+
+                if (stoppedForPending) return;
+            }
+
+            // Discard if needed
+            if (bot.Hand.Count > GameConfig.MaxHandSize)
+            {
+                var discards = BotAI.PickDiscards(bot, GameConfig.MaxHandSize);
+                foreach (var cardId in discards)
+                {
+                    var card = bot.Hand.FirstOrDefault(c => c.Id == cardId);
+                    if (card != null)
+                    {
+                        bot.Hand.Remove(card);
+                        _deck.Discard(card);
+                    }
+                }
+            }
+
+            if (bot.UniqueCompletedSetCount >= GameConfig.SetsToWin)
+            {
+                _phase = GamePhase.GameOver;
+                _winnerId = bot.ConnectionId;
+                return;
+            }
+
             AdvanceTurn();
         }
 
