@@ -856,6 +856,16 @@ namespace JeffopolyDeal
             }
         }
 
+        /// <summary>Clears house/hotel improvements from a set when it is broken up.</summary>
+        private static void ClearImprovements(PropertySet set)
+        {
+            if (set.HasHouse || set.HasHotel)
+            {
+                set.HasHouse = false;
+                set.HasHotel = false;
+            }
+        }
+
         private void ProcessPayment(string payerId, List<int> cardIds)
         {
             if (_pendingAction == null) return;
@@ -889,11 +899,7 @@ namespace JeffopolyDeal
                         paidCards.Add(card);
                         set.Cards.Remove(card);
                         // If this set had a house/hotel, discard them when breaking the set
-                        if (set.HasHouse || set.HasHotel)
-                        {
-                            set.HasHouse = false;
-                            set.HasHotel = false;
-                        }
+                        ClearImprovements(set);
                         // Property goes to receiver's property area
                         var receiverColor = card.ActiveColor ?? card.Color ?? set.Color;
                         var receiverSet = receiver.GetOrCreatePropertySet(receiverColor);
@@ -932,11 +938,7 @@ namespace JeffopolyDeal
                     stolenCard = card;
                     set.Cards.Remove(card);
                     // Discard house/hotel when the set is broken
-                    if (set.HasHouse || set.HasHotel)
-                    {
-                        set.HasHouse = false;
-                        set.HasHotel = false;
-                    }
+                    ClearImprovements(set);
                     var color = card.ActiveColor ?? card.Color ?? set.Color;
                     PlayProperty(source, card, color);
                     if (set.Cards.Count == 0) target.PropertySets.Remove(set);
@@ -969,11 +971,7 @@ namespace JeffopolyDeal
                 {
                     set.Cards.Remove(stolenCard);
                     // Discard house/hotel when the set is broken
-                    if (set.HasHouse || set.HasHotel)
-                    {
-                        set.HasHouse = false;
-                        set.HasHotel = false;
-                    }
+                    ClearImprovements(set);
                     if (set.Cards.Count == 0) target.PropertySets.Remove(set);
                     break;
                 }
@@ -987,11 +985,7 @@ namespace JeffopolyDeal
                 {
                     set.Cards.Remove(offeredCard);
                     // Discard house/hotel when the set is broken
-                    if (set.HasHouse || set.HasHotel)
-                    {
-                        set.HasHouse = false;
-                        set.HasHotel = false;
-                    }
+                    ClearImprovements(set);
                     if (set.Cards.Count == 0) source.PropertySets.Remove(set);
                     break;
                 }

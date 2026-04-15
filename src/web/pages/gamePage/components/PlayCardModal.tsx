@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Card, PlayCardRequest, GameState, PlayerState, PropertyColor } from "../../../Types";
 import { CardComponent } from "./Card";
 import { PropertyColorMap } from "../../../utilities/PropertyColors";
@@ -23,6 +23,8 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
     const otherPlayers = gameState.players.filter(p => p.connectionId !== myState.connectionId);
 
     const canPlayAsMoney = card.moneyValue > 0;
+    // Memoize so canUseAction (which traverses sets) is only recalculated when inputs change
+    const actionPlayable = useMemo(() => canUseAction(), [card, myState, otherPlayers]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Money card — always shows modal; Bank button only available on your turn
     if (card.cardType === "Money") {
@@ -118,7 +120,6 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
     // Action / Rent cards — multi-step flow
     // Step: choice (action vs money)
     if (step === "choice") {
-        const actionPlayable = canUseAction();
         return (
             <div className="modalOverlay" onClick={onCancel}>
                 <div className="playCardModal" onClick={e => e.stopPropagation()}>
@@ -480,7 +481,7 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
     // Helper to determine what step to go to after choosing "Play Action"
     function handlePlayAsAction() {
         // If the action cannot be used in the current state, keep the card in hand.
-        if (!canUseAction()) {
+        if (!actionPlayable) {
             return;
         }
 
