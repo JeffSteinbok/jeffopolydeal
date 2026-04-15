@@ -288,12 +288,12 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
             {/* Desktop: side-by-side layout; Mobile: stacked */}
             {isMobile ? (
                 <>
-                    {recentActions.length > 0 && (
+                    {state.recentActions && state.recentActions.length > 0 && (
                         <div className="activityLog">
-                            {recentActions.map((action, i) => (
+                            {state.recentActions.map((action, i) => (
                                 <div
                                     key={action.id}
-                                    className={`activityLog-entry${i === recentActions.length - 1 ? " activityLog-entry--latest" : ""}`}
+                                    className={`activityLog-entry${i === state.recentActions!.length - 1 ? " activityLog-entry--latest" : ""}`}
                                 >
                                     <span className="activityLog-name">{action.playerName}</span> {action.text}
                                 </div>
@@ -379,12 +379,12 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 /* Desktop: opponents sidebar + main play area */
                 <div className="desktopLayout">
                     <div className="opponentSidebar">
-                        {recentActions.length > 0 && (
+                        {state.recentActions && state.recentActions.length > 0 && (
                             <div className="activityLog">
-                                {recentActions.map((action, i) => (
+                                {state.recentActions.map((action, i) => (
                                     <div
                                         key={action.id}
-                                        className={`activityLog-entry${i === recentActions.length - 1 ? " activityLog-entry--latest" : ""}`}
+                                        className={`activityLog-entry${i === state.recentActions!.length - 1 ? " activityLog-entry--latest" : ""}`}
                                     >
                                         <span className="activityLog-name">{action.playerName}</span> {action.text}
                                     </div>
