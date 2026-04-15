@@ -84,5 +84,11 @@ namespace JeffopolyDeal.Models
         /// </summary>
         [JsonConverter(typeof(StringEnumConverter))]
         public PropertyColor? ActiveColor { get; set; }
+
+        /// <summary>
+        /// Whether this card can currently be played for its card effect.
+        /// Computed server-side when game state is sent to a player.
+        /// </summary>
+        public bool IsPlayable { get; set; } = true;
     }
 }

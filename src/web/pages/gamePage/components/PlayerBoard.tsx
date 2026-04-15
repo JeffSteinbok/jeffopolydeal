@@ -28,7 +28,10 @@ function BankDisplay({ bank }: { bank: Card[] }) {
 
     return (
         <div className="bank-display">
-            <div className="bank-total">💰 M{total}</div>
+            <div className="bank-header-row">
+                <span className="section-label">Bank</span>
+                <span className="bank-total">💰 M{total}</span>
+            </div>
             <div className="bank-denoms">
                 {denoms.map(d => (
                     <span
@@ -174,7 +177,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
             const elem = document.elementFromPoint(e.clientX, e.clientY);
             const setCol = elem?.closest(".propertySet-column");
             const newSetEl = elem?.closest(".propertySet-new");
-            const unboundEl = elem?.closest(".unboundWilds");
+            const unboundEl = elem?.closest(".propertySet-unbound");
 
             if (newSetEl) {
                 const draggedCard = findCard(cardId);
@@ -210,21 +213,20 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
             <div className="playerBoard-header">
                 <span className="playerBoard-name">{player.name}{isMe ? " (You)" : ""}</span>
                 <span className="playerBoard-cards">🃏 {player.handCount}</span>
-                <span className="playerBoard-sets">
-                    {player.completedSetCount}/3 sets
-                </span>
             </div>
 
             <div className="playerBoard-sections">
                 {/* Bank */}
                 <div className="playerBoard-bank">
-                    <div className="section-label">Bank</div>
                     <BankDisplay bank={player.bank} />
                 </div>
 
                 {/* Properties */}
                 <div className="playerBoard-properties">
-                    <div className="section-label">Properties</div>
+                    <div className="section-label-row">
+                        <span className="section-label">Properties</span>
+                        <span className="playerBoard-sets">{player.completedSetCount}/3 sets</span>
+                    </div>
                     <div className={`propertySets-row${inspectMode ? " propertySets-row--inspect" : ""}${compact ? " propertySets-row--compact" : ""}`}>
                         {player.propertySets.map((set) => (
                             <div
@@ -243,7 +245,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                                 >
                                     {`${set.cards.length}/${set.requiredSize}${set.isComplete ? "✓" : ""}${set.hasHotel ? "🏨" : set.hasHouse ? "🏠" : ""}`}
                                 </div>
-                                <div className={inspectMode ? "propertySet-stack--inspect" : "propertySet-stack"}>
+                                <div className="propertySet-stack">
                                     {set.cards.map((card, idx) => {
                                         const canFlipCard = !compact && isMe && card.cardType === "PropertyWildcard" && !card.isMulticolorWild && !!onFlipCard;
                                         return (
@@ -272,6 +274,35 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                             </div>
                         ))}
 
+                        {/* Unassigned wilds as a standard stack */}
+                        {isMe && (player.unboundWilds?.length > 0 || canDrag) && (
+                            <div
+                                className={`propertySet-column propertySet-unbound ${canDrag ? "propertySet-column--droppable" : ""} ${dragOverTarget === "unbound" ? "propertySet-column--drag-over" : ""}`}
+                                onDragOver={canDrag ? handleDragOver : undefined}
+                                onDragEnter={canDrag ? (e) => handleDragEnter(e, "unbound") : undefined}
+                                onDragLeave={canDrag ? handleDragLeave : undefined}
+                                onDrop={canDrag ? handleDropUnbound : undefined}
+                            >
+                                <div className="propertySet-label propertySet-label--unbound">Unassigned</div>
+                                <div className="propertySet-stack">
+                                    {(player.unboundWilds ?? []).map((card, idx) => (
+                                        <div
+                                            key={card.id}
+                                            className="propertySet-stack-item"
+                                            style={{ marginTop: (!inspectMode && idx > 0) ? (compact ? -65 : -100) : 0, touchAction: canDrag ? "none" : compact ? "manipulation" : "auto" }}
+                                            draggable={canDrag}
+                                            onDragStart={canDrag ? (e) => handleDragStart(e, card.id) : undefined}
+                                            onPointerDown={canDrag ? (e) => handlePropertyPointerDown(e, card.id) : undefined}
+                                            onPointerMove={canDrag ? handlePropertyPointerMove : undefined}
+                                            onPointerUp={canDrag ? handlePropertyPointerUp : undefined}
+                                        >
+                                            <CardComponent card={card} small={!compact} tiny={compact} />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* "New Set" drop target */}
                         {canDrag && (
                             <div
@@ -287,34 +318,6 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
 
                         {player.propertySets.length === 0 && !canDrag && <span className="emptyHint">No properties</span>}
                     </div>
-
-                    {/* Unbound wilds */}
-                    {isMe && (player.unboundWilds?.length > 0 || canDrag) && (
-                        <div
-                            className={`unboundWilds ${canDrag ? "unboundWilds--droppable" : ""} ${dragOverTarget === "unbound" ? "unboundWilds--drag-over" : ""}`}
-                            onDragOver={canDrag ? handleDragOver : undefined}
-                            onDragEnter={canDrag ? (e) => handleDragEnter(e, "unbound") : undefined}
-                            onDragLeave={canDrag ? handleDragLeave : undefined}
-                            onDrop={canDrag ? handleDropUnbound : undefined}
-                        >
-                            <div className="section-label">Unassigned Wilds</div>
-                            <div className="propertySets-row">
-                                {(player.unboundWilds ?? []).map((card) => (
-                                    <div
-                                        key={card.id}
-                                        style={{ touchAction: canDrag ? "none" : "auto" }}
-                                        draggable={canDrag}
-                                        onDragStart={canDrag ? (e) => handleDragStart(e, card.id) : undefined}
-                                        onPointerDown={canDrag ? (e) => handlePropertyPointerDown(e, card.id) : undefined}
-                                        onPointerMove={canDrag ? handlePropertyPointerMove : undefined}
-                                        onPointerUp={canDrag ? handlePropertyPointerUp : undefined}
-                                    >
-                                        <CardComponent card={card} small />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
 

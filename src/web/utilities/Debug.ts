@@ -12,13 +12,16 @@ export enum DebugFlags {
     SkipDraw          = 1 << 9,
     ShowDeck          = 1 << 10,
     PopulatedBoards   = 1 << 11,  // Start with 3 AI players, boards randomly populated
+    PlayVsAi          = 1 << 12,  // Start with 3 AI players (normal game flow)
 }
 
 // Helpful combos:
 // SkipLobby + FixedGameCode: 6
 // FixedGameCode + SkipLobby + ShowDeck: 406
+// SkipLobby + PopulatedBoards: 804
 // FixedGameCode + SkipLobby + PopulatedBoards: 806
-// All debug shortcuts: 0xFFF
+// SkipLobby + PlayVsAi: 1004
+// All debug shortcuts: 0x1FFF
 
 export class Debug {
     static flags = DebugFlags.None;

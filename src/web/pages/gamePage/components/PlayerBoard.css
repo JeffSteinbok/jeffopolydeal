@@ -47,12 +47,31 @@
     font-weight: 600;
 }
 
+.section-label-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.section-label-row .section-label,
+.bank-header-row .section-label {
+    margin-bottom: 0;
+}
+
 /* Bank display */
 .bank-display {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+}
+
+.bank-header-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
 }
 
 .bank-total {
@@ -110,6 +129,10 @@
 .propertySet-column {
     display: flex;
     flex-direction: column;
+    border: 2px dashed transparent;
+    border-radius: 8px;
+    padding: 4px;
+    transition: border-color 0.15s, background-color 0.15s;
 }
 
 .propertySet-label {
@@ -146,10 +169,7 @@
 
 /* Droppable set columns */
 .propertySet-column--droppable {
-    border: 2px dashed transparent;
-    border-radius: 8px;
-    padding: 4px;
-    transition: border-color 0.15s, background-color 0.15s;
+    cursor: grab;
 }
 
 .propertySet-column--drag-over {
@@ -181,22 +201,9 @@
     text-align: center;
 }
 
-/* Unbound wilds area */
-.unboundWilds {
-    margin-top: 8px;
-    padding: 8px;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.03);
-}
-
-.unboundWilds--droppable {
-    border: 2px dashed #555;
-    transition: border-color 0.15s;
-}
-
-.unboundWilds--drag-over {
-    border-color: #e94560 !important;
-    background: rgba(233, 69, 96, 0.08);
+.propertySet-label--unbound {
+    background: #1a4a7a;
+    color: #ddd;
 }
 
 .emptyHint {
@@ -287,12 +294,4 @@
     flex-direction: column;
     align-items: center;
     gap: 4px;
-}
-
-/* Inspect mode: cards within a set shown side-by-side instead of stacked */
-.propertySet-stack--inspect {
-    display: flex;
-    flex-direction: row;
-    gap: 6px;
-    flex-wrap: nowrap;
 }

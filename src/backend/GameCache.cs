@@ -3,6 +3,7 @@ using JeffopolyDeal.Models;
 using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace JeffopolyDeal
@@ -67,13 +68,17 @@ namespace JeffopolyDeal
             return await game.ReconnectPlayerAsync(connectionId, playerName, playerId);
         }
 
-        public async Task StartGameAsync(string gameCode, bool allowSinglePlayer = false, bool populateBoards = false)
+        public async Task StartGameAsync(
+            string gameCode,
+            bool allowSinglePlayer = false,
+            bool populateBoards = false,
+            bool addBots = false)
         {
             gameCode = gameCode.ToUpperInvariant();
             if (!_games.TryGetValue(gameCode, out var game))
                 return;
 
-            if (populateBoards)
+            if (populateBoards || addBots)
             {
                 game.AddBotPlayers(3);
             }
@@ -130,6 +135,26 @@ namespace JeffopolyDeal
                     _games.TryRemove(gameCode, out _);
                 }
             }
+        }
+
+        public Task EndGameAsync(string connectionId)
+        {
+            if (!_connectionToGame.TryGetValue(connectionId, out var gameCode))
+                return Task.CompletedTask;
+
+            _games.TryRemove(gameCode, out _);
+
+            var relatedConnections = _connectionToGame
+                .Where(kvp => kvp.Value == gameCode)
+                .Select(kvp => kvp.Key)
+                .ToList();
+
+            foreach (var relatedConnection in relatedConnections)
+            {
+                _connectionToGame.TryRemove(relatedConnection, out _);
+            }
+
+            return Task.CompletedTask;
         }
 
         public DebugDeckInfo? GetDebugDeckInfo(string connectionId)

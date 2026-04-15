@@ -12,6 +12,7 @@ import { ActionModal } from "./components/ActionModal";
 import { DiscardModal } from "./components/DiscardModal";
 import { FyiToast } from "./components/FyiToast";
 import { DebugDeckViewer } from "./components/DebugDeckViewer";
+import titleImage from "../../assets/JeffopolyTitle.png";
 import "./styles/game.css";
 
 function useIsMobile(breakpoint = 680): boolean {
@@ -92,7 +93,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     }
                 } else if (gameCode === "") {
                     // Creating a new game
-                    const useFixedCode = Debug.isFlagSet(DebugFlags.FixedGameCode) || Debug.isFlagSet(DebugFlags.SkipLobby);
+                    const useFixedCode = Debug.isFlagSet(DebugFlags.FixedGameCode);
                     const newCode = await client.createGame(useFixedCode ? "TEST" : undefined);
                     await client.joinGame(newCode, playerName, playerId);
                     onGameCodeResolved?.(newCode);
@@ -100,7 +101,8 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     // Auto-start when SkipLobby is set
                     if (Debug.isFlagSet(DebugFlags.SkipLobby)) {
                         const populate = Debug.isFlagSet(DebugFlags.PopulatedBoards);
-                        await client.startGame(newCode, true, populate);
+                        const addBots = populate || Debug.isFlagSet(DebugFlags.PlayVsAi);
+                        await client.startGame(newCode, true, populate, addBots);
                     }
                 } else {
                     await client.joinGame(gameCode, playerName, playerId);
@@ -188,6 +190,15 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         if (window.confirm("Leave the game?")) onLeave();
     };
 
+    const handleEndGame = async () => {
+        if (!window.confirm("End this game? All players will be disconnected and the game state will be cleared.")) return;
+        try {
+            await client?.endGame();
+        } finally {
+            onLeave();
+        }
+    };
+
     if (error) {
         return (
             <div className="gamePage">
@@ -201,7 +212,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         return <div className="gamePage"><div className="loading">Connecting...</div></div>;
     }
 
-    const minPlayers = Debug.isFlagSet(DebugFlags.SkipLobby) ? 1 : 2;
+    const minPlayers = (Debug.isFlagSet(DebugFlags.SkipLobby) || Debug.isFlagSet(DebugFlags.PlayVsAi)) ? 1 : 2;
 
     // Lobby
     if (state.phase === "Lobby") {
@@ -223,7 +234,12 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     {isCreator && (
                         <button
                             className="primary"
-                            onClick={() => client?.startGame(state.gameCode, minPlayers === 1)}
+                            onClick={() => client?.startGame(
+                                state.gameCode,
+                                minPlayers === 1,
+                                Debug.isFlagSet(DebugFlags.PopulatedBoards),
+                                Debug.isFlagSet(DebugFlags.PlayVsAi) || Debug.isFlagSet(DebugFlags.PopulatedBoards)
+                            )}
                             disabled={state.players.length < minPlayers}
                         >
                             Start Game {state.players.length < minPlayers ? `(need ${minPlayers}+ players)` : ""}
@@ -254,12 +270,11 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     const needsResponse = state.phase === "AwaitingResponse" &&
         state.pendingAction?.targetPlayerIds.includes(myConnectionId ?? "");
 
-    const recentActions = state.recentActions ?? [];
-
     return (
         <div className={`gamePage${isLandscape ? " gamePage--landscape" : ""}`}>
             <div className="gameHeader">
                 <span className="gameCodeSmall">{state.gameCode}</span>
+                <img src={titleImage} alt="Jeffopoly Deal" className="gameHeaderTitleImage" />
                 <span className="turnInfo">
                     {isMyTurn
                         ? `Your turn — ${3 - state.playsUsed} play${3 - state.playsUsed !== 1 ? "s" : ""} left`
@@ -268,12 +283,6 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 <span className="deckInfo">
                     Draw: {state.drawPileCount} | Discard: {state.discardPileCount}
                 </span>
-                <button
-                    className="exitButton"
-                    onClick={handleExitGame}
-                >
-                    Exit
-                </button>
             </div>
 
             {/* Desktop: side-by-side layout; Mobile: stacked */}
@@ -313,25 +322,6 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     onMoveProperty={(cardId, targetSetId, targetColor) => client?.moveProperty(cardId, targetSetId, targetColor)}
                 />
 
-                {state.phase === "Draw" && isMyTurn && (
-                    <div className="actionBar">
-                        <button className="primary" onClick={() => client?.drawCards()}>
-                            Draw Cards
-                        </button>
-                    </div>
-                )}
-
-                {state.phase === "Play" && isMyTurn && (
-                    <div className="actionBar">
-                        <span className="playsRemaining">
-                            {3 - state.playsUsed} play{3 - state.playsUsed !== 1 ? "s" : ""} remaining
-                        </span>
-                        <button className="secondary" onClick={() => client?.endTurn()}>
-                            End Turn
-                        </button>
-                    </div>
-                )}
-
                 {state.phase === "Discard" && isMyTurn && me.hand && (
                     <DiscardModal
                         hand={me.hand}
@@ -355,6 +345,34 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     onDiscardCard={(cardId) => client?.discardCard(cardId)}
                     onInspectPlayer={isMobile ? setInspectedPlayer : undefined}
                 />
+
+                <div className="mainControls">
+                    <div className="mainControls-left">
+                        <button className="endGameButton" onClick={handleEndGame}>
+                            End Game
+                        </button>
+                        <button className="exitButton" onClick={handleExitGame}>
+                            Exit
+                        </button>
+                    </div>
+                    <div className="mainControls-right">
+                        {state.phase === "Play" && isMyTurn && (
+                            <span className="playsRemaining">
+                                {3 - state.playsUsed} play{3 - state.playsUsed !== 1 ? "s" : ""} remaining
+                            </span>
+                        )}
+                        {state.phase === "Draw" && isMyTurn && (
+                            <button className="primary" onClick={() => client?.drawCards()}>
+                                Draw Cards
+                            </button>
+                        )}
+                        {state.phase === "Play" && isMyTurn && (
+                            <button className="secondary" onClick={() => client?.endTurn()}>
+                                End Turn
+                            </button>
+                        )}
+                    </div>
+                </div>
             </div>
                 </>
             ) : (

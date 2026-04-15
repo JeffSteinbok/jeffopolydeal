@@ -116,6 +116,16 @@
     box-shadow: 0 4px 14px rgba(0,0,0,0.3);
 }
 
+.choiceButton:disabled {
+    background: #4b5563 !important;
+    border-color: #374151 !important;
+    color: #cbd5e1 !important;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    opacity: 0.85;
+}
+
 .choiceButton--action {
     background: #e94560;
     color: #fff;
@@ -155,10 +165,6 @@
     .choiceButton {
         min-height: 52px;
         padding: 14px 16px;
-    }
-
-    .modalCardPreview {
-        display: none;
     }
 
     .cardChoices {
