@@ -32,3 +32,6 @@ msbuild.wrn
 # Visual Studio
 .vs/
 *.pubxml
+
+publish/
+deploy.zip
