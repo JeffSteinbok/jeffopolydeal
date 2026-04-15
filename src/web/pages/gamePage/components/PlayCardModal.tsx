@@ -60,11 +60,6 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                             <button className="choiceButton choiceButton--action" onClick={() => onPlay(card.id, { playAsMoney: false })}>
                                 🏘️ Play as Property
                             </button>
-                            {canPlayAsMoney && (
-                                <button className="choiceButton choiceButton--money" onClick={() => onPlay(card.id, { playAsMoney: true })}>
-                                    💰 Bank as M{card.moneyValue}
-                                </button>
-                            )}
                         </div>
                     )}
                     <button className="secondary" onClick={onCancel}>{canPlay ? "Cancel" : "Close"}</button>
@@ -97,6 +92,9 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
         return (
             <div className="modalOverlay" onClick={onCancel}>
                 <div className="playCardModal" onClick={e => e.stopPropagation()}>
+                    <div className="modalCardPreview">
+                        <CardComponent card={card} />
+                    </div>
                     <h3>Play {card.name}</h3>
                     <p className="modalHint">Choose which color to play as:</p>
                     <div className="colorChoices">
@@ -111,11 +109,6 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                             </button>
                         ))}
                     </div>
-                    {canPlayAsMoney && (
-                        <button className="secondary bankOption" onClick={() => onPlay(card.id, { playAsMoney: true })}>
-                            Bank as M{card.moneyValue} instead
-                        </button>
-                    )}
                     <button className="secondary" onClick={onCancel}>Cancel</button>
                 </div>
             </div>
@@ -125,6 +118,7 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
     // Action / Rent cards — multi-step flow
     // Step: choice (action vs money)
     if (step === "choice") {
+        const actionPlayable = canUseAction();
         return (
             <div className="modalOverlay" onClick={onCancel}>
                 <div className="playCardModal" onClick={e => e.stopPropagation()}>
@@ -135,6 +129,7 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                     <div className="choiceButtons">
                         <button
                             className="choiceButton choiceButton--action"
+                            disabled={!actionPlayable}
                             onClick={() => handlePlayAsAction()}
                         >
                             {card.cardType === "Rent" ? "⚡ Charge Rent" : "⚡ Use Action"}
@@ -484,9 +479,8 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
 
     // Helper to determine what step to go to after choosing "Play Action"
     function handlePlayAsAction() {
-        // If can't actually use it, just bank it
+        // If the action cannot be used in the current state, keep the card in hand.
         if (!canUseAction()) {
-            onPlay(card.id, { playAsMoney: true });
             return;
         }
 

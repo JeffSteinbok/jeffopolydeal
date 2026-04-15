@@ -12,6 +12,7 @@ import { ActionModal } from "./components/ActionModal";
 import { DiscardModal } from "./components/DiscardModal";
 import { FyiToast } from "./components/FyiToast";
 import { DebugDeckViewer } from "./components/DebugDeckViewer";
+import titleImage from "../../assets/JeffopolyTitle.png";
 import "./styles/game.css";
 
 function useIsMobile(breakpoint = 680): boolean {
@@ -251,6 +252,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         <div className={`gamePage${isLandscape ? " gamePage--landscape" : ""}`}>
             <div className="gameHeader">
                 <span className="gameCodeSmall">{state.gameCode}</span>
+                <img src={titleImage} alt="Jeffopoly Deal" className="gameHeaderTitleImage" />
                 <span className="turnInfo">
                     {isMyTurn
                         ? `Your turn — ${3 - state.playsUsed} play${3 - state.playsUsed !== 1 ? "s" : ""} left`
@@ -259,14 +261,6 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 <span className="deckInfo">
                     Draw: {state.drawPileCount} | Discard: {state.discardPileCount}
                 </span>
-                <div className="headerActions">
-                    <button className="endGameButton" onClick={handleEndGame}>
-                        End Game
-                    </button>
-                    <button className="exitButton" onClick={handleExitGame}>
-                        Exit
-                    </button>
-                </div>
             </div>
 
             {/* Other players — compact summary on mobile, full boards on desktop */}
@@ -295,25 +289,6 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     onMoveProperty={(cardId, targetSetId, targetColor) => client?.moveProperty(cardId, targetSetId, targetColor)}
                 />
 
-                {state.phase === "Draw" && isMyTurn && (
-                    <div className="actionBar">
-                        <button className="primary" onClick={() => client?.drawCards()}>
-                            Draw Cards
-                        </button>
-                    </div>
-                )}
-
-                {state.phase === "Play" && isMyTurn && (
-                    <div className="actionBar">
-                        <span className="playsRemaining">
-                            {3 - state.playsUsed} play{3 - state.playsUsed !== 1 ? "s" : ""} remaining
-                        </span>
-                        <button className="secondary" onClick={() => client?.endTurn()}>
-                            End Turn
-                        </button>
-                    </div>
-                )}
-
                 {state.phase === "Discard" && isMyTurn && me.hand && (
                     <DiscardModal
                         hand={me.hand}
@@ -337,6 +312,34 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     onDiscardCard={(cardId) => client?.discardCard(cardId)}
                     onInspectPlayer={isMobile ? setInspectedPlayer : undefined}
                 />
+
+                <div className="mainControls">
+                    <div className="mainControls-left">
+                        <button className="endGameButton" onClick={handleEndGame}>
+                            End Game
+                        </button>
+                        <button className="exitButton" onClick={handleExitGame}>
+                            Exit
+                        </button>
+                    </div>
+                    <div className="mainControls-right">
+                        {state.phase === "Play" && isMyTurn && (
+                            <span className="playsRemaining">
+                                {3 - state.playsUsed} play{3 - state.playsUsed !== 1 ? "s" : ""} remaining
+                            </span>
+                        )}
+                        {state.phase === "Draw" && isMyTurn && (
+                            <button className="primary" onClick={() => client?.drawCards()}>
+                                Draw Cards
+                            </button>
+                        )}
+                        {state.phase === "Play" && isMyTurn && (
+                            <button className="secondary" onClick={() => client?.endTurn()}>
+                                End Turn
+                            </button>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {needsResponse && state.pendingAction && (

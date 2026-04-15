@@ -82,6 +82,12 @@
     font-family: monospace;
 }
 
+.gameHeaderTitleImage {
+    height: 28px;
+    width: auto;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.45));
+}
+
 .turnInfo {
     font-weight: 600;
     color: #e94560;
@@ -89,12 +95,6 @@
 
 .deckInfo {
     color: #888;
-}
-
-.headerActions {
-    display: flex;
-    align-items: center;
-    gap: 6px;
 }
 
 .endGameButton {
@@ -162,12 +162,24 @@
     gap: 8px;
 }
 
-.actionBar {
+.mainControls {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     gap: 12px;
     padding: 8px;
+    margin-top: auto;
+}
+
+.mainControls-left,
+.mainControls-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mainControls-right {
+    justify-content: flex-end;
 }
 
 .playsRemaining {
@@ -248,7 +260,7 @@
         gap: 6px;
     }
 
-    .actionBar {
+    .mainControls {
         padding: 6px;
         gap: 6px;
     }
@@ -265,6 +277,10 @@
         font-size: 0.75rem;
     }
 
+    .gameHeaderTitleImage {
+        height: 22px;
+    }
+
     .turnInfo {
         font-size: 0.82rem;
     }
@@ -273,11 +289,20 @@
         font-size: 0.72rem;
     }
 
-    /* Bigger tap targets in action bar */
-    .actionBar button {
+    /* Bigger tap targets in controls */
+    .mainControls button {
         min-height: 48px;
         padding: 12px 20px;
         font-size: 1rem;
+    }
+
+    .mainControls {
+        flex-wrap: wrap;
+    }
+
+    .mainControls-right {
+        width: 100%;
+        justify-content: flex-end;
     }
 
     /* Lobby adjustments */
