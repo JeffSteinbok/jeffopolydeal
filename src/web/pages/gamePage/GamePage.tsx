@@ -326,34 +326,6 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     onDiscardCard={(cardId) => client?.discardCard(cardId)}
                     onInspectPlayer={isMobile ? setInspectedPlayer : undefined}
                 />
-
-                <div className="mainControls">
-                    <div className="mainControls-left">
-                        <button className="endGameButton" onClick={handleEndGame}>
-                            End Game
-                        </button>
-                        <button className="exitButton" onClick={handleExitGame}>
-                            Exit
-                        </button>
-                    </div>
-                    <div className="mainControls-right">
-                        {state.phase === "Play" && isMyTurn && (
-                            <span className="playsRemaining">
-                                {3 - state.playsUsed} play{3 - state.playsUsed !== 1 ? "s" : ""} remaining
-                            </span>
-                        )}
-                        {state.phase === "Draw" && isMyTurn && (
-                            <button className="primary" onClick={() => client?.drawCards()}>
-                                Draw Cards
-                            </button>
-                        )}
-                        {state.phase === "Play" && isMyTurn && (
-                            <button className="secondary" onClick={() => client?.endTurn()}>
-                                End Turn
-                            </button>
-                        )}
-                    </div>
-                </div>
             </div>
                 </>
             ) : (
