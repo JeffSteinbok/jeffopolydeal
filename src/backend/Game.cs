@@ -31,7 +31,7 @@ namespace JeffopolyDeal
         private string? _lastPaymentError;
         private string? _lastPaymentErrorConnectionId;
         private readonly List<GameAction> _recentActions = new();
-        private const int MaxRecentActions = 5;
+        private const int MaxRecentActions = 20;
         private int _nextActionId = 1;
 
         public Game(IHubContext<GameHub> hubContext, string gameCode)
@@ -1125,6 +1125,12 @@ namespace JeffopolyDeal
                 player.Hand.Remove(card);
                 ProcessCardPlay(player, card, request);
                 _playsUsed++;
+
+                LogAction(player.Name, DescribeCardPlay(player, card, request),
+                    cardPlayed: card,
+                    targetPlayerName: request.TargetPlayerId != null
+                        ? _players.FirstOrDefault(p => p.ConnectionId == request.TargetPlayerId)?.Name
+                        : null);
 
                 // If this created a pending action targeting other bots, resolve it
                 ResolveBotPendingActions();

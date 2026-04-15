@@ -143,6 +143,41 @@
     gap: 8px;
 }
 
+/* Desktop side-by-side layout */
+.desktopLayout {
+    display: flex;
+    flex: 1;
+    gap: 10px;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.opponentSidebar {
+    width: 360px;
+    min-width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow-y: auto;
+    max-height: calc(100vh - 60px);
+    scrollbar-width: thin;
+    scrollbar-color: #0f3460 transparent;
+}
+
+.opponentSidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.opponentSidebar::-webkit-scrollbar-thumb {
+    background: #0f3460;
+    border-radius: 2px;
+}
+
+.myArea--desktop {
+    flex: 1;
+    min-width: 0;
+}
+
 .actionBar {
     display: flex;
     align-items: center;

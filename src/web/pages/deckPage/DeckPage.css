@@ -1,7 +1,7 @@
 .deckPage {
     min-height: 100vh;
-    background: #0a0a2e;
-    color: #e0e0e0;
+    background: #e8f5e9;
+    color: #222;
     padding: 20px 30px;
     font-family: 'Segoe UI', sans-serif;
 }
@@ -18,7 +18,7 @@
 .deckPage-header h1 {
     font-size: 1.5rem;
     margin: 0;
-    color: #e94560;
+    color: #2e7d32;
 }
 
 .deckPage-controls {

@@ -118,33 +118,55 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         };
     }, []);
 
-    // Show FYI toasts for new actions when it's not my turn
+    // Show FYI toasts for new actions by other players
     useEffect(() => {
         if (!state) return;
 
+        console.log("[Toast] State update. recentActions:", state.recentActions?.length ?? 0,
+            "firstState:", firstStateRef.current,
+            "actions:", JSON.stringify(state.recentActions?.map(a => ({ id: a.id, player: a.playerName, text: a.text }))));
+
         // On first state load, mark all existing actions as already seen
         if (firstStateRef.current) {
-            state.recentActions.forEach((a) => seenActionIdsRef.current.add(a.id));
+            state.recentActions?.forEach((a) => seenActionIdsRef.current.add(a.id));
             firstStateRef.current = false;
             return;
         }
 
-        // Only show toasts when it's not the current player's turn
-        const currentIsMyTurn = state.players[state.currentPlayerIndex]?.playerId === playerId;
-        if (currentIsMyTurn) return;
+        if (!state.recentActions || state.recentActions.length === 0) return;
 
+        const myName = state.players.find(p => p.playerId === playerId)?.name;
         const newActions = state.recentActions.filter(
-            (a) => !seenActionIdsRef.current.has(a.id)
+            (a) => !seenActionIdsRef.current.has(a.id) && a.playerName !== myName
         );
 
-        newActions.forEach((action) => {
-            seenActionIdsRef.current.add(action.id);
-            setToasts((prev) => [...prev, action]);
-            const timeoutId = setTimeout(() => {
-                toastTimeoutsRef.current.delete(action.id);
-                setToasts((prev) => prev.filter((t) => t.id !== action.id));
-            }, 2000);
-            toastTimeoutsRef.current.set(action.id, timeoutId);
+        console.log("[Toast] myName:", myName, "new actions:", newActions.length,
+            "seen IDs:", [...seenActionIdsRef.current]);
+
+        if (newActions.length > 0) {
+            console.log("[Toast] Showing:", newActions.map(a => `${a.playerName}: ${a.text}`));
+        }
+
+        // Mark all as seen immediately (even if we stagger display)
+        newActions.forEach((a) => seenActionIdsRef.current.add(a.id));
+        // Also mark my own actions as seen
+        state.recentActions.forEach((a) => {
+            if (!seenActionIdsRef.current.has(a.id)) seenActionIdsRef.current.add(a.id);
+        });
+
+        // Stagger toasts so bot actions appear sequentially
+        newActions.forEach((action, idx) => {
+            const showDelay = idx * 1200;
+            const showTimeoutId = setTimeout(() => {
+                console.log("[Toast] Displaying toast:", action.playerName, action.text);
+                setToasts((prev) => [...prev, action]);
+                const hideTimeoutId = setTimeout(() => {
+                    toastTimeoutsRef.current.delete(action.id);
+                    setToasts((prev) => prev.filter((t) => t.id !== action.id));
+                }, 2500);
+                toastTimeoutsRef.current.set(action.id, hideTimeoutId);
+            }, showDelay);
+            toastTimeoutsRef.current.set(-action.id, showTimeoutId);
         });
     }, [state, playerId]);
 
@@ -254,36 +276,34 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 </button>
             </div>
 
-            {recentActions.length > 0 && (
-                <div className="activityLog">
-                    {recentActions.map((action, i) => (
-                        <div
-                            key={action.id}
-                            className={`activityLog-entry${i === recentActions.length - 1 ? " activityLog-entry--latest" : ""}`}
-                        >
-                            <span className="activityLog-name">{action.playerName}</span> {action.text}
+            {/* Desktop: side-by-side layout; Mobile: stacked */}
+            {isMobile ? (
+                <>
+                    {recentActions.length > 0 && (
+                        <div className="activityLog">
+                            {recentActions.map((action, i) => (
+                                <div
+                                    key={action.id}
+                                    className={`activityLog-entry${i === recentActions.length - 1 ? " activityLog-entry--latest" : ""}`}
+                                >
+                                    <span className="activityLog-name">{action.playerName}</span> {action.text}
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
-            )}
+                    )}
 
-            {/* Other players — compact summary on mobile, full boards on desktop */}
-            <div className={isMobile ? "otherPlayersArea otherPlayersArea--mobile" : "otherPlayersArea"}>
-                {otherPlayers.map((p) =>
-                    isMobile ? (
-                        <PlayerSummaryCard
-                            key={p.connectionId}
-                            player={p}
-                            isCurrentTurn={state.players[state.currentPlayerIndex]?.playerId === p.playerId}
-                            onClick={() => setInspectedPlayer(p)}
-                        />
-                    ) : (
-                        <PlayerBoard key={p.connectionId} player={p} />
-                    )
-                )}
-            </div>
+                    <div className="otherPlayersArea otherPlayersArea--mobile">
+                        {otherPlayers.map((p) => (
+                            <PlayerSummaryCard
+                                key={p.connectionId}
+                                player={p}
+                                isCurrentTurn={state.players[state.currentPlayerIndex]?.playerId === p.playerId}
+                                onClick={() => setInspectedPlayer(p)}
+                            />
+                        ))}
+                    </div>
 
-            <div className="myArea">
+                    <div className="myArea">
                 <PlayerBoard
                     player={me}
                     isMe={true}
@@ -336,6 +356,80 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     onInspectPlayer={isMobile ? setInspectedPlayer : undefined}
                 />
             </div>
+                </>
+            ) : (
+                /* Desktop: opponents sidebar + main play area */
+                <div className="desktopLayout">
+                    <div className="opponentSidebar">
+                        {recentActions.length > 0 && (
+                            <div className="activityLog">
+                                {recentActions.map((action, i) => (
+                                    <div
+                                        key={action.id}
+                                        className={`activityLog-entry${i === recentActions.length - 1 ? " activityLog-entry--latest" : ""}`}
+                                    >
+                                        <span className="activityLog-name">{action.playerName}</span> {action.text}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {otherPlayers.map((p) => (
+                            <PlayerBoard key={p.connectionId} player={p} compact />
+                        ))}
+                    </div>
+
+                    <div className="myArea myArea--desktop">
+                        <PlayerBoard
+                            player={me}
+                            isMe={true}
+                            isMyTurn={isMyTurn === true && state.phase === "Play"}
+                            onFlipCard={(cardId) => client?.flipWildcard(cardId)}
+                            onMoveProperty={(cardId, targetSetId, targetColor) => client?.moveProperty(cardId, targetSetId, targetColor)}
+                        />
+
+                        {state.phase === "Draw" && isMyTurn && (
+                            <div className="actionBar">
+                                <button className="primary" onClick={() => client?.drawCards()}>
+                                    Draw Cards
+                                </button>
+                            </div>
+                        )}
+
+                        {state.phase === "Play" && isMyTurn && (
+                            <div className="actionBar">
+                                <span className="playsRemaining">
+                                    {3 - state.playsUsed} play{3 - state.playsUsed !== 1 ? "s" : ""} remaining
+                                </span>
+                                <button className="secondary" onClick={() => client?.endTurn()}>
+                                    End Turn
+                                </button>
+                            </div>
+                        )}
+
+                        {state.phase === "Discard" && isMyTurn && me.hand && (
+                            <DiscardModal
+                                hand={me.hand}
+                                maxHandSize={7}
+                                onDiscard={async (cardIds) => {
+                                    for (const id of cardIds) {
+                                        await client?.discardCard(id);
+                                    }
+                                }}
+                            />
+                        )}
+
+                        <Hand
+                            cards={me.hand ?? []}
+                            canPlay={isMyTurn === true && (state.phase === "Play" || state.phase === "Discard")}
+                            phase={state.phase}
+                            gameState={state}
+                            myConnectionId={myConnectionId ?? ""}
+                            onPlayCard={(cardId, request) => client?.playCard(cardId, request)}
+                            onDiscardCard={(cardId) => client?.discardCard(cardId)}
+                        />
+                    </div>
+                </div>
+            )}
 
             {needsResponse && state.pendingAction && (
                 <ActionModal

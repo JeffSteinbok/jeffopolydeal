@@ -206,7 +206,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
     };
 
     return (
-        <div className={`playerBoard ${isMe ? "playerBoard-me" : ""}`}>
+        <div className={`playerBoard ${isMe ? "playerBoard-me" : "playerBoard--opponent"}`}>
             <div className="playerBoard-header">
                 <span className="playerBoard-name">{player.name}{isMe ? " (You)" : ""}</span>
                 <span className="playerBoard-cards">🃏 {player.handCount}</span>

@@ -6,6 +6,14 @@ import "./DeckPage.css";
 
 type ViewMode = "compact" | "tiny" | "small" | "full";
 
+const VIEW_MODES: ViewMode[] = ["compact", "tiny", "small", "full"];
+
+function getViewFromHash(): ViewMode {
+    const hash = window.location.hash.replace("#", "");
+    if (VIEW_MODES.includes(hash as ViewMode)) return hash as ViewMode;
+    return "full";
+}
+
 interface CardGroup {
     label: string;
     cards: Card[];
@@ -38,7 +46,12 @@ function getRent(card: Card): number | undefined {
 export function DeckPage() {
     const [cards, setCards] = useState<Card[]>([]);
     const [loading, setLoading] = useState(true);
-    const [viewMode, setViewMode] = useState<ViewMode>("small");
+    const [viewMode, setViewMode] = useState<ViewMode>(getViewFromHash());
+
+    const changeView = (mode: ViewMode) => {
+        setViewMode(mode);
+        window.location.hash = mode;
+    };
 
     useEffect(() => {
         fetch("/api/deck")
@@ -61,11 +74,11 @@ export function DeckPage() {
                 <h1>Jeffopoly Deal — Full Deck ({cards.length} cards)</h1>
                 <div className="deckPage-controls">
                     <label>View:</label>
-                    {(["compact", "tiny", "small", "full"] as ViewMode[]).map((mode) => (
+                    {VIEW_MODES.map((mode) => (
                         <button
                             key={mode}
                             className={viewMode === mode ? "active" : ""}
-                            onClick={() => setViewMode(mode)}
+                            onClick={() => changeView(mode)}
                         >
                             {mode.charAt(0).toUpperCase() + mode.slice(1)}
                         </button>

@@ -18,7 +18,7 @@ interface CardProps {
 const VALUE_COLORS: Record<number, string> = {
     0: "#c8c8c8",
     1: "#f0ecc8",
-    2: "#a0c8a0",
+    2: "#e8c8b0",
     3: "#d4e4bc",
     4: "#b8d4e8",
     5: "#8b7bb5",
@@ -53,15 +53,18 @@ export function CardComponent({ card, onClick, onDoubleClick, selected, small, t
 
     const bg = cardBg(card);
     const bc = borderColor(card);
+    const isMoney = card.cardType === "Money";
+    const isProp = card.cardType === "Property" || card.cardType === "PropertyWildcard";
+    const badgeBg = isProp ? "#fff" : bg;
+    const badgeLight = isProp;
 
     return (
         <div className={cls} onClick={onClick} onDoubleClick={onDoubleClick} style={{ backgroundColor: bg, borderColor: bc }}>
             <div className="md-card__inner">
                 {renderCard(card, small || tiny, tiny, currentRent)}
             </div>
-            {/* Corner badges */}
-            {card.moneyValue > 0 && <Badge value={card.moneyValue} bg="#3a7d44" />}
-            {card.moneyValue > 0 && <Badge value={card.moneyValue} bg="#3a7d44" br />}
+            {/* Corner badge */}
+            {card.moneyValue > 0 && <Badge value={card.moneyValue} bg={badgeBg} light={badgeLight} />}
         </div>
     );
 }
@@ -84,7 +87,6 @@ function renderCard(card: CardType, small?: boolean, tiny?: boolean, currentRent
 function MoneyLayout({ card }: { card: CardType }) {
     return (
         <>
-            <div className="md-card__header">Money</div>
             <div className="md-card__body-center">
                 <div className="md-money__amount">
                     <span className="md-money__sym">M</span>{card.moneyValue}
@@ -103,7 +105,6 @@ function PropertyLayout({ card, small }: { card: CardType; small?: boolean }) {
 
     return (
         <>
-            <div className="md-card__header" style={{ color: info.textColor }}>Property</div>
             <div className="md-card__name-band" style={{ color: info.textColor }}>
                 {card.name}
             </div>
@@ -158,37 +159,31 @@ function WildcardLayout({ card, small }: { card: CardType; small?: boolean }) {
     const c1 = PropertyColorMap[card.color!];
     const c2 = PropertyColorMap[card.altColor!];
     const isFlipped = card.activeColor === card.altColor;
-    const topColor = card.color!;
-    const bottomColor = card.altColor!;
-    const topInfo = PropertyColorMap[topColor];
-    const bottomInfo = PropertyColorMap[bottomColor];
-    const topRents = GameConfig.rentTable[topColor];
-    const topSetSize = GameConfig.setSize[topColor];
-    const bottomRents = GameConfig.rentTable[bottomColor];
-    const bottomSetSize = GameConfig.setSize[bottomColor];
+    const activeColor = isFlipped ? card.altColor! : card.color!;
+    const inactiveColor = isFlipped ? card.color! : card.altColor!;
+    const activeInfo = PropertyColorMap[activeColor];
+    const inactiveInfo = PropertyColorMap[inactiveColor];
+    const activeRents = GameConfig.rentTable[activeColor];
+    const activeSetSize = GameConfig.setSize[activeColor];
 
     return (
         <>
-            <div className={`md-wild-dual ${isFlipped ? "md-wild-dual--flipped" : ""}`}>
-                {/* Top half */}
-                <div className="md-wild-dual__half">
-                    <div className="md-wild-dual__header" style={{ backgroundColor: topInfo.hex }}>
-                        <div className="md-wild-dual__title">Wild Card</div>
-                        <div className="md-wild-dual__subtitle">(Use card either way up.)</div>
-                    </div>
-                    <div className="md-wild-dual__rent">
-                        <RentTable rents={topRents} setSize={topSetSize} color={topInfo.hex} />
-                    </div>
+            <div className="md-wild-dual">
+                {/* Active color header */}
+                <div className="md-wild-dual__header" style={{ backgroundColor: activeInfo.hex }}>
+                    <div className="md-wild-dual__pretitle">Property</div>
+                    <div className="md-wild-dual__title">Wild Card</div>
+                    <div className="md-wild-dual__subtitle">(Use card either way up.)</div>
                 </div>
-                {/* Bottom half (upside down) */}
-                <div className="md-wild-dual__half md-wild-dual__half--bottom">
-                    <div className="md-wild-dual__header" style={{ backgroundColor: bottomInfo.hex }}>
-                        <div className="md-wild-dual__title">Wild Card</div>
-                        <div className="md-wild-dual__subtitle">(Use card either way up.)</div>
-                    </div>
-                    <div className="md-wild-dual__rent">
-                        <RentTable rents={bottomRents} setSize={bottomSetSize} color={bottomInfo.hex} />
-                    </div>
+                {/* Rent area — only active color */}
+                <div className="md-wild-dual__rent-shared">
+                    <RentTable rents={activeRents} setSize={activeSetSize} color={activeInfo.hex} />
+                </div>
+                {/* Inactive color header (upside down) */}
+                <div className="md-wild-dual__header md-wild-dual__header--bottom" style={{ backgroundColor: inactiveInfo.hex }}>
+                    <div className="md-wild-dual__pretitle">Property</div>
+                    <div className="md-wild-dual__title">Wild Card</div>
+                    <div className="md-wild-dual__subtitle">(Use card either way up.)</div>
                 </div>
             </div>
         </>
@@ -201,10 +196,9 @@ function TinyPropertyLayout({ card, rent }: { card: CardType; rent: number }) {
     const info = PropertyColorMap[color];
     return (
         <>
-            <div className="md-card__header" style={{ color: info.textColor }}>Property</div>
             <div className="md-card__name-band md-card__name-band--tiny" style={{ color: info.textColor }}>{card.name}</div>
             <div className="md-card__body-center">
-                <div className="md-tiny__rent">M{rent}</div>
+                <div className="md-tiny__rent"><span className="md-sym">M</span>{rent}</div>
             </div>
         </>
     );
@@ -229,7 +223,7 @@ function TinyWildcardLayout({ card, rent }: { card: CardType; rent: number }) {
             <div className="md-card__header">Wild Card</div>
             <div className="md-tiny__dual">
                 <div className="md-tiny__dual-top" style={{ backgroundColor: c1.hex }} />
-                <div className="md-tiny__rent md-tiny__rent--overlay">M{rent}</div>
+                <div className="md-tiny__rent md-tiny__rent--overlay"><span className="md-sym">M</span>{rent}</div>
                 <div className="md-tiny__dual-bot" style={{ backgroundColor: c2.hex }} />
             </div>
         </>
@@ -238,20 +232,18 @@ function TinyWildcardLayout({ card, rent }: { card: CardType; rent: number }) {
 
 /* ── Rent ──────────────────────────────────────── */
 function RentLayout({ card }: { card: CardType }) {
+    const segmentSize = 360 / RAINBOW_COLORS.length;
+    const conicStops = RAINBOW_COLORS.map((c, i) =>
+        `${c} ${i * segmentSize}deg ${(i + 1) * segmentSize}deg`
+    ).join(", ");
+
     if (card.isWildRent) {
         return (
             <>
-                <div className="md-card__header">Rent</div>
+                <div className="md-card__header">Action Card</div>
                 <div className="md-card__body-center">
                     <div className="md-rent-ring" style={{
-                        background: `conic-gradient(
-                            ${PropertyColorMap.Brown.hex}, ${PropertyColorMap.LightBlue.hex},
-                            ${PropertyColorMap.Pink.hex}, ${PropertyColorMap.Orange.hex},
-                            ${PropertyColorMap.Red.hex}, ${PropertyColorMap.Yellow.hex},
-                            ${PropertyColorMap.Green.hex}, ${PropertyColorMap.DarkBlue.hex},
-                            ${PropertyColorMap.Railroad.hex}, ${PropertyColorMap.Utility.hex},
-                            ${PropertyColorMap.Brown.hex}
-                        )`,
+                        background: `conic-gradient(${conicStops})`,
                     }}>
                         <div className="md-rent-ring__inner">
                             <span className="md-card__oval-text">Rent</span>
@@ -269,7 +261,7 @@ function RentLayout({ card }: { card: CardType }) {
 
     return (
         <>
-            <div className="md-card__header">Rent</div>
+            <div className="md-card__header">Action Card</div>
             <div className="md-card__body-center">
                 <div className="md-rent-ring" style={{
                     background: `linear-gradient(to bottom, ${hex1} 50%, ${hex2} 50%)`,
@@ -315,8 +307,9 @@ function ActionLayout({ card }: { card: CardType }) {
 }
 
 /* ── Shared parts ──────────────────────────────── */
-function Badge({ value, bg, br }: { value: number; bg: string; br?: boolean }) {
-    return <div className={`md-badge ${br ? "md-badge--br" : ""}`} style={{ backgroundColor: bg }}>M{value}</div>;
+function Badge({ value, bg, light }: { value: number; bg: string; light?: boolean }) {
+    const cls = `md-badge ${light ? "md-badge--light" : ""}`;
+    return <div className={cls} style={{ backgroundColor: bg }}><span className="md-sym">M</span>{value}</div>;
 }
 
 function RentTable({ rents, setSize, color }: { rents: number[]; setSize: number; color: string }) {
@@ -332,13 +325,11 @@ function RentTable({ rents, setSize, color }: { rents: number[]; setSize: number
                     return (
                         <tr key={n} className={full ? "md-rent-tbl__full" : ""}>
                             <td className="md-rent-tbl__icons">
-                                {Array.from({ length: n }).map((_, j) => (
-                                    <span key={j} className="md-rent-tbl__pip" style={{ backgroundColor: color }} />
-                                ))}
+                                <span className="md-rent-tbl__card-icon">{n}</span>
                             </td>
                             <td className="md-rent-tbl__val">
                                 {full && <span className="md-rent-tbl__label">FULL SET </span>}
-                                M{rent}
+                                <span className="md-sym">M</span>{rent}
                             </td>
                         </tr>
                     );

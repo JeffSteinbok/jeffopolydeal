@@ -226,6 +226,51 @@
     border-radius: 2px;
 }
 
+/* Opponent boards on desktop: reduced size */
+.playerBoard--opponent {
+    padding: 6px 8px;
+    min-width: 180px;
+}
+
+.playerBoard--opponent .playerBoard-header {
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+}
+
+.playerBoard--opponent .playerBoard-name {
+    font-size: 0.85rem;
+}
+
+.playerBoard--opponent .playerBoard-cards,
+.playerBoard--opponent .playerBoard-sets {
+    font-size: 0.75rem;
+}
+
+.playerBoard--opponent .section-label {
+    font-size: 0.7rem;
+    margin-bottom: 2px;
+}
+
+.playerBoard--opponent .playerBoard-sections {
+    gap: 4px;
+}
+
+.playerBoard--opponent .bank-total {
+    font-size: 0.9rem;
+    min-width: 40px;
+}
+
+.playerBoard--opponent .bank-pill {
+    font-size: 0.6rem;
+    padding: 1px 5px;
+}
+
+.playerBoard--opponent .propertySet-label {
+    font-size: 0.6rem;
+    padding: 2px 5px;
+    margin-bottom: 2px;
+}
+
 /* Card expand overlay */
 .cardExpand-overlay {
     position: fixed;

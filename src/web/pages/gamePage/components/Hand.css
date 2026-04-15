@@ -13,15 +13,31 @@
 
 .hand-cards {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+    flex-wrap: nowrap;
     justify-content: center;
+    position: relative;
+}
+
+.hand-card-wrapper {
+    border-radius: 6px;
+    transition: margin 0.2s ease, transform 0.2s ease, z-index 0s;
+    flex-shrink: 0;
+}
+
+/* Overlapping mode: hover behavior */
+.hand-cards--overlap .hand-card-wrapper:hover {
+    transform: translateY(-12px);
+    z-index: 20;
+    margin-right: 8px !important;
+}
+
+.hand-cards--overlap .hand-card-wrapper:hover + .hand-card-wrapper {
+    margin-left: 8px;
 }
 
 /* Mobile/landscape: horizontal scroll, no wrap */
 @media (max-width: 680px), (max-height: 500px) {
     .hand-cards {
-        flex-wrap: nowrap;
         overflow-x: auto;
         justify-content: flex-start;
         -webkit-overflow-scrolling: touch;
@@ -38,15 +54,20 @@
         background: #16213e;
         border-radius: 2px;
     }
+
+    /* No overlap on mobile — scroll instead */
+    .hand-cards--overlap .hand-card-wrapper {
+        margin-right: 0;
+    }
+    .hand-cards--overlap .hand-card-wrapper:hover {
+        transform: none;
+        margin-right: 0;
+    }
 }
 
 .hand-empty {
     color: #555;
     font-style: italic;
-}
-
-.hand-card-wrapper {
-    border-radius: 6px;
 }
 
 /* Greyed-out state when it's not your turn or you can't play */

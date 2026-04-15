@@ -61,7 +61,8 @@
 /* ── Header label ─────────────────────────────── */
 .md-card__header {
     width: 100%;
-    padding: 4px 0;
+    padding: 4px 0 2px;
+    margin-top: 24px;
     text-align: center;
     font-family: 'Arial Black', 'Segoe UI Black', sans-serif;
     font-weight: 900;
@@ -74,13 +75,14 @@
 
 .md-card--sm .md-card__header {
     font-size: 8px;
-    padding: 3px 0;
+    margin-top: 20px;
+    padding: 3px 0 2px;
 }
 
 /* ── Central white circle with black border ───── */
 .md-card__oval {
-    width: 120px;
-    height: 120px;
+    width: 102px;
+    height: 102px;
     background: #fff;
     border-radius: 50%;
     border: 3px solid #222;
@@ -89,12 +91,15 @@
     justify-content: center;
     text-align: center;
     padding: 8px;
-    margin: auto 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .md-card--sm .md-card__oval {
-    width: 86px;
-    height: 86px;
+    width: 73px;
+    height: 73px;
     border-width: 2px;
     padding: 5px;
 }
@@ -112,19 +117,13 @@
     font-size: 11px;
 }
 
-/* ── Description (hover reveal) ───────────────── */
+/* ── Description ──────────────────────────────── */
 .md-card__desc {
     font-size: 8px;
     text-align: center;
     color: rgba(0,0,0,0.5);
     padding: 2px 6px;
-    opacity: 0;
-    transition: opacity 0.2s;
     flex-shrink: 0;
-}
-
-.md-card:hover .md-card__desc {
-    opacity: 1;
 }
 
 .md-card--sm .md-card__desc {
@@ -134,58 +133,75 @@
 /* ── Money badge (corner) ─────────────────────── */
 .md-badge {
     position: absolute;
-    top: 7px;
-    left: 7px;
-    width: 28px;
-    height: 28px;
+    top: 3px;
+    left: 3px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    color: #fff;
+    color: #000;
     font-family: 'Arial Black', sans-serif;
     font-weight: 900;
-    font-size: 10px;
+    font-size: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    border: 2px solid rgba(255,255,255,0.6);
+    border: 2px solid #222;
     z-index: 2;
 }
 
 .md-card--sm .md-badge {
-    width: 22px;
-    height: 22px;
-    font-size: 8px;
-    top: 5px;
-    left: 5px;
+    width: 26px;
+    height: 26px;
+    font-size: 10px;
+    top: 2px;
+    left: 2px;
 }
 
 /* Badge also in bottom-right */
 .md-badge--br {
     top: auto;
     left: auto;
-    bottom: 7px;
-    right: 7px;
+    bottom: 3px;
+    right: 3px;
 }
 
 .md-card--sm .md-badge--br {
-    bottom: 5px;
-    right: 5px;
+    bottom: 2px;
+    right: 2px;
+}
+
+/* Light badge variant (white bg, black text, black border) */
+.md-badge--light {
+    color: #000;
+    border-color: #222;
 }
 
 /* ── Money card ───────────────────────────────── */
 .md-money__amount {
     font-family: 'Arial Black', 'Impact', sans-serif;
     font-weight: 900;
-    font-size: 42px;
-    color: #fff;
+    font-size: 54px;
+    color: #000;
     display: flex;
     align-items: baseline;
     gap: 2px;
-    text-shadow: 2px 2px 0 rgba(0,0,0,0.15);
+    text-shadow: 1px 1px 0 rgba(255,255,255,0.2);
+    margin-top: -12px;
 }
 
 .md-card--sm .md-money__amount {
-    font-size: 30px;
+    font-size: 38px;
+    margin-top: -8px;
+}
+
+/* Stylised currency "M" — reusable anywhere */
+.md-sym {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 0.75em;
+    opacity: 0.85;
 }
 
 .md-money__sym {
@@ -200,7 +216,7 @@
     font-family: 'Arial Black', sans-serif;
     font-weight: 900;
     font-size: 12px;
-    color: rgba(255,255,255,0.8);
+    color: rgba(0,0,0,0.6);
     text-transform: uppercase;
     letter-spacing: 0.1em;
 }
@@ -212,26 +228,33 @@
 /* ── Property card: name band ─────────────────── */
 .md-card__name-band {
     width: 100%;
-    padding: 5px 6px;
+    height: 34px;
+    padding: 0 38px;
     text-align: center;
-    font-family: 'Arial Black', 'Segoe UI Black', sans-serif;
-    font-weight: 900;
-    font-size: 14px;
+    font-family: 'Arial', 'Segoe UI', sans-serif;
+    font-weight: 400;
+    font-size: 11px;
+    line-height: 1.2;
     color: #fff;
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    text-transform: uppercase;
     flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .md-card--sm .md-card__name-band {
-    font-size: 10px;
-    padding: 3px 4px;
+    height: 26px;
+    font-size: 8px;
+    padding: 0 30px;
 }
 
 /* Tiny variant: smaller text, wraps to fit */
 .md-card__name-band--tiny {
+    height: 18px;
     font-size: 7px;
-    padding: 2px 3px;
-    line-height: 1.2;
+    padding: 0 20px;
     word-break: break-word;
     hyphens: auto;
 }
@@ -282,19 +305,37 @@
 
 .md-rent-tbl__icons {
     display: flex;
-    gap: 2px;
+    align-items: center;
 }
 
-.md-rent-tbl__pip {
-    width: 11px;
-    height: 13px;
-    border-radius: 2px 2px 0 0;
-    display: inline-block;
+/* Mini card icon with count number */
+.md-rent-tbl__card-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 20px;
+    border: 1.5px solid #888;
+    border-radius: 2px;
+    font-family: 'Arial', sans-serif;
+    font-weight: 700;
+    font-size: 10px;
+    color: #333;
+    background: #fff;
 }
 
-.md-card--sm .md-rent-tbl__pip {
+.md-card--sm .md-rent-tbl__card-icon {
+    width: 12px;
+    height: 16px;
+    font-size: 8px;
+    border-width: 1px;
+}
+
+.md-card--xs .md-rent-tbl__card-icon {
     width: 8px;
-    height: 10px;
+    height: 11px;
+    font-size: 5px;
+    border-width: 1px;
 }
 
 .md-rent-tbl__val {
@@ -328,12 +369,12 @@
 .md-wild__bar {
     display: flex;
     width: 100%;
-    height: 8px;
+    height: 12px;
     flex-shrink: 0;
 }
 
 .md-card--sm .md-wild__bar {
-    height: 5px;
+    height: 8px;
 }
 
 .md-wild__bar-block {
@@ -344,19 +385,19 @@
 .md-wild__title-box {
     font-family: 'Arial Black', 'Segoe UI Black', sans-serif;
     font-weight: 900;
-    font-size: 13px;
+    font-size: 10px;
     text-transform: uppercase;
     text-align: center;
-    padding: 4px 8px;
-    margin: 0 8px;
+    padding: 2px 4px;
+    margin: 0 4px;
     color: #222;
     white-space: nowrap;
 }
 
 .md-card--sm .md-wild__title-box {
-    font-size: 9px;
-    padding: 3px 4px;
-    margin: 0 4px;
+    font-size: 7px;
+    padding: 2px 3px;
+    margin: 0 3px;
 }
 
 /* Tiny variant for XS compact view */
@@ -403,62 +444,101 @@
     transform: rotate(180deg);
 }
 
-.md-wild-dual__half {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
 .md-wild-dual__header {
-    padding: 4px 6px;
+    padding: 2px 4px;
     text-align: center;
     font-family: 'Arial Black', 'Segoe UI Black', sans-serif;
     font-weight: 900;
     color: #fff;
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    flex-shrink: 0;
+}
+
+.md-wild-dual__header--bottom {
+    transform: rotate(180deg);
+}
+
+.md-wild-dual__pretitle {
+    font-size: 6px;
+    text-transform: uppercase;
+    line-height: 1.1;
+    letter-spacing: 0.1em;
+}
+
+.md-card--sm .md-wild-dual__pretitle {
+    font-size: 5px;
 }
 
 .md-wild-dual__title {
-    font-size: 14px;
+    font-size: 8px;
     text-transform: uppercase;
     line-height: 1.1;
 }
 
 .md-card--sm .md-wild-dual__title {
-    font-size: 10px;
+    font-size: 6px;
 }
 
 .md-wild-dual__subtitle {
-    font-size: 7px;
+    font-size: 6px;
     opacity: 0.8;
+    line-height: 1.1;
 }
 
 .md-card--sm .md-wild-dual__subtitle {
-    font-size: 5px;
+    font-size: 4px;
 }
 
-/* Rent section in middle of dual wild */
-.md-wild-dual__rent {
+/* Shared rent area in center of dual wild */
+.md-wild-dual__rent-shared {
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 0 8px;
+    padding: 0 6px;
     background: #fff;
+    overflow: hidden;
 }
 
-.md-card--sm .md-wild-dual__rent {
-    padding: 0 4px;
+.md-wild-dual__rent-shared .md-rent-tbl__hdr {
+    font-size: 9px;
+    padding-bottom: 0;
 }
 
-/* Bottom half is upside-down */
-.md-wild-dual__half--bottom {
-    transform: rotate(180deg);
+.md-wild-dual__rent-shared .md-rent-tbl td {
+    padding: 0.5px 0;
+    font-size: 8px;
 }
 
-.md-wild-dual__half--bottom .md-wild-dual__rent {
-    border-top: 1px solid #ddd;
+.md-wild-dual__rent-shared .md-rent-tbl__card-icon {
+    width: 12px;
+    height: 15px;
+    font-size: 7px;
+    border-width: 1px;
+}
+
+.md-wild-dual__rent-shared .md-rent-tbl__label {
+    font-size: 0.75em;
+}
+
+.md-card--sm .md-wild-dual__rent-shared {
+    padding: 0 3px;
+}
+
+.md-card--sm .md-wild-dual__rent-shared .md-rent-tbl__hdr {
+    font-size: 7px;
+}
+
+.md-card--sm .md-wild-dual__rent-shared .md-rent-tbl td {
+    padding: 0;
+    font-size: 6px;
+}
+
+.md-card--sm .md-wild-dual__rent-shared .md-rent-tbl__card-icon {
+    width: 9px;
+    height: 12px;
+    font-size: 5px;
+}
 }
 
 /* Double-click hint */
@@ -540,25 +620,29 @@
 
 /* ── Rent ring (split-color border circle) ─────── */
 .md-rent-ring {
-    width: 126px;
-    height: 126px;
+    width: 102px;
+    height: 102px;
     border-radius: 50%;
     border: 3px solid #222;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .md-card--sm .md-rent-ring {
-    width: 91px;
-    height: 91px;
+    width: 73px;
+    height: 73px;
     border-width: 2px;
 }
 
 .md-rent-ring__inner {
-    width: 78px;
-    height: 78px;
+    width: 66px;
+    height: 66px;
     border-radius: 50%;
     background: #fff;
     display: flex;
@@ -567,8 +651,8 @@
 }
 
 .md-card--sm .md-rent-ring__inner {
-    width: 55px;
-    height: 55px;
+    width: 47px;
+    height: 47px;
 }
 
 /* ── Tiny property rent display ───────────────── */
@@ -612,12 +696,13 @@
 
 .md-card--xs .md-card__header {
     font-size: 5px;
-    padding: 1px 0;
+    margin-top: 12px;
+    padding: 2px 0 1px;
 }
 
 .md-card--xs .md-card__oval {
-    width: 52px;
-    height: 52px;
+    width: 44px;
+    height: 44px;
     border-width: 1.5px;
     padding: 3px;
 }
@@ -632,23 +717,17 @@
 }
 
 .md-card--xs .md-badge {
-    width: 16px;
-    height: 16px;
-    font-size: 6px;
-    top: 3px;
-    left: 3px;
+    width: 18px;
+    height: 18px;
+    font-size: 7px;
+    top: 1px;
+    left: 1px;
     border-width: 1px;
 }
 
-.md-card--xs .md-badge--br {
-    top: auto;
-    left: auto;
-    bottom: 3px;
-    right: 3px;
-}
-
 .md-card--xs .md-money__amount {
-    font-size: 20px;
+    font-size: 26px;
+    margin-top: -4px;
 }
 
 .md-card--xs .md-money__label {
@@ -676,24 +755,23 @@
     padding: 0.5px 0;
 }
 
-.md-card--xs .md-rent-tbl__pip {
-    width: 5px;
-    height: 6px;
-}
-
-.md-card--xs .md-wild__bar { height: 3px; }
+.md-card--xs .md-wild__bar { height: 5px; }
 .md-card--xs .md-wild__title-box { font-size: 6px; padding: 1px 2px; margin: 0 2px; border-width: 1px; }
 .md-card--xs .md-wild__placeholder { font-size: 18px; }
 .md-card--xs .md-wild__desc-text { font-size: 4px; padding: 1px 2px; }
 
+.md-card--xs .md-wild-dual__pretitle { font-size: 4px; }
 .md-card--xs .md-wild-dual__title { font-size: 6px; }
 .md-card--xs .md-wild-dual__subtitle { font-size: 4px; }
-.md-card--xs .md-wild-dual__rent { padding: 0 2px; }
-.md-card--xs .md-wild-dual__header { padding: 2px 3px; }
+.md-card--xs .md-wild-dual__rent-shared { padding: 0 2px; }
+.md-card--xs .md-wild-dual__rent-shared .md-rent-tbl__hdr { font-size: 5px; }
+.md-card--xs .md-wild-dual__rent-shared .md-rent-tbl td { font-size: 4px; padding: 0; }
+.md-card--xs .md-wild-dual__rent-shared .md-rent-tbl__card-icon { width: 6px; height: 8px; font-size: 4px; }
+.md-card--xs .md-wild-dual__header { padding: 1px 2px; }
 
 .md-card--xs .md-rent-ring {
-    width: 58px;
-    height: 58px;
+    width: 44px;
+    height: 44px;
     border-width: 1.5px;
 }
 
