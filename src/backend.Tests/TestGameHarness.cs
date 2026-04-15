@@ -189,7 +189,8 @@ namespace JeffopolyDeal.Tests
 
             var card = _game.GetDeck().CreateCard(type, moneyValue, name, color, altColor,
                 actionKind, rentColors, isWildRent, isMulticolorWild);
-            player.Hand.Add(card);
+            // Insert at the front so test-injected cards are always found first by FirstOrDefault
+            player.Hand.Insert(0, card);
             return card;
         }
 

@@ -437,5 +437,95 @@ namespace JeffopolyDeal.Tests
             var forceDealInHand = myState!.Hand!.First(c => c.Id == forceDeal.Id);
             Assert.False(forceDealInHand.IsPlayable);
         }
+
+        [Fact]
+        public async Task SlyDeal_DiscardsHouseAndHotelFromStolenSet()
+        {
+            var h = new TestGameHarness();
+            var (p1, p2) = await h.SetupTwoPlayerGameAsync();
+            await h.DrawAsync(p1);
+
+            // Give P2 a 2-card Brown set with a house
+            var set = h.PlacePropertyOnBoard(p2, PropertyColor.Brown, 1);
+            var target = set.Cards[0];
+            set.HasHouse = true;
+
+            var slyDeal = h.InjectAction(p1, ActionType.SlyDeal, 3, "Sly Deal");
+
+            await h.PlayCardAsync(p1, slyDeal.Id, new PlayCardRequest
+            {
+                TargetPlayerId = p2,
+                TargetCardId = target.Id
+            });
+            await h.RespondAsync(p2, new ActionResponse { PlayJustSayNo = false });
+
+            // The set that the card was taken from should no longer have a house
+            var p2State = h.GetPlayerState(p1, p2);
+            foreach (var ps in p2State!.PropertySets)
+                Assert.False(ps.HasHouse);
+        }
+
+        [Fact]
+        public async Task ForceDeal_DiscardsHouseAndHotelFromAffectedSets()
+        {
+            var h = new TestGameHarness();
+            var (p1, p2) = await h.SetupTwoPlayerGameAsync();
+            await h.DrawAsync(p1);
+
+            // P1 has a Red card they'll offer
+            var p1Set = h.PlacePropertyOnBoard(p1, PropertyColor.Red, 1);
+            var offered = p1Set.Cards[0];
+            p1Set.HasHouse = true;
+
+            // P2 has a Brown card that P1 wants
+            var p2Set = h.PlacePropertyOnBoard(p2, PropertyColor.Brown, 1);
+            var stolen = p2Set.Cards[0];
+            p2Set.HasHouse = true;
+
+            var forceDeal = h.InjectAction(p1, ActionType.ForceDeal, 3, "Force Deal");
+
+            await h.PlayCardAsync(p1, forceDeal.Id, new PlayCardRequest
+            {
+                TargetPlayerId = p2,
+                TargetCardId = stolen.Id,
+                OfferedCardId = offered.Id
+            });
+            await h.RespondAsync(p2, new ActionResponse { PlayJustSayNo = false });
+
+            // Both sets that lost cards should have no house
+            var p1State = h.GetPlayerState(p1, p1);
+            foreach (var ps in p1State!.PropertySets)
+                Assert.False(ps.HasHouse);
+
+            var p2State = h.GetPlayerState(p1, p2);
+            foreach (var ps in p2State!.PropertySets)
+                Assert.False(ps.HasHouse);
+        }
+
+        [Fact]
+        public void ReceivedProperty_PlacedOnSetWithMostCards()
+        {
+            // Directly test Player.GetOrCreatePropertySet prefers the set with the most cards
+            var player = new Player { ConnectionId = "test", PlayerId = "test", Name = "Test" };
+
+            // Manually build two incomplete Green sets (required size = 3)
+            var setA = new PropertySet { Color = PropertyColor.Green };
+            setA.Cards.Add(new Card { Id = 1, CardType = CardType.Property, Color = PropertyColor.Green });
+            player.PropertySets.Add(setA); // 1 card
+
+            var setB = new PropertySet { Color = PropertyColor.Green };
+            setB.Cards.Add(new Card { Id = 2, CardType = CardType.Property, Color = PropertyColor.Green });
+            setB.Cards.Add(new Card { Id = 3, CardType = CardType.Property, Color = PropertyColor.Green });
+            player.PropertySets.Add(setB); // 2 cards
+
+            // GetOrCreatePropertySet should return setB (2 cards > 1 card)
+            var result = player.GetOrCreatePropertySet(PropertyColor.Green);
+            Assert.Same(setB, result);
+
+            // Adding a card brings setB to 3 (complete); next call should pick setA or create new
+            setB.Cards.Add(new Card { Id = 4, CardType = CardType.Property, Color = PropertyColor.Green });
+            var result2 = player.GetOrCreatePropertySet(PropertyColor.Green);
+            Assert.Same(setA, result2); // setA is the only incomplete one now
+        }
     }
 }

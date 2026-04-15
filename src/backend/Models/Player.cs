@@ -44,8 +44,12 @@ namespace JeffopolyDeal.Models
         /// </summary>
         public PropertySet GetOrCreatePropertySet(PropertyColor color)
         {
-            // Find an incomplete set of this color, or create new
-            var set = PropertySets.FirstOrDefault(s => s.Color == color && !s.IsComplete);
+            // Among incomplete sets of this color, prefer the one with the most cards so
+            // received cards fill up existing stacks before a new set is created.
+            var set = PropertySets
+                .Where(s => s.Color == color && !s.IsComplete)
+                .OrderByDescending(s => s.Cards.Count)
+                .FirstOrDefault();
             if (set == null)
             {
                 set = new PropertySet { Color = color };
