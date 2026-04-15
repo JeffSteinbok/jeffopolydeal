@@ -30,19 +30,20 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
 
     const totalAssets = payableCards.reduce((sum, c) => sum + (c.moneyValue ?? 0), 0);
     const canAfford = totalAssets >= pendingAction.amount;
-    // Disable pay button if: player can afford but hasn't selected enough, or has assets but selected none
-    const payDisabled = isPayment && payableCards.length > 0 && (
-        canAfford ? selectedTotal < pendingAction.amount : selectedCardIds.length < payableCards.length
-    );
+    // When insolvent the server will auto-take everything; only disable for solvent underpayment
+    const payDisabled = isPayment && canAfford && payableCards.length > 0 &&
+        selectedTotal < pendingAction.amount;
 
     const toggleCard = (id: number) => {
+        if (!canAfford) return; // Card selection not needed when insolvent
         setSelectedCardIds((prev) =>
             prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
         );
     };
 
     const handlePay = () => {
-        onRespond({ playJustSayNo: false, paymentCardIds: selectedCardIds });
+        // When insolvent the server handles taking everything; send empty to trigger auto-take
+        onRespond({ playJustSayNo: false, paymentCardIds: canAfford ? selectedCardIds : [] });
     };
 
     const handleJustSayNo = () => {
@@ -94,10 +95,15 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
 
                 {isPayment && (
                     <>
-                        <p className="modalHint">
-                            Select cards to pay with (M{selectedTotal} / M{pendingAction.amount})
-                            {!canAfford && <span className="modalWarning"> — You can't afford this, you must pay everything!</span>}
-                        </p>
+                        {canAfford ? (
+                            <p className="modalHint">
+                                Select cards to pay with (M{selectedTotal} / M{pendingAction.amount})
+                            </p>
+                        ) : (
+                            <p className="modalHint">
+                                <span className="modalWarning">You can't afford M{pendingAction.amount} — the game will take everything you have (M{totalAssets}).</span>
+                            </p>
+                        )}
                         {paymentError && <p className="modalError">{paymentError}</p>}
                         <div className="paymentCards">
                             {payableCards.map((card) => (
@@ -105,7 +111,7 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                                     key={card.id}
                                     card={card}
                                     small
-                                    selected={selectedCardIds.includes(card.id)}
+                                    selected={canAfford ? selectedCardIds.includes(card.id) : true}
                                     onClick={() => toggleCard(card.id)}
                                 />
                             ))}
@@ -120,7 +126,11 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                                 onClick={handlePay}
                                 disabled={payDisabled}
                             >
-                                {payableCards.length === 0 ? "I have nothing" : `Pay M${selectedTotal}`}
+                                {payableCards.length === 0
+                                    ? "I have nothing"
+                                    : canAfford
+                                        ? `Pay M${selectedTotal}`
+                                        : `Give Everything (M${totalAssets})`}
                             </button>
                         </div>
                     </>

@@ -799,12 +799,25 @@ namespace JeffopolyDeal
             // Handle payment (for rent/debt/birthday)
             if (!handled)
             {
-                if (response.PaymentCardIds != null && response.PaymentCardIds.Count > 0)
+                var payer = _players.FirstOrDefault(p => p.ConnectionId == connectionId);
+                if (payer != null)
                 {
-                    // Validate payment amount
-                    var payer = _players.FirstOrDefault(p => p.ConnectionId == connectionId);
-                    if (payer != null)
+                    var payableCards = payer.GetPayableCards();
+                    int totalAssets = payableCards.Sum(c => c.MoneyValue);
+
+                    if (totalAssets < _pendingAction.Amount)
                     {
+                        // Insolvent: automatically take everything the player has
+                        _lastPaymentError = null;
+                        _lastPaymentErrorConnectionId = null;
+                        if (payableCards.Count > 0)
+                            ProcessPayment(connectionId, payableCards.Select(c => c.Id).ToList());
+                        else
+                            _pendingAction.TargetPlayerIds.Remove(connectionId);
+                    }
+                    else if (response.PaymentCardIds != null && response.PaymentCardIds.Count > 0)
+                    {
+                        // Solvent: validate that they're paying at least the required amount
                         var error = ValidatePayment(payer, response.PaymentCardIds, _pendingAction.Amount);
                         if (error != null)
                         {
@@ -813,30 +826,17 @@ namespace JeffopolyDeal
                             _lastPaymentErrorConnectionId = connectionId;
                             return; // Don't process, let client retry
                         }
+                        _lastPaymentError = null;
+                        _lastPaymentErrorConnectionId = null;
+                        ProcessPayment(connectionId, response.PaymentCardIds);
                     }
-                    _lastPaymentError = null;
-                    _lastPaymentErrorConnectionId = null;
-                    ProcessPayment(connectionId, response.PaymentCardIds);
-                }
-                else
-                {
-                    // No cards selected — check if player truly has nothing
-                    var payer = _players.FirstOrDefault(p => p.ConnectionId == connectionId);
-                    if (payer != null)
+                    else
                     {
-                        var payableCards = payer.GetPayableCards();
-                        if (payableCards.Count > 0)
-                        {
-                            // Player has assets but paid nothing — reject
-                            _lastPaymentError = "You must select cards to pay with.";
-                            _lastPaymentErrorConnectionId = connectionId;
-                            return;
-                        }
+                        // Solvent but no cards selected — reject
+                        _lastPaymentError = "You must select cards to pay with.";
+                        _lastPaymentErrorConnectionId = connectionId;
+                        return;
                     }
-                    // Player truly has nothing to pay with
-                    _lastPaymentError = null;
-                    _lastPaymentErrorConnectionId = null;
-                    _pendingAction.TargetPlayerIds.Remove(connectionId);
                 }
             }
 
@@ -853,6 +853,16 @@ namespace JeffopolyDeal
                     _phase = GamePhase.GameOver;
                     _winnerId = currentPlayer.ConnectionId;
                 }
+            }
+        }
+
+        /// <summary>Clears house/hotel improvements from a set when it is broken up.</summary>
+        private static void ClearImprovements(PropertySet set)
+        {
+            if (set.HasHouse || set.HasHotel)
+            {
+                set.HasHouse = false;
+                set.HasHotel = false;
             }
         }
 
@@ -888,6 +898,8 @@ namespace JeffopolyDeal
                         totalPaid += card.MoneyValue;
                         paidCards.Add(card);
                         set.Cards.Remove(card);
+                        // If this set had a house/hotel, discard them when breaking the set
+                        ClearImprovements(set);
                         // Property goes to receiver's property area
                         var receiverColor = card.ActiveColor ?? card.Color ?? set.Color;
                         var receiverSet = receiver.GetOrCreatePropertySet(receiverColor);
@@ -925,6 +937,8 @@ namespace JeffopolyDeal
                 {
                     stolenCard = card;
                     set.Cards.Remove(card);
+                    // Discard house/hotel when the set is broken
+                    ClearImprovements(set);
                     var color = card.ActiveColor ?? card.Color ?? set.Color;
                     PlayProperty(source, card, color);
                     if (set.Cards.Count == 0) target.PropertySets.Remove(set);
@@ -956,6 +970,8 @@ namespace JeffopolyDeal
                 if (stolenCard != null)
                 {
                     set.Cards.Remove(stolenCard);
+                    // Discard house/hotel when the set is broken
+                    ClearImprovements(set);
                     if (set.Cards.Count == 0) target.PropertySets.Remove(set);
                     break;
                 }
@@ -968,6 +984,8 @@ namespace JeffopolyDeal
                 if (offeredCard != null)
                 {
                     set.Cards.Remove(offeredCard);
+                    // Discard house/hotel when the set is broken
+                    ClearImprovements(set);
                     if (set.Cards.Count == 0) source.PropertySets.Remove(set);
                     break;
                 }

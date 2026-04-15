@@ -132,5 +132,51 @@ namespace JeffopolyDeal.Tests
             // Should resolve back to Play
             Assert.Equal(GamePhase.Play, h.GetPhase(p1));
         }
+
+        [Fact]
+        public async Task Payment_Insolvent_AutoTakesEverything()
+        {
+            var h = new TestGameHarness();
+            var (p1, p2) = await h.SetupTwoPlayerGameAsync();
+            await h.DrawAsync(p1);
+
+            // P2 has only M2 but owes M5 — insolvent
+            var bankCard = h.PlaceMoneyInBank(p2, 2);
+            var dc = h.InjectAction(p1, ActionType.DebtCollector, 3, "Debt Collector");
+
+            await h.PlayCardAsync(p1, dc.Id, new PlayCardRequest { TargetPlayerId = p2 });
+            // Send empty payment — server should auto-take everything
+            await h.RespondAsync(p2, new ActionResponse { PaymentCardIds = new List<int>() });
+
+            // Game continues
+            Assert.Equal(GamePhase.Play, h.GetPhase(p1));
+
+            // P1 received P2's bank card
+            var p1State = h.GetPlayerState(p1, p1);
+            Assert.Contains(p1State!.Bank, c => c.Id == bankCard.Id);
+        }
+
+        [Fact]
+        public async Task Payment_Insolvent_AutoTakesPropertyToo()
+        {
+            var h = new TestGameHarness();
+            var (p1, p2) = await h.SetupTwoPlayerGameAsync();
+            await h.DrawAsync(p1);
+
+            // P2 has M1 in bank and a property (M0 money value) — still insolvent vs M5 debt
+            var bankCard = h.PlaceMoneyInBank(p2, 1);
+            var propSet = h.PlacePropertyOnBoard(p2, PropertyColor.Brown, 1);
+            var propCard = propSet.Cards[0];
+            var dc = h.InjectAction(p1, ActionType.DebtCollector, 3, "Debt Collector");
+
+            await h.PlayCardAsync(p1, dc.Id, new PlayCardRequest { TargetPlayerId = p2 });
+            await h.RespondAsync(p2, new ActionResponse { PaymentCardIds = new List<int>() });
+
+            Assert.Equal(GamePhase.Play, h.GetPhase(p1));
+
+            var p1State = h.GetPlayerState(p1, p1);
+            Assert.Contains(p1State!.Bank, c => c.Id == bankCard.Id);
+            Assert.Contains(p1State.PropertySets, s => s.Cards.Any(c => c.Id == propCard.Id));
+        }
     }
 }
