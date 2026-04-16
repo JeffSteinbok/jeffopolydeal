@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { Card, PlayCardRequest, GameState, PlayerState, PropertyColor } from "../../../Types";
 import { CardComponent } from "./Card";
 import { PropertyColorMap } from "../../../utilities/PropertyColors";
@@ -26,6 +26,25 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
     // Memoize so canUseAction (which traverses sets) is only recalculated when inputs change
     const actionPlayable = useMemo(() => canUseAction(), [card, myState, otherPlayers]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Keyboard: Escape to cancel; Enter for single-action modals
+    const handleSingleAction = useCallback(() => {
+        if (!canPlay) { onCancel(); return; }
+        if (card.cardType === "Money") { onPlay(card.id, { playAsMoney: true }); return; }
+        if (card.cardType === "Property") { onPlay(card.id, { playAsMoney: false }); return; }
+    }, [canPlay, card, onPlay, onCancel]);
+
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if (e.key === "Escape") { onCancel(); return; }
+            if (e.key === "Enter") {
+                const isSingleAction = card.cardType === "Money" || card.cardType === "Property" || !canPlay;
+                if (isSingleAction) handleSingleAction();
+            }
+        };
+        document.addEventListener("keydown", handler);
+        return () => document.removeEventListener("keydown", handler);
+    }, [onCancel, canPlay, card, handleSingleAction]);
+
     // Money card — always shows modal; Bank button only available on your turn
     if (card.cardType === "Money") {
         return (
@@ -39,7 +58,7 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                         {canPlay && (
                             <div className="modalButtonBar-right">
                                 <button className="choiceButton choiceButton--money" onClick={() => onPlay(card.id, { playAsMoney: true })}>
-                                    💰 Bank
+                                    ◆ Bank
                                 </button>
                             </div>
                         )}
@@ -102,23 +121,30 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                     <div className="modalCardPreview">
                         <CardComponent card={card} />
                     </div>
-                    <h3>Play as which color?</h3>
-                    <div className="colorChoices">
-                        {colorOptions.map(color => (
-                            <button
-                                key={color}
-                                className="colorChoice colorChoice--swatch"
-                                style={{ backgroundColor: PropertyColorMap[color].hex }}
-                                onClick={() => onPlay(card.id, { playAsMoney: false, wildcardColor: color })}
-                                title={PropertyColorMap[color].name}
-                            />
-                        ))}
-                    </div>
-                    {colorOptions.length === 0 && (
-                        <p className="colorChoices-empty">No property sets to join. Play a property first.</p>
-                    )}
+                    <h3 style={{ color: "#eee", textAlign: "right", width: "100%", fontSize: "0.85rem", margin: "0 0 -8px" }}>Place as which color?</h3>
                     <div className="modalButtonBar">
                         <button className="secondary" onClick={onCancel}>Cancel</button>
+                        <div className="modalButtonBar-right">
+                            {colorOptions.map(color => (
+                                <button
+                                    key={color}
+                                    className="colorChoice colorChoice--swatch"
+                                    style={{ backgroundColor: PropertyColorMap[color].hex }}
+                                    onClick={() => onPlay(card.id, { playAsMoney: false, wildcardColor: color })}
+                                    title={PropertyColorMap[color].name}
+                                />
+                            ))}
+                            {card.isMulticolorWild && (
+                                <button
+                                    className="colorChoice"
+                                    style={{ backgroundColor: "#555", color: "#eee" }}
+                                    onClick={() => onPlay(card.id, { playAsMoney: false })}
+                                    title="Unassigned"
+                                >
+                                    Unassigned
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -146,7 +172,7 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                             </button>
                             {canPlayAsMoney && (
                                 <button className="choiceButton choiceButton--money" onClick={() => onPlay(card.id, { playAsMoney: true })}>
-                                    💰 Bank
+                                    <span className="money-diamond">◆</span>Bank
                                 </button>
                             )}
                         </div>
@@ -284,7 +310,7 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                                         }
                                     }}
                                 >
-                                    {p.name} — 🃏{p.handCount} | 💰{p.bank.reduce((s, c) => s + c.moneyValue, 0)} | {p.completedSetCount}/3 sets
+                                    {p.name} — 🃏{p.handCount} | <span className="money-diamond">◆</span>{p.bank.reduce((s, c) => s + c.moneyValue, 0)} | {p.completedSetCount}/3 sets
                                 </button>
                                 {onInspect && (
                                     <button

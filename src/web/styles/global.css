@@ -73,3 +73,8 @@ input[type="text"] {
 input[type="text"]:focus {
     border-color: #43a047;
 }
+
+.money-diamond {
+    color: inherit;
+    margin-right: -1px;
+}

@@ -199,6 +199,16 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         }
     };
 
+    // Enter to draw cards when it's your turn in Draw phase
+    useEffect(() => {
+        if (!(state?.phase === "Draw" && isMyTurn)) return;
+        const handler = (e: KeyboardEvent) => {
+            if (e.key === "Enter") client?.drawCards();
+        };
+        document.addEventListener("keydown", handler);
+        return () => document.removeEventListener("keydown", handler);
+    }, [state?.phase, isMyTurn, client]);
+
     if (error) {
         return (
             <div className="gamePage">
@@ -274,9 +284,13 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         <div className={`gamePage${isLandscape ? " gamePage--landscape" : ""}`}>
             <div className="gameHeader">
                 <img src={titleImage} alt="Jeffopoly Deal" className="gameHeaderTitleImage" />
-                <span className="deckInfo">
-                    Draw: {state.drawPileCount} | Discard: {state.discardPileCount}
-                </span>
+                <div className="gameHeader-right">
+                    <span className="deckInfo">
+                        Draw: {state.drawPileCount} | Discard: {state.discardPileCount}
+                    </span>
+                    <span className="gameHeader-divider">|</span>
+                    <button className="exitButton" onClick={handleExitGame}>✕</button>
+                </div>
             </div>
 
             {/* Desktop: side-by-side layout; Mobile: stacked */}
@@ -293,40 +307,41 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                         ))}
                     </div>
 
-                    <div className="myArea">
-                <PlayerBoard
-                    player={me}
-                    isMe={true}
-                    isMyTurn={isMyTurn === true && state.phase === "Play"}
-                    compact={isMobile}
-                    onFlipCard={(cardId) => client?.flipWildcard(cardId)}
-                    onMoveProperty={(cardId, targetSetId, targetColor) => client?.moveProperty(cardId, targetSetId, targetColor)}
-                />
-
-                {state.phase === "Discard" && isMyTurn && me.hand && (
-                    <DiscardModal
-                        hand={me.hand}
-                        maxHandSize={7}
-                        onDiscard={async (cardIds) => {
-                            for (const id of cardIds) {
-                                await client?.discardCard(id);
-                            }
-                        }}
+                    <PlayerBoard
+                        player={me}
+                        isMe={true}
+                        isMyTurn={isMyTurn === true && state.phase === "Play"}
+                        compact={isMobile}
+                        onFlipCard={(cardId) => client?.flipWildcard(cardId)}
+                        onMoveProperty={(cardId, targetSetId, targetColor) => client?.moveProperty(cardId, targetSetId, targetColor)}
                     />
-                )}
 
-                <Hand
-                    cards={me.hand ?? []}
-                    canPlay={isMyTurn === true && (state.phase === "Play" || state.phase === "Discard")}
-                    phase={state.phase}
-                    gameState={state}
-                    myConnectionId={myConnectionId ?? ""}
-                    smallCards={isMobile}
-                    onPlayCard={(cardId, request) => client?.playCard(cardId, request)}
-                    onDiscardCard={(cardId) => client?.discardCard(cardId)}
-                    onInspectPlayer={isMobile ? setInspectedPlayer : undefined}
-                />
-            </div>
+                    {state.phase === "Discard" && isMyTurn && me.hand && (
+                        <DiscardModal
+                            hand={me.hand}
+                            maxHandSize={7}
+                            onDiscard={async (cardIds) => {
+                                for (const id of cardIds) {
+                                    await client?.discardCard(id);
+                                }
+                            }}
+                        />
+                    )}
+
+                    <Hand
+                        cards={me.hand ?? []}
+                        canPlay={isMyTurn === true && (state.phase === "Play" || state.phase === "Discard")}
+                        phase={state.phase}
+                        gameState={state}
+                        myConnectionId={myConnectionId ?? ""}
+                        smallCards={isMobile}
+                        playsRemaining={3 - state.playsUsed}
+                        isMyTurn={isMyTurn === true}
+                        onEndTurn={() => client?.endTurn()}
+                        onPlayCard={(cardId, request) => client?.playCard(cardId, request)}
+                        onDiscardCard={(cardId) => client?.discardCard(cardId)}
+                        onInspectPlayer={isMobile ? setInspectedPlayer : undefined}
+                    />
                 </>
             ) : (
                 /* Desktop: opponents sidebar + main play area */
@@ -366,6 +381,9 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                             gameState={state}
                             myConnectionId={myConnectionId ?? ""}
                             smallCards={true}
+                            playsRemaining={3 - state.playsUsed}
+                            isMyTurn={isMyTurn === true}
+                            onEndTurn={() => client?.endTurn()}
                             onPlayCard={(cardId, request) => client?.playCard(cardId, request)}
                             onDiscardCard={(cardId) => client?.discardCard(cardId)}
                         />
@@ -374,33 +392,16 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 </>
             )}
 
-            <div className="mainControls">
-                <div className="mainControls-left">
-                    <button className="endGameButton" onClick={handleEndGame}>
-                        End Game
-                    </button>
-                    <button className="exitButton" onClick={handleExitGame}>
-                        Exit
-                    </button>
-                </div>
-                <div className="mainControls-right">
-                    {state.phase === "Play" && isMyTurn && (
-                        <span className="playsRemaining">
-                            {3 - state.playsUsed} play{3 - state.playsUsed !== 1 ? "s" : ""} remaining
-                        </span>
-                    )}
-                    {state.phase === "Draw" && isMyTurn && (
-                        <button className="primary" onClick={() => client?.drawCards()}>
+            {state.phase === "Draw" && isMyTurn && (
+                <div className="modalOverlay" style={{ alignItems: "center" }}>
+                    <div className="drawTurnPopup">
+                        <h2 className="drawTurnPopup-title">It's Your Turn!</h2>
+                        <button className="primary drawTurnPopup-btn" onClick={() => client?.drawCards()}>
                             Draw Cards
                         </button>
-                    )}
-                    {state.phase === "Play" && isMyTurn && (
-                        <button className="secondary" onClick={() => client?.endTurn()}>
-                            End Turn
-                        </button>
-                    )}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {needsResponse && state.pendingAction && (
                 <ActionModal

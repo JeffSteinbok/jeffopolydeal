@@ -7,12 +7,13 @@
 
 .playerBoard-me {
     border: 2px solid #0f3460;
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: none;
 }
 
-.playerBoard-me .playerBoard-sections {
-    min-height: 280px;
-    max-height: 280px;
-    overflow-y: auto;
+.playerBoard-me::-webkit-scrollbar {
+    display: none;
 }
 
 .playerBoard-header {
@@ -306,7 +307,6 @@
 
 @media (max-width: 680px) {
     .playerBoard-me .playerBoard-sections {
-        min-height: 180px;
-        max-height: 180px;
+        max-height: none;
     }
 }

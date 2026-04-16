@@ -33,13 +33,12 @@ export function PlayerInspectModal({ player, onClose }: PlayerInspectModalProps)
                 <div className="inspectDrawer-handle" />
                 <div className="inspectDrawer-header">
                     <h3 className="inspectDrawer-title">
-                        <span className="inspectDrawer-icon" aria-hidden="true">👁</span>
                         {player.name}'s Board
                     </h3>
                     <button className="inspectDrawer-close" onClick={onClose} aria-label="Close">✕</button>
                 </div>
                 <div className="inspectDrawer-body">
-                    <PlayerBoard player={player} inspectMode />
+                    <PlayerBoard player={player} compact inspectMode />
                 </div>
             </div>
         </div>

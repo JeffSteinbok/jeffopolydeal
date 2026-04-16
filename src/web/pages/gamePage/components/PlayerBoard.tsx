@@ -30,7 +30,7 @@ function BankDisplay({ bank }: { bank: Card[] }) {
         <div className="bank-display">
             <div className="bank-header-row">
                 <span className="section-label">Bank</span>
-                <span className="bank-total">💰 {total}</span>
+                <span className="bank-total"><span className="money-diamond">◆</span>{total}</span>
             </div>
             <div className="bank-denoms">
                 {denoms.map(d => (
@@ -254,7 +254,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                                         <div
                                             key={card.id}
                                             className="propertySet-stack-item"
-                                            style={{ marginTop: (!inspectMode && idx > 0) ? (compact ? -65 : -100) : 0, touchAction: canDrag ? "none" : compact ? "manipulation" : "auto" }}
+                                            style={{ marginTop: (idx > 0) ? (compact ? -65 : -100) : 0, touchAction: canDrag ? "none" : compact ? "manipulation" : "auto" }}
                                             draggable={canDrag}
                                             onDragStart={canDrag ? (e) => handleDragStart(e, card.id) : undefined}
                                             onPointerDown={canDrag ? (e) => handlePropertyPointerDown(e, card.id) : undefined}
@@ -291,7 +291,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                                         <div
                                             key={card.id}
                                             className="propertySet-stack-item"
-                                            style={{ marginTop: (!inspectMode && idx > 0) ? (compact ? -65 : -100) : 0, touchAction: canDrag ? "none" : compact ? "manipulation" : "auto" }}
+                                            style={{ marginTop: (idx > 0) ? (compact ? -65 : -100) : 0, touchAction: canDrag ? "none" : compact ? "manipulation" : "auto" }}
                                             draggable={canDrag}
                                             onDragStart={canDrag ? (e) => handleDragStart(e, card.id) : undefined}
                                             onPointerDown={canDrag ? (e) => handlePropertyPointerDown(e, card.id) : undefined}

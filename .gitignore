@@ -35,3 +35,6 @@ msbuild.wrn
 
 publish/
 deploy.zip
+
+# Debug/design iteration files
+docs/debug/

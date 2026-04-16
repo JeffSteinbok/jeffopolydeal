@@ -14,6 +14,7 @@ interface ActionModalProps {
 
 export function ActionModal({ pendingAction, myState, paymentError, onRespond, otherPlayers, onInspect }: ActionModalProps) {
     const [selectedCardIds, setSelectedCardIds] = useState<number[]>([]);
+    const [payHint, setPayHint] = useState(false);
 
     const hasJustSayNo = myState.hand?.some((c) => c.actionKind === "JustSayNo") ?? false;
     const isPayment = ["PayRent", "PayDebtCollector", "PayBirthday"].includes(pendingAction.type);
@@ -30,19 +31,22 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
 
     const totalAssets = payableCards.reduce((sum, c) => sum + (c.moneyValue ?? 0), 0);
     const canAfford = totalAssets >= pendingAction.amount;
-    // When insolvent the server will auto-take everything; only disable for solvent underpayment
-    const payDisabled = isPayment && canAfford && payableCards.length > 0 &&
+    const needsMore = isPayment && canAfford && payableCards.length > 0 &&
         selectedTotal < pendingAction.amount;
 
     const toggleCard = (id: number) => {
-        if (!canAfford) return; // Card selection not needed when insolvent
+        if (!canAfford) return;
+        setPayHint(false);
         setSelectedCardIds((prev) =>
             prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
         );
     };
 
     const handlePay = () => {
-        // When insolvent the server handles taking everything; send empty to trigger auto-take
+        if (needsMore) {
+            setPayHint(true);
+            return;
+        }
         onRespond({ playJustSayNo: false, paymentCardIds: canAfford ? selectedCardIds : [] });
     };
 
@@ -118,20 +122,27 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                             {payableCards.length === 0 && <p>You have nothing to pay with!</p>}
                         </div>
                         <div className="modalButtons">
+                            <div className="payButtonWrapper">
+                                <button
+                                    className="primary payButton"
+                                    onClick={handlePay}
+                                    style={{ background: "#2e7d32", borderColor: "#1b5e20" }}
+                                >
+                                    {payableCards.length === 0
+                                        ? "I have nothing"
+                                        : canAfford
+                                            ? `Pay ${selectedTotal}`
+                                            : `Give Everything (${totalAssets})`}
+                                </button>
+                                {payHint && (
+                                    <div className="payHint">
+                                        Select cards above to pay at least M{pendingAction.amount}. You've selected M{selectedTotal} so far.
+                                    </div>
+                                )}
+                            </div>
                             {hasJustSayNo && (
                                 <button className="primary" onClick={handleJustSayNo}>Just Say No!</button>
                             )}
-                            <button
-                                className="secondary"
-                                onClick={handlePay}
-                                disabled={payDisabled}
-                            >
-                                {payableCards.length === 0
-                                    ? "I have nothing"
-                                    : canAfford
-                                        ? `Pay ${selectedTotal}`
-                                        : `Give Everything (${totalAssets})`}
-                            </button>
                         </div>
                     </>
                 )}

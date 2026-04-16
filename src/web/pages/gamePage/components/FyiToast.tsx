@@ -8,93 +8,95 @@ interface FyiToastProps {
     smallCards?: boolean;
 }
 
-interface ToastEntry {
-    action: GameAction;
-    leaving: boolean;
-}
-
 export function FyiToast({ toasts, smallCards }: FyiToastProps) {
-    const [entries, setEntries] = useState<ToastEntry[]>([]);
-    const prevIdsRef = useRef<Set<number>>(new Set());
+    const [queue, setQueue] = useState<GameAction[]>([]);
+    const [current, setCurrent] = useState<GameAction | null>(null);
+    const [leaving, setLeaving] = useState(false);
+    const seenRef = useRef<Set<number>>(new Set());
 
+    // Enqueue new toasts
     useEffect(() => {
-        const currentIds = new Set(toasts.map(t => t.id));
-        const prevIds = prevIdsRef.current;
-
-        setEntries(prev => {
-            // Mark removed toasts as leaving
-            let updated = prev.map(e =>
-                !currentIds.has(e.action.id) && !e.leaving
-                    ? { ...e, leaving: true }
-                    : e
-            );
-            // Add new toasts
-            const existingIds = new Set(updated.map(e => e.action.id));
-            for (const t of toasts) {
-                if (!existingIds.has(t.id)) {
-                    updated.push({ action: t, leaving: false });
-                }
+        const newOnes: GameAction[] = [];
+        for (const t of toasts) {
+            if (!seenRef.current.has(t.id)) {
+                seenRef.current.add(t.id);
+                newOnes.push(t);
             }
-            return updated;
-        });
-
-        prevIdsRef.current = currentIds;
+        }
+        if (newOnes.length > 0) {
+            setQueue(prev => [...prev, ...newOnes]);
+        }
     }, [toasts]);
 
-    // Remove leaving toasts after animation completes
-    const handleAnimationEnd = (id: number, animName: string) => {
+    // Show next from queue when nothing is displayed
+    useEffect(() => {
+        if (current || queue.length === 0) return;
+        setCurrent(queue[0]);
+        setQueue(prev => prev.slice(1));
+        setLeaving(false);
+    }, [current, queue]);
+
+    // Auto-dismiss after delay
+    useEffect(() => {
+        if (!current || leaving) return;
+        const timer = setTimeout(() => setLeaving(true), 3000);
+        return () => clearTimeout(timer);
+    }, [current, leaving]);
+
+    const handleAnimationEnd = (animName: string) => {
         if (animName === "fyiToastOut") {
-            setEntries(prev => prev.filter(e => e.action.id !== id));
+            setCurrent(null);
+            setLeaving(false);
         }
     };
 
-    if (entries.length === 0) return null;
+    if (!current) return null;
 
     return (
         <div className="fyiToast-container">
-            {entries.map((entry) => (
-                <div
-                    key={entry.action.id}
-                    className={`fyiToast${entry.leaving ? " fyiToast--leaving" : ""}`}
-                    onAnimationEnd={(e) => handleAnimationEnd(entry.action.id, e.animationName)}
-                >
-                    <div className="fyiToast-header">
-                        <span className="fyiToast-name">{entry.action.playerName}</span>{" "}
-                        {entry.action.text}
+            <div
+                key={current.id}
+                className={`fyiToast${leaving ? " fyiToast--leaving" : ""}`}
+                onAnimationEnd={(e) => handleAnimationEnd(e.animationName)}
+            >
+                {current.cardPlayed && (
+                    <div className="fyiToast-cardGroup">
+                        <CardComponent card={current.cardPlayed} small />
                     </div>
-                    {(entry.action.cardPlayed || entry.action.sourceCards?.length || entry.action.targetCards?.length) && (
+                )}
+                <div className="fyiToast-body">
+                    <div className="fyiToast-header">
+                        <span className="fyiToast-name">{current.playerName}</span>{" "}
+                        {current.text}
+                    </div>
+                    {(current.sourceCards?.length || current.targetCards?.length) ? (
                         <div className="fyiToast-cards">
-                            {entry.action.cardPlayed && (
-                                <div className="fyiToast-cardGroup">
-                                    <CardComponent card={entry.action.cardPlayed} small={smallCards} />
-                                </div>
-                            )}
-                            {entry.action.sourceCards && entry.action.sourceCards.length > 0 && (
+                            {current.sourceCards && current.sourceCards.length > 0 && (
                                 <div className="fyiToast-cardGroup">
                                     <span className="fyiToast-label">Gave:</span>
                                     <div className="fyiToast-cardRow">
-                                        {entry.action.sourceCards.map((c) => (
+                                        {current.sourceCards.map((c) => (
                                             <CardComponent key={c.id} card={c} small />
                                         ))}
                                     </div>
                                 </div>
                             )}
-                            {entry.action.targetCards && entry.action.targetCards.length > 0 && (
+                            {current.targetCards && current.targetCards.length > 0 && (
                                 <div className="fyiToast-cardGroup">
                                     <span className="fyiToast-label">
-                                        {entry.action.sourceCards?.length ? "Got:" : "Paid:"}
+                                        {current.sourceCards?.length ? "Got:" : "Paid:"}
                                     </span>
                                     <div className="fyiToast-cardRow">
-                                        {entry.action.targetCards.map((c) => (
+                                        {current.targetCards.map((c) => (
                                             <CardComponent key={c.id} card={c} small />
                                         ))}
                                     </div>
                                 </div>
                             )}
                         </div>
-                    )}
+                    ) : null}
                 </div>
-            ))}
+            </div>
         </div>
     );
 }

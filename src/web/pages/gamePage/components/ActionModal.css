@@ -13,7 +13,7 @@
 
 .modal {
     background: #16213e;
-    border: 2px solid #e94560;
+    border: 2px solid #0f3460;
     border-radius: 12px;
     padding: 24px;
     max-width: 500px;
@@ -24,7 +24,7 @@
 
 .modal h3 {
     margin-bottom: 16px;
-    color: #e94560;
+    color: #fff;
 }
 
 .modalHint {
@@ -107,6 +107,33 @@
     background: #1a4a7a;
     color: #eee;
     transform: none;
+}
+
+.payButtonWrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.payButton {
+    width: 100%;
+}
+
+.payHint {
+    background: #e94560;
+    color: #fff;
+    font-size: 0.8rem;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-top: 6px;
+    text-align: center;
+    animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes hintFadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
 /* Mobile adjustments */

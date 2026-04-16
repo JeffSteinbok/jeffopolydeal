@@ -8,9 +8,9 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-    flex: 0 0 auto;
-    min-width: 120px;
-    max-width: 180px;
+    flex: 0 0 160px;
+    min-width: 160px;
+    max-width: 160px;
     position: relative;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -29,6 +29,7 @@
 .playerSummary-name {
     font-weight: 700;
     font-size: 0.9rem;
+    color: #fff;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

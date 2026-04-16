@@ -35,7 +35,7 @@ export function PlayerSummaryCard({ player, isCurrentTurn, onClick }: PlayerSumm
                 {player.name}
             </div>
             <div className="playerSummary-row">
-                <span className="playerSummary-stat playerSummary-money">💰 {bankTotal}</span>
+                <span className="playerSummary-stat playerSummary-money"><span className="money-diamond">◆</span>{bankTotal}</span>
                 <span className="playerSummary-stat">🃏 {player.handCount}</span>
             </div>
             <div className="playerSummary-setpills">

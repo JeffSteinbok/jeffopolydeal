@@ -1,5 +1,7 @@
 .gamePage {
     height: 100vh;
+    height: 100dvh;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
     padding: 8px;
@@ -74,6 +76,20 @@
     align-items: center;
     padding: 0 16px;
     font-size: 0.9rem;
+    flex-shrink: 0;
+    height: 34px;
+}
+
+.gameHeader-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.gameHeader-divider {
+    color: #555;
+    font-size: 1.1rem;
+    user-select: none;
 }
 
 .gameCodeSmall {
@@ -96,26 +112,16 @@
     color: #888;
 }
 
-.endGameButton {
-    padding: 4px 10px;
-    font-size: 0.78rem;
-    background: transparent;
-    color: #ffb347;
-    border: 1px solid #ffb347;
-    border-radius: 4px;
-}
-
-.endGameButton:hover {
-    background: rgba(255, 179, 71, 0.15);
-}
-
 .exitButton {
-    padding: 4px 10px;
-    font-size: 0.78rem;
+    padding: 2px 6px;
+    font-size: 1rem;
+    font-weight: 600;
     background: transparent;
     color: #e94560;
-    border: 1px solid #e94560;
+    border: none;
     border-radius: 4px;
+    cursor: pointer;
+    line-height: 1;
 }
 
 .exitButton:hover {
@@ -128,6 +134,9 @@
     gap: 8px;
     flex-wrap: wrap;
     justify-content: center;
+    flex-shrink: 0;
+    height: 170px;
+    overflow: hidden;
 }
 
 /* Mobile: horizontal scrolling row of compact summary cards */
@@ -203,26 +212,6 @@
     gap: 12px;
     padding: 8px;
     margin-top: auto;
-}
-
-.mainControls {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 8px;
-    margin-top: auto;
-}
-
-.mainControls-left,
-.mainControls-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.mainControls-right {
-    justify-content: flex-end;
 }
 
 .mainControls--page {
@@ -308,11 +297,6 @@
         gap: 6px;
     }
 
-    .mainControls {
-        padding: 6px;
-        gap: 6px;
-    }
-
     /* Compact header on mobile */
     .gameHeader {
         padding: 6px 10px;
@@ -337,17 +321,6 @@
         font-size: 0.72rem;
     }
 
-    /* Bigger tap targets in controls */
-    .mainControls button {
-        min-height: 48px;
-        padding: 12px 20px;
-        font-size: 1rem;
-    }
-
-    .mainControls {
-        flex-wrap: nowrap;
-    }
-
     /* Lobby adjustments */
     .lobby h2 {
         font-size: 1.6rem;
@@ -362,4 +335,33 @@
         min-width: 0;
         padding: 14px;
     }
+}
+
+/* Draw turn popup */
+.drawTurnPopup {
+    background: #16213e;
+    border: 2px solid #0f3460;
+    border-radius: 12px;
+    padding: 28px 36px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    animation: popIn 0.25s ease-out;
+}
+
+.drawTurnPopup-title {
+    color: #eee;
+    font-size: 1.3rem;
+    margin: 0;
+}
+
+.drawTurnPopup-btn {
+    padding: 12px 32px;
+    font-size: 1.1rem;
+}
+
+@keyframes popIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
 }

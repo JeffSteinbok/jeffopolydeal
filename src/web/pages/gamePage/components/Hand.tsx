@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Card, GameState, PlayCardRequest, PlayerState } from "../../../Types";
 import { CardComponent } from "./Card";
 import { PlayCardModal } from "./PlayCardModal";
@@ -11,15 +11,42 @@ interface HandProps {
     gameState: GameState;
     myConnectionId: string;
     smallCards?: boolean;
+    playsRemaining?: number;
+    isMyTurn?: boolean;
+    onEndTurn?: () => void;
     onPlayCard: (cardId: number, request: PlayCardRequest) => void;
     onDiscardCard: (cardId: number) => void;
     onInspectPlayer?: (player: PlayerState) => void;
 }
 
-export function Hand({ cards, canPlay, phase, gameState, myConnectionId, smallCards, onPlayCard, onDiscardCard, onInspectPlayer }: HandProps) {
+export function Hand({ cards, canPlay, phase, gameState, myConnectionId, smallCards, playsRemaining, isMyTurn, onEndTurn, onPlayCard, onDiscardCard, onInspectPlayer }: HandProps) {
     const [selectedCard, setSelectedCard] = useState<Card | null>(null);
     const [needsOverlap, setNeedsOverlap] = useState(false);
+    const [showNoPlaysPopup, setShowNoPlaysPopup] = useState(false);
+    const [dismissedNoPlays, setDismissedNoPlays] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
+
+    // Show "no plays left" popup when playsRemaining hits 0 during Play phase
+    const noPlaysLeft = isMyTurn && phase === "Play" && playsRemaining === 0;
+    useEffect(() => {
+        if (noPlaysLeft && !dismissedNoPlays) {
+            setShowNoPlaysPopup(true);
+        } else if (!noPlaysLeft) {
+            setShowNoPlaysPopup(false);
+            setDismissedNoPlays(false);
+        }
+    }, [noPlaysLeft, dismissedNoPlays]);
+
+    // Keyboard: Enter = End Turn, Escape = Re-Arrange
+    useEffect(() => {
+        if (!showNoPlaysPopup) return;
+        const handler = (e: KeyboardEvent) => {
+            if (e.key === "Enter") { onEndTurn?.(); setShowNoPlaysPopup(false); }
+            if (e.key === "Escape") { setShowNoPlaysPopup(false); setDismissedNoPlays(true); }
+        };
+        document.addEventListener("keydown", handler);
+        return () => document.removeEventListener("keydown", handler);
+    }, [showNoPlaysPopup, onEndTurn]);
 
     // Calculate dynamic overlap margin using ResizeObserver
     const [overlapMargin, setOverlapMargin] = useState(0);
@@ -34,13 +61,15 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, smallCa
                 return;
             }
             const cardWidth = smallCards ? 88 : 156;
-            const totalWidth = cards.length * cardWidth;
+            const gap = 8; // matches CSS gap
+            const totalWidth = cards.length * cardWidth + (cards.length - 1) * gap;
             const available = el.clientWidth;
             if (totalWidth > available) {
                 setNeedsOverlap(true);
                 const excess = totalWidth - available;
                 const margin = Math.ceil(excess / (cards.length - 1));
-                setOverlapMargin(margin);
+                const maxOverlap = Math.floor(cardWidth * 0.65);
+                setOverlapMargin(Math.min(margin, maxOverlap));
             } else {
                 setNeedsOverlap(false);
                 setOverlapMargin(0);
@@ -68,7 +97,21 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, smallCa
 
     return (
         <div className="hand">
-            <div className="hand-label">Your Hand ({cards.length})</div>
+            <div className="hand-header">
+                <div className="hand-label">Your Hand ({cards.length})</div>
+                {isMyTurn && phase === "Play" && (
+                    <div className="hand-turn-controls">
+                        <span className="playDots">
+                            {[0, 1, 2].map(i => (
+                                <span key={i} className={`playDot${i < (3 - (playsRemaining ?? 3)) ? " playDot--filled" : ""}`} />
+                            ))}
+                        </span>
+                        <button className="endTurnButton" onClick={onEndTurn}>
+                            End Turn
+                        </button>
+                    </div>
+                )}
+            </div>
             <div
                 ref={containerRef}
                 className={`hand-cards${!canPlay ? " hand-cards--disabled" : ""}${needsOverlap ? " hand-cards--overlap" : ""}`}
@@ -103,6 +146,22 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, smallCa
                     onCancel={() => setSelectedCard(null)}
                     onInspect={onInspectPlayer}
                 />
+            )}
+
+            {showNoPlaysPopup && (
+                <div className="noPlaysOverlay">
+                    <div className="noPlaysPopup">
+                        <h3>No Plays Remaining</h3>
+                        <div className="noPlaysPopup-buttons">
+                            <button className="rearrangeButton" onClick={() => { setShowNoPlaysPopup(false); setDismissedNoPlays(true); }}>
+                                Re-Arrange Cards
+                            </button>
+                            <button className="endTurnButton" onClick={() => { onEndTurn?.(); setShowNoPlaysPopup(false); }}>
+                                End Turn
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

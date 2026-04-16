@@ -1,34 +1,38 @@
 .fyiToast-container {
     position: fixed;
-    top: 60px;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 48px;
+    left: 8px;
+    right: 8px;
     z-index: 900;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: center;
     pointer-events: none;
 }
 
 .fyiToast {
     background: rgba(22, 33, 62, 0.97);
     border: 1px solid rgba(233, 69, 96, 0.5);
-    border-radius: 10px;
-    padding: 12px 18px;
+    border-radius: 8px;
+    padding: 10px 16px;
     font-size: 0.88rem;
     color: #e0e0e0;
     animation: fyiToastIn 0.3s ease-out;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
-    /* Scale content to fit within max width */
-    width: max-content;
-    min-width: 500px;
-    max-width: 90vw;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    width: 100%;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.fyiToast-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    min-width: 0;
 }
 
 .fyiToast--leaving {
-    animation: fyiToastOut 0.5s ease-in forwards;
+    animation: fyiToastOut 0.4s ease-in forwards;
     overflow: hidden;
 }
 
@@ -38,7 +42,7 @@
 }
 
 .fyiToast-name {
-    color: #e94560;
+    color: #fff;
     font-weight: 700;
 }
 
@@ -72,11 +76,11 @@
 @keyframes fyiToastIn {
     from {
         opacity: 0;
-        transform: translateY(20px) scale(0.95);
+        transform: translateY(-100%);
     }
     to {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateY(0);
     }
 }
 
@@ -84,31 +88,20 @@
     from {
         opacity: 1;
         transform: translateY(0);
-        max-height: 300px;
-    }
-    60% {
-        opacity: 0;
-        transform: translateY(-60px);
-        max-height: 300px;
     }
     to {
         opacity: 0;
-        transform: translateY(-60px);
-        max-height: 0;
-        padding: 0 18px;
-        margin: 0;
-        border-width: 0;
+        transform: translateY(-100%);
     }
 }
 
 @media (max-width: 680px) {
     .fyiToast-container {
-        top: 52px;
+        top: 40px;
     }
 
     .fyiToast {
         font-size: 0.8rem;
-        padding: 10px 14px;
-        max-width: 95vw;
+        padding: 8px 12px;
     }
 }

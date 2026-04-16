@@ -45,6 +45,10 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
+.colorChoice--swatch {
+    min-width: 60px;
+}
+
 .targetChoice {
     width: 100%;
     padding: 12px 16px;
@@ -142,21 +146,26 @@
 .modalButtonBar {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: stretch;
     width: 100%;
     gap: 10px;
     margin-top: 4px;
 }
 
+.modalButtonBar .secondary {
+    padding: 8px 18px;
+    font-size: 0.9rem;
+}
+
 .modalButtonBar-right {
     display: flex;
     gap: 8px;
-    align-items: center;
+    align-items: stretch;
 }
 
 .modalButtonBar-right .choiceButton {
     width: auto;
-    padding: 10px 18px;
+    padding: 8px 18px;
     font-size: 0.9rem;
 }
 
@@ -166,11 +175,11 @@
         width: 96%;
         padding: 16px;
         max-height: 85vh;
-        border-radius: 12px 12px 0 0;
+        border-radius: 12px;
     }
 
     .modalOverlay:has(.playCardModal) {
-        align-items: flex-end;
+        align-items: center;
     }
 
     .targetChoice {
@@ -184,9 +193,16 @@
         font-size: 1.1rem;
     }
 
-    .choiceButton {
+    .choiceButtons .choiceButton {
         min-height: 52px;
         padding: 14px 16px;
+    }
+
+    .modalButtonBar .secondary,
+    .modalButtonBar-right .choiceButton {
+        min-height: 0;
+        padding: 8px 14px;
+        font-size: 0.85rem;
     }
 
     .cardChoices {

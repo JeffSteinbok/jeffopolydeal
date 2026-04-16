@@ -51,6 +51,7 @@
     flex-direction: column;
     align-items: center;
     overflow: hidden;
+    background: inherit;
 }
 
 .md-card--sm .md-card__inner {

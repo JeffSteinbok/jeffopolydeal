@@ -31,6 +31,24 @@
     to   { transform: translateY(0); }
 }
 
+/* Mobile: slide down from top, near opponent cards */
+@media (max-width: 680px) {
+    .inspectOverlay {
+        align-items: flex-start;
+    }
+
+    .inspectDrawer {
+        border-radius: 0 0 16px 16px;
+        max-height: 70vh;
+        animation: slideDown 0.2s ease-out;
+    }
+
+    @keyframes slideDown {
+        from { transform: translateY(-100%); }
+        to   { transform: translateY(0); }
+    }
+}
+
 /* Drag handle pill */
 .inspectDrawer-handle {
     width: 40px;
