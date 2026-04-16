@@ -41,9 +41,9 @@ function BankDisplay({ bank }: { bank: Card[] }) {
                             backgroundColor: moneyColors[d.value] || "#4caf50",
                             color: d.value === 5 ? "#fff" : "#333",
                         }}
-                        title={`${d.count}x ${d.value}`}
+                        title={`${d.count}x ◆${d.value}`}
                     >
-                        M{d.value} ×{d.count}
+                        ◆{d.value} ×{d.count}
                     </span>
                 ))}
                 {denoms.length === 0 && <span className="emptyHint">Empty</span>}

@@ -217,7 +217,7 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                                         }
                                     }}
                                 >
-                                    {PropertyColorMap[color].name} (M{set?.rent})
+                                    {PropertyColorMap[color].name} (◆{set?.rent})
                                 </button>
                             );
                         })}
@@ -258,7 +258,7 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                 <div className="playCardModal" onClick={e => e.stopPropagation()}>
                     <h3>Double the Rent?</h3>
                     <p className="modalHint">
-                        Base rent: M{baseRent} → With doubles: M{multiplied}
+                        Base rent: ◆{baseRent} → With doubles: ◆{multiplied}
                         <br />Each Double the Rent counts as a card play.
                     </p>
                     <div className="cardChoices">
@@ -275,8 +275,8 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                     <div className="choiceButtons">
                         <button className="choiceButton choiceButton--action" onClick={finishRent}>
                             {selectedDoubles.length > 0
-                                ? `⚡ Charge ${multiplied} (${selectedDoubles.length}x doubled)`
-                                : `⚡ Charge ${baseRent} (no double)`}
+                                ? `⚡ Charge ◆${multiplied} (${selectedDoubles.length}x doubled)`
+                                : `⚡ Charge ◆${baseRent} (no double)`}
                         </button>
                     </div>
                     <button className="secondary" onClick={onCancel}>Cancel</button>

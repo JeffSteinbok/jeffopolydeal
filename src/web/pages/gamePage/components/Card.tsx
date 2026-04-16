@@ -56,17 +56,23 @@ export function CardComponent({ card, onClick, onDoubleClick, selected, small, c
     const bg = cardBg(card);
     const bc = borderColor(card);
     const isMoney = card.cardType === "Money";
-    const isProp = card.cardType === "Property" || card.cardType === "PropertyWildcard";
+    const isRegularProp = card.cardType === "Property";
+    const isPropWild = card.cardType === "PropertyWildcard";
+    const isProp = isRegularProp || isPropWild;
     const badgeBg = isProp ? "#fff" : bg;
     const badgeLight = isProp;
+    const badgeBorder = isRegularProp ? bc : "rgba(0,0,0,0.2)";
+
+    const outerBg = isRegularProp ? "#fff" : bg;
+    const innerBg = isRegularProp ? bg : undefined;
 
     return (
-        <div className={cls} onClick={onClick} onDoubleClick={onDoubleClick} style={{ backgroundColor: bg, borderColor: bc }}>
-            <div className="md-card__inner">
+        <div className={cls} onClick={onClick} onDoubleClick={onDoubleClick} style={{ backgroundColor: outerBg }}>
+            <div className="md-card__inner" style={innerBg ? { backgroundColor: innerBg } : undefined}>
                 {renderCard(card, small || compact, compact, currentRent)}
             </div>
             {/* Corner badge */}
-            {card.moneyValue > 0 && <Badge value={card.moneyValue} bg={badgeBg} light={badgeLight} compact={!!(small || compact)} />}
+            {card.moneyValue > 0 && <Badge value={card.moneyValue} bg={badgeBg} light={badgeLight} compact={!!(small || compact)} borderColor={badgeBorder} />}
         </div>
     );
 }
@@ -185,10 +191,10 @@ function WildcardLayout({ card, small }: { card: CardType; small?: boolean }) {
                     <div className="md-wild-dual__rent-label">RENT</div>
                     <div className="md-wild-dual__rent-row">
                         <div className="md-wild-dual__rent-side md-wild-dual__rent--flipped">
-                            <RentTable rents={inactiveRents} setSize={inactiveSetSize} color={inactiveInfo.hex} hideHeader />
+                            <RentTable rents={inactiveRents} setSize={inactiveSetSize} color={inactiveInfo.hex} hideHeader isWildcard />
                         </div>
                         <div className="md-wild-dual__rent-side">
-                            <RentTable rents={activeRents} setSize={activeSetSize} color={activeInfo.hex} hideHeader />
+                            <RentTable rents={activeRents} setSize={activeSetSize} color={activeInfo.hex} hideHeader isWildcard />
                         </div>
                     </div>
                     <div className="md-wild-dual__rent-label md-wild-dual__rent--flipped">RENT</div>
@@ -321,12 +327,12 @@ function ActionLayout({ card }: { card: CardType }) {
 }
 
 /* ── Shared parts ──────────────────────────────── */
-function Badge({ value, bg, light, compact }: { value: number; bg: string; light?: boolean; compact?: boolean }) {
+function Badge({ value, bg, light, compact, borderColor }: { value: number; bg: string; light?: boolean; compact?: boolean; borderColor?: string }) {
     const cls = `md-badge ${light ? "md-badge--light" : ""}`;
-    return <div className={cls} style={{ backgroundColor: bg }}><span className="md-badge__num">{value}</span></div>;
+    return <div className={cls} style={{ backgroundColor: bg, borderColor }}><span className="md-badge__num">{value}</span></div>;
 }
 
-function RentTable({ rents, setSize, color, reversed, hideHeader, small }: { rents: number[]; setSize: number; color: string; reversed?: boolean; hideHeader?: boolean; small?: boolean }) {
+function RentTable({ rents, setSize, color, reversed, hideHeader, small, isWildcard }: { rents: number[]; setSize: number; color: string; reversed?: boolean; hideHeader?: boolean; small?: boolean; isWildcard?: boolean }) {
     return (
         <table className="md-rent-tbl">
             {!hideHeader && (
@@ -338,7 +344,7 @@ function RentTable({ rents, setSize, color, reversed, hideHeader, small }: { ren
                 {rents.slice(1).map((rent, i) => {
                     const n = i + 1;
                     const full = n === setSize;
-                    const label = small ? "SET " : "FULL SET ";
+                    const label = (small || isWildcard) ? "SET " : "FULL SET ";
                     const iconCell = (
                         <td className="md-rent-tbl__icons">
                             <RentIcon count={n} color={color} className="md-rent-tbl__rent-icon" />
@@ -347,7 +353,7 @@ function RentTable({ rents, setSize, color, reversed, hideHeader, small }: { ren
                     const valCell = (
                         <td className="md-rent-tbl__val">
                             {full && <span className="md-rent-tbl__label">{label}</span>}
-                            {rent}
+                            ◆{rent}
                         </td>
                     );
                     return (

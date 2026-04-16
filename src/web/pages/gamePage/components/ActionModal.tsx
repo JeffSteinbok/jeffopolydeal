@@ -75,11 +75,11 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
     const getDescription = (): string | null => {
         switch (pendingAction.type) {
             case "PayRent":
-                return `Pay ${pendingAction.amount} in rent.`;
+                return `Pay ◆${pendingAction.amount} in rent.`;
             case "PayDebtCollector":
-                return `Pay ${pendingAction.amount} to ${who}.`;
+                return `Pay ◆${pendingAction.amount} to ${who}.`;
             case "PayBirthday":
-                return `Pay ${pendingAction.amount} as a birthday gift.`;
+                return `Pay ◆${pendingAction.amount} as a birthday gift.`;
             case "RespondToSlyDeal":
                 return `${who} is stealing your "${pendingAction.targetCardName}" with a Sly Deal.`;
             case "RespondToForceDeal":
@@ -101,11 +101,11 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                     <>
                         {canAfford ? (
                             <p className="modalHint">
-                                Select cards to pay with (M{selectedTotal} / M{pendingAction.amount})
+                                Select cards to pay with (◆{selectedTotal} / ◆{pendingAction.amount})
                             </p>
                         ) : (
                             <p className="modalHint">
-                                <span className="modalWarning">You can't afford M{pendingAction.amount} — the game will take everything you have (M{totalAssets}).</span>
+                                <span className="modalWarning">You can't afford ◆{pendingAction.amount} — the game will take everything you have (◆{totalAssets}).</span>
                             </p>
                         )}
                         {paymentError && <p className="modalError">{paymentError}</p>}
@@ -131,12 +131,12 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                                     {payableCards.length === 0
                                         ? "I have nothing"
                                         : canAfford
-                                            ? `Pay ${selectedTotal}`
-                                            : `Give Everything (${totalAssets})`}
+                                            ? `Pay ◆${selectedTotal}`
+                                            : `Give Everything (◆${totalAssets})`}
                                 </button>
                                 {payHint && (
                                     <div className="payHint">
-                                        Select cards above to pay at least M{pendingAction.amount}. You've selected M{selectedTotal} so far.
+                                        Select cards above to pay at least ◆{pendingAction.amount}. You've selected ◆{selectedTotal} so far.
                                     </div>
                                 )}
                             </div>
