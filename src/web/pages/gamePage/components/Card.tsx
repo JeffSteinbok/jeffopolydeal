@@ -91,7 +91,7 @@ function renderCard(card: CardType, small?: boolean, compact?: boolean, currentR
             if (compact && currentRent !== undefined) return <TinyWildcardLayout card={card} rent={currentRent} />;
             return <WildcardLayout card={card} small={small} />;
         case "Rent": return <RentLayout card={card} />;
-        case "Action": return <ActionLayout card={card} small={small} />;
+        case "Action": return <ActionLayout card={card} small={small} compact={compact} />;
     }
 }
 
@@ -222,7 +222,7 @@ function TinyPropertyLayout({ card, rent }: { card: CardType; rent: number }) {
         <>
             <div className="md-card__name-band md-card__name-band--tiny" style={{ color: info.textColor }}>{card.name}</div>
             <div className="md-card__body-center">
-                <div className="md-tiny__rent">{rent}</div>
+                <div className="md-tiny__rent">◆{rent}</div>
             </div>
         </>
     );
@@ -247,7 +247,7 @@ function TinyWildcardLayout({ card, rent }: { card: CardType; rent: number }) {
             <div className="md-card__header">Wild Card</div>
             <div className="md-tiny__dual">
                 <div className="md-tiny__dual-top" style={{ backgroundColor: c1.hex }} />
-                <div className="md-tiny__rent md-tiny__rent--overlay">{rent}</div>
+                <div className="md-tiny__rent md-tiny__rent--overlay">◆{rent}</div>
                 <div className="md-tiny__dual-bot" style={{ backgroundColor: c2.hex }} />
             </div>
         </>
@@ -314,9 +314,10 @@ const ACTION_META: Record<string, { title: string; desc: string }> = {
     Hotel:         { title: "Hotel",               desc: "+4 rent (needs house)" },
 };
 
-function ActionLayout({ card, small }: { card: CardType; small?: boolean }) {
+function ActionLayout({ card, small, compact }: { card: CardType; small?: boolean; compact?: boolean }) {
     const meta = ACTION_META[card.actionKind ?? ""] ?? { title: card.name, desc: "" };
     const kind = card.actionKind ?? "";
+    const xs = !!compact;
 
     let ovalContent: React.ReactNode;
 
@@ -324,42 +325,42 @@ function ActionLayout({ card, small }: { card: CardType; small?: boolean }) {
         case "PassGo":
             ovalContent = (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0 }}>
-                    <div style={{ fontFamily: "Arial Black, sans-serif", fontWeight: 900, fontSize: small ? 8 : 14, textTransform: "uppercase", letterSpacing: small ? 1 : 2, color: "#222", textAlign: "center", lineHeight: 1 }}>PASS</div>
-                    <div style={{ fontFamily: "Arial Black, sans-serif", fontWeight: 900, fontSize: small ? 18 : 30, textTransform: "uppercase", letterSpacing: small ? 1 : 3, color: "#222", textAlign: "center", lineHeight: 1 }}>GO</div>
-                    <img src={PassGoArrow} style={{ width: small ? 32 : 60, height: "auto", marginTop: small ? 1 : 2 }} alt="Go" />
+                    <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: xs ? 4 : small ? 8 : 14, textTransform: "uppercase", letterSpacing: xs ? 0 : small ? 1 : 2, color: "#222", textAlign: "center", lineHeight: 1 }}>PASS</div>
+                    <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: xs ? 7 : small ? 18 : 30, textTransform: "uppercase", letterSpacing: xs ? 0 : small ? 1 : 3, color: "#222", textAlign: "center", lineHeight: 1 }}>GO</div>
+                    <img src={PassGoArrow} style={{ width: xs ? 14 : small ? 32 : 60, height: "auto", marginTop: xs ? 0 : small ? 1 : 2 }} alt="Go" />
                 </div>
             );
             break;
         case "House":
             ovalContent = (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0 }}>
-                    <img src={HouseImg} style={{ width: small ? 28 : 50, height: "auto" }} alt="House" />
-                    <div style={{ fontFamily: "Arial Black, sans-serif", fontWeight: 900, fontSize: small ? 9 : 16, textTransform: "uppercase", color: "#222", textAlign: "center", lineHeight: 1 }}>HOUSE</div>
+                    <img src={HouseImg} style={{ width: xs ? 14 : small ? 28 : 50, height: "auto" }} alt="House" />
+                    <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: xs ? 4 : small ? 9 : 16, textTransform: "uppercase", color: "#222", textAlign: "center", lineHeight: 1 }}>HOUSE</div>
                 </div>
             );
             break;
         case "Hotel":
             ovalContent = (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0 }}>
-                    <img src={HotelImg} style={{ width: small ? 28 : 50, height: "auto" }} alt="Hotel" />
-                    <div style={{ fontFamily: "Arial Black, sans-serif", fontWeight: 900, fontSize: small ? 9 : 16, textTransform: "uppercase", color: "#222", textAlign: "center", lineHeight: 1 }}>HOTEL</div>
+                    <img src={HotelImg} style={{ width: xs ? 14 : small ? 28 : 50, height: "auto" }} alt="Hotel" />
+                    <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: xs ? 4 : small ? 9 : 16, textTransform: "uppercase", color: "#222", textAlign: "center", lineHeight: 1 }}>HOTEL</div>
                 </div>
             );
             break;
         case "ItsMyBirthday":
             ovalContent = (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0 }}>
-                    <div style={{ fontFamily: "Arial Black, sans-serif", fontWeight: 900, fontSize: small ? 6 : 11, textTransform: "uppercase", letterSpacing: 1, color: "#222", textAlign: "center", lineHeight: 1.2 }}>IT'S MY</div>
-                    <div style={{ fontFamily: "Arial Black, sans-serif", fontWeight: 900, fontSize: small ? 7 : 13, textTransform: "uppercase", letterSpacing: 1, color: "#222", textAlign: "center", lineHeight: 1 }}>BIRTHDAY</div>
-                    <img src={BirthdayImg} style={{ width: small ? 22 : 40, height: "auto", marginTop: small ? 1 : 2 }} alt="Birthday" />
+                    <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: xs ? 2 : small ? 6 : 11, textTransform: "uppercase", letterSpacing: xs ? 0 : 1, color: "#222", textAlign: "center", lineHeight: 1.2 }}>IT'S MY</div>
+                    <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: xs ? 3 : small ? 7 : 13, textTransform: "uppercase", letterSpacing: xs ? 0 : 1, color: "#222", textAlign: "center", lineHeight: 1 }}>BIRTHDAY</div>
+                    <img src={BirthdayImg} style={{ width: xs ? 7 : small ? 22 : 40, height: "auto", marginTop: xs ? 0 : small ? 1 : 2 }} alt="Birthday" />
                 </div>
             );
             break;
         case "DebtCollector":
-            ovalContent = <span className="md-card__oval-text" style={{ fontSize: small ? 7 : 12 }}>{meta.title}</span>;
+            ovalContent = <span className="md-card__oval-text" style={{ fontSize: xs ? 5 : small ? 7 : 12 }}>{meta.title}</span>;
             break;
         default:
-            ovalContent = <span className="md-card__oval-text">{meta.title}</span>;
+            ovalContent = <span className="md-card__oval-text" style={{ fontSize: xs ? 5 : undefined }}>{meta.title}</span>;
             break;
     }
 

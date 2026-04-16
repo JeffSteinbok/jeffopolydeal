@@ -158,8 +158,10 @@
 }
 
 .md-badge__num {
-    font-size: 16px;
+    font-size: 14px;
     line-height: 1;
+    letter-spacing: -1.5px;
+    padding-right: 1.5px;
 }
 
 .md-card--sm .md-badge {
@@ -171,7 +173,7 @@
 }
 
 .md-card--sm .md-badge__num {
-    font-size: 15px;
+    font-size: 12px;
 }
 
 /* Badge also in bottom-right */
@@ -220,11 +222,13 @@
     gap: 2px;
     text-shadow: 1px 1px 0 rgba(255,255,255,0.2);
     margin-top: -12px;
+    letter-spacing: -2px;
 }
 
 .md-card--sm .md-money__amount {
     font-size: 38px;
     margin-top: -8px;
+    letter-spacing: -1.5px;
 }
 
 /* Stylised currency "M" — reusable anywhere */
@@ -763,9 +767,10 @@
 .md-tiny__rent {
     font-family: 'Arial Black', sans-serif;
     font-weight: 900;
-    font-size: 12px;
+    font-size: 18px;
     color: #fff;
     text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    letter-spacing: -1px;
 }
 
 .md-tiny__dual {
@@ -789,30 +794,35 @@
     background: rgba(0,0,0,0.45);
     padding: 1px 4px;
     border-radius: 3px;
-    font-size: 12px;
+    font-size: 18px;
 }
 
 /* ── Extra-small (--xs) for opponent boards ──── */
+.md-card--xs {
+    border-radius: 4px;
+}
+
 .md-card--xs .md-card__inner {
     inset: 2px;
     border-width: 1px;
+    border-radius: 3px;
 }
 
 .md-card--xs .md-card__header {
-    font-size: 5px;
-    margin-top: 12px;
-    padding: 2px 0 1px;
+    font-size: 4px;
+    margin-top: 11px;
+    padding: 0;
 }
 
 .md-card--xs .md-card__oval {
-    width: 44px;
-    height: 44px;
-    border-width: 1.5px;
-    padding: 3px;
+    width: 28px;
+    height: 28px;
+    border-width: 1px;
+    padding: 1px;
 }
 
 .md-card--xs .md-card__oval-text {
-    font-size: 7px;
+    font-size: 4px;
 }
 
 .md-card--xs .md-card__desc {
@@ -821,17 +831,22 @@
 }
 
 .md-card--xs .md-badge {
-    width: 16px;
-    height: 16px;
-    font-size: 7px;
+    width: 14px;
+    height: 14px;
+    font-size: 5px;
+    border-width: 1px;
     top: 1px;
     left: 1px;
-    border-width: 1px;
+}
+
+.md-card--xs .md-badge__num {
+    font-size: 9px;
 }
 
 .md-card--xs .md-money__amount {
-    font-size: 26px;
+    font-size: 22px;
     margin-top: -4px;
+    letter-spacing: -1px;
 }
 
 .md-card--xs .md-money__label {
@@ -859,10 +874,10 @@
     padding: 0.5px 0;
 }
 
-.md-card--xs .md-wild__bar { height: 5px; }
-.md-card--xs .md-wild__title-box { font-size: 6px; padding: 1px 2px; margin: 0 2px; border-width: 1px; }
-.md-card--xs .md-wild__placeholder { font-size: 18px; }
-.md-card--xs .md-wild__desc-text { font-size: 4px; padding: 1px 2px; }
+.md-card--xs .md-wild__bar { height: 3px; }
+.md-card--xs .md-wild__title-box { font-size: 4px; padding: 1px 1px; margin: 0 1px; border-width: 1px; }
+.md-card--xs .md-wild__placeholder { font-size: 12px; }
+.md-card--xs .md-wild__desc-text { font-size: 3px; padding: 1px 1px; }
 
 .md-card--xs .md-wild-dual__pretitle { font-size: 4px; }
 .md-card--xs .md-wild-dual__title { font-size: 6px; }
@@ -875,14 +890,14 @@
 .md-card--xs .md-wild-dual__header { padding: 1px 2px; }
 
 .md-card--xs .md-rent-ring {
-    width: 44px;
-    height: 44px;
-    border-width: 1.5px;
+    width: 30px;
+    height: 30px;
+    border-width: 1px;
 }
 
 .md-card--xs .md-rent-ring__inner {
-    width: 36px;
-    height: 36px;
+    width: 18px;
+    height: 18px;
 }
 
 .md-card--xs .md-wild__dot {
