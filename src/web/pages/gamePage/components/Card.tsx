@@ -3,6 +3,10 @@ import { Card as CardType, PropertyColor } from "../../../Types";
 import { PropertyColorMap } from "../../../utilities/PropertyColors";
 import { GameConfig } from "../../../utilities/GameConfig";
 import CurrencyBackground from "../../../assets/CurrencyBackground.png";
+import PassGoArrow from "../../../assets/PassGo.png";
+import HouseImg from "../../../assets/House.png";
+import HotelImg from "../../../assets/Hotel.png";
+import BirthdayImg from "../../../assets/Birthday.png";
 import { RentIcon } from "./RentIcon";
 import "./Card.css";
 
@@ -87,7 +91,7 @@ function renderCard(card: CardType, small?: boolean, compact?: boolean, currentR
             if (compact && currentRent !== undefined) return <TinyWildcardLayout card={card} rent={currentRent} />;
             return <WildcardLayout card={card} small={small} />;
         case "Rent": return <RentLayout card={card} />;
-        case "Action": return <ActionLayout card={card} />;
+        case "Action": return <ActionLayout card={card} small={small} />;
     }
 }
 
@@ -98,7 +102,7 @@ function MoneyLayout({ card }: { card: CardType }) {
             <img src={CurrencyBackground} className="md-money__watermark" alt="" />
             <div className="md-card__body-center">
                 <div className="md-money__amount">
-                    {card.moneyValue}
+                    ◆{card.moneyValue}
                 </div>
             </div>
         </>
@@ -310,15 +314,61 @@ const ACTION_META: Record<string, { title: string; desc: string }> = {
     Hotel:         { title: "Hotel",               desc: "+4 rent (needs house)" },
 };
 
-function ActionLayout({ card }: { card: CardType }) {
+function ActionLayout({ card, small }: { card: CardType; small?: boolean }) {
     const meta = ACTION_META[card.actionKind ?? ""] ?? { title: card.name, desc: "" };
+    const kind = card.actionKind ?? "";
+
+    let ovalContent: React.ReactNode;
+
+    switch (kind) {
+        case "PassGo":
+            ovalContent = (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0 }}>
+                    <div style={{ fontFamily: "Arial Black, sans-serif", fontWeight: 900, fontSize: small ? 8 : 14, textTransform: "uppercase", letterSpacing: small ? 1 : 2, color: "#222", textAlign: "center", lineHeight: 1 }}>PASS</div>
+                    <div style={{ fontFamily: "Arial Black, sans-serif", fontWeight: 900, fontSize: small ? 18 : 30, textTransform: "uppercase", letterSpacing: small ? 1 : 3, color: "#222", textAlign: "center", lineHeight: 1 }}>GO</div>
+                    <img src={PassGoArrow} style={{ width: small ? 32 : 60, height: "auto", marginTop: small ? 1 : 2 }} alt="Go" />
+                </div>
+            );
+            break;
+        case "House":
+            ovalContent = (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0 }}>
+                    <img src={HouseImg} style={{ width: small ? 28 : 50, height: "auto" }} alt="House" />
+                    <div style={{ fontFamily: "Arial Black, sans-serif", fontWeight: 900, fontSize: small ? 9 : 16, textTransform: "uppercase", color: "#222", textAlign: "center", lineHeight: 1 }}>HOUSE</div>
+                </div>
+            );
+            break;
+        case "Hotel":
+            ovalContent = (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0 }}>
+                    <img src={HotelImg} style={{ width: small ? 28 : 50, height: "auto" }} alt="Hotel" />
+                    <div style={{ fontFamily: "Arial Black, sans-serif", fontWeight: 900, fontSize: small ? 9 : 16, textTransform: "uppercase", color: "#222", textAlign: "center", lineHeight: 1 }}>HOTEL</div>
+                </div>
+            );
+            break;
+        case "ItsMyBirthday":
+            ovalContent = (
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0 }}>
+                    <div style={{ fontFamily: "Arial Black, sans-serif", fontWeight: 900, fontSize: small ? 6 : 11, textTransform: "uppercase", letterSpacing: 1, color: "#222", textAlign: "center", lineHeight: 1.2 }}>IT'S MY</div>
+                    <div style={{ fontFamily: "Arial Black, sans-serif", fontWeight: 900, fontSize: small ? 7 : 13, textTransform: "uppercase", letterSpacing: 1, color: "#222", textAlign: "center", lineHeight: 1 }}>BIRTHDAY</div>
+                    <img src={BirthdayImg} style={{ width: small ? 22 : 40, height: "auto", marginTop: small ? 1 : 2 }} alt="Birthday" />
+                </div>
+            );
+            break;
+        case "DebtCollector":
+            ovalContent = <span className="md-card__oval-text" style={{ fontSize: small ? 7 : 12 }}>{meta.title}</span>;
+            break;
+        default:
+            ovalContent = <span className="md-card__oval-text">{meta.title}</span>;
+            break;
+    }
 
     return (
         <>
             <div className="md-card__header">Action Card</div>
             <div className="md-card__body-center">
                 <div className="md-card__oval">
-                    <span className="md-card__oval-text">{meta.title}</span>
+                    {ovalContent}
                 </div>
             </div>
             <div className="md-card__desc">{meta.desc}</div>

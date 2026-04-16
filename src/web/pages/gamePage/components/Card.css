@@ -54,9 +54,10 @@
     background: rgba(0,0,0,0.08);
 }
 
-/* Property cards: no darkening on inner frame */
+/* Property cards: no darkening on inner frame, transparent border */
 .md-card:has(.md-card__name-band) .md-card__inner {
     background: transparent;
+    border-color: transparent;
 }
 
 .md-card--sm .md-card__inner {
@@ -80,8 +81,8 @@
 }
 
 .md-card--sm .md-card__header {
-    font-size: 8px;
-    margin-top: 20px;
+    font-size: 6px;
+    margin-top: 12px;
     padding: 3px 0 2px;
 }
 
@@ -104,10 +105,10 @@
 }
 
 .md-card--sm .md-card__oval {
-    width: 73px;
-    height: 73px;
+    width: 60px;
+    height: 60px;
     border-width: 2px;
-    padding: 5px;
+    padding: 3px;
 }
 
 .md-card__oval-text {
@@ -371,6 +372,10 @@
 .md-card--sm .md-rent-tbl__rent-icon {
     width: 16px;
     height: 14px;
+}
+
+.md-card--sm .md-rent-tbl td {
+    padding: 0;
 }
 
 .md-card--xs .md-rent-tbl__card-icon {
@@ -734,8 +739,8 @@
 }
 
 .md-card--sm .md-rent-ring {
-    width: 73px;
-    height: 73px;
+    width: 60px;
+    height: 60px;
     border-width: 2px;
 }
 
@@ -750,8 +755,8 @@
 }
 
 .md-card--sm .md-rent-ring__inner {
-    width: 47px;
-    height: 47px;
+    width: 38px;
+    height: 38px;
 }
 
 /* ── Tiny property rent display ───────────────── */
