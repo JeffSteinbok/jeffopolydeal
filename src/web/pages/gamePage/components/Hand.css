@@ -1,5 +1,5 @@
 .hand {
-    background: #0f3460;
+    background: transparent;
     border-radius: 8px;
     padding: 12px;
     overflow: hidden;
@@ -17,7 +17,7 @@
 .hand-label {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #aaa;
+    color: #333;
 }
 
 .hand-turn-controls {
@@ -36,7 +36,7 @@
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    border: 2px solid #aaa;
+    border: 2px solid #666;
     background: transparent;
     transition: background 0.2s, border-color 0.2s;
 }
@@ -125,7 +125,7 @@
     display: flex;
     flex-wrap: nowrap;
     justify-content: center;
-    gap: 8px;
+    gap: 3px;
     position: relative;
 }
 
@@ -141,20 +141,20 @@
     z-index: 1;
 }
 
-/* Remove shadow between overlapping cards */
+/* Reduce shadow between overlapping cards, restore on hover */
 .hand-cards--overlap .hand-card-wrapper .md-card {
-    box-shadow: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 /* Overlapping mode: hover behavior */
 .hand-cards--overlap .hand-card-wrapper:hover {
-    transform: translateY(-12px);
+    transform: translateY(-6px);
     z-index: 20;
-    margin-right: 8px !important;
+    margin-right: 0px !important;
 }
 
 .hand-cards--overlap .hand-card-wrapper:hover + .hand-card-wrapper {
-    margin-left: 8px;
+    margin-left: 0px;
 }
 
 /* Mobile/landscape: horizontal scroll, no wrap */
@@ -164,6 +164,8 @@
         justify-content: flex-start;
         -webkit-overflow-scrolling: touch;
         padding-bottom: 6px;
+        padding-left: 6px;
+        padding-right: 6px;
         scrollbar-width: thin;
         scrollbar-color: #16213e transparent;
     }

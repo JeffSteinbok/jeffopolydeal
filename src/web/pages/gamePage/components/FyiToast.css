@@ -1,6 +1,6 @@
 .fyiToast-container {
     position: fixed;
-    top: 48px;
+    top: 58px;
     left: 8px;
     right: 8px;
     z-index: 900;
@@ -8,8 +8,8 @@
 }
 
 .fyiToast {
-    background: rgba(22, 33, 62, 0.97);
-    border: 1px solid rgba(233, 69, 96, 0.5);
+    background: rgb(22, 33, 62);
+    border: 2px solid rgba(100, 180, 255, 0.4);
     border-radius: 8px;
     padding: 10px 16px;
     font-size: 0.88rem;
@@ -38,12 +38,20 @@
 
 .fyiToast-header {
     margin-bottom: 4px;
-    white-space: nowrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .fyiToast-name {
     color: #fff;
     font-weight: 700;
+}
+
+.fyiToast-text {
+    color: #ccc;
+    font-size: 0.82rem;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .fyiToast-cards {
@@ -97,7 +105,7 @@
 
 @media (max-width: 680px) {
     .fyiToast-container {
-        top: 40px;
+        top: 50px;
     }
 
     .fyiToast {

@@ -8,6 +8,7 @@ import HouseImg from "../../../assets/House.png";
 import HotelImg from "../../../assets/Hotel.png";
 import BirthdayImg from "../../../assets/Birthday.png";
 import { RentIcon } from "./RentIcon";
+import IndicatorSvg from "../../../assets/Indicator.svg";
 import "./Card.css";
 
 interface CardProps {
@@ -233,22 +234,23 @@ function TinyWildcardLayout({ card, rent }: { card: CardType; rent: number }) {
         return (
             <>
                 <RainbowBar />
-                <div className="md-wild__title-box md-wild__title-box--tiny">Wild Card</div>
+                <div className="md-wild__title-box md-wild__title-box--tiny">PROPERTY<br/>WILD CARD</div>
                 <div className="md-card__body-center">
-                    <div className="md-tiny__rent">🎩</div>
+                    <div className="md-tiny__rent md-tiny__rent--overlay">◆{rent}</div>
                 </div>
             </>
         );
     }
-    const c1 = PropertyColorMap[card.color!];
-    const c2 = PropertyColorMap[card.altColor!];
+    const isFlipped = card.activeColor === card.altColor;
+    const topColor = PropertyColorMap[isFlipped ? card.altColor! : card.color!];
+    const botColor = PropertyColorMap[isFlipped ? card.color! : card.altColor!];
     return (
         <>
-            <div className="md-card__header">Wild Card</div>
+            <div className="md-card__header md-card__header--tiny">PROPERTY<br/>WILD CARD</div>
             <div className="md-tiny__dual">
-                <div className="md-tiny__dual-top" style={{ backgroundColor: c1.hex }} />
+                <div className="md-tiny__dual-top" style={{ backgroundColor: topColor.hex }} />
                 <div className="md-tiny__rent md-tiny__rent--overlay">◆{rent}</div>
-                <div className="md-tiny__dual-bot" style={{ backgroundColor: c2.hex }} />
+                <div className="md-tiny__dual-bot" style={{ backgroundColor: botColor.hex }} />
             </div>
         </>
     );
@@ -325,34 +327,34 @@ function ActionLayout({ card, small, compact }: { card: CardType; small?: boolea
         case "PassGo":
             ovalContent = (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0 }}>
-                    <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: xs ? 4 : small ? 8 : 14, textTransform: "uppercase", letterSpacing: xs ? 0 : small ? 1 : 2, color: "#222", textAlign: "center", lineHeight: 1 }}>PASS</div>
-                    <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: xs ? 7 : small ? 18 : 30, textTransform: "uppercase", letterSpacing: xs ? 0 : small ? 1 : 3, color: "#222", textAlign: "center", lineHeight: 1 }}>GO</div>
-                    <img src={PassGoArrow} style={{ width: xs ? 14 : small ? 32 : 60, height: "auto", marginTop: xs ? 0 : small ? 1 : 2 }} alt="Go" />
+                    <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: xs ? 5 : small ? 8 : 14, textTransform: "uppercase", letterSpacing: xs ? 0 : small ? 1 : 2, color: "#222", textAlign: "center", lineHeight: 1 }}>PASS</div>
+                    <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: xs ? 9 : small ? 18 : 30, textTransform: "uppercase", letterSpacing: xs ? 0 : small ? 1 : 3, color: "#222", textAlign: "center", lineHeight: 1 }}>GO</div>
+                    <img src={PassGoArrow} style={{ width: xs ? 18 : small ? 32 : 60, height: "auto", marginTop: xs ? 0 : small ? 1 : 2 }} alt="Go" />
                 </div>
             );
             break;
         case "House":
             ovalContent = (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0 }}>
-                    <img src={HouseImg} style={{ width: xs ? 14 : small ? 28 : 50, height: "auto" }} alt="House" />
-                    <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: xs ? 4 : small ? 9 : 16, textTransform: "uppercase", color: "#222", textAlign: "center", lineHeight: 1 }}>HOUSE</div>
+                    <img src={HouseImg} style={{ width: xs ? 18 : small ? 28 : 50, height: "auto" }} alt="House" />
+                    <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: xs ? 5 : small ? 9 : 16, textTransform: "uppercase", color: "#222", textAlign: "center", lineHeight: 1 }}>HOUSE</div>
                 </div>
             );
             break;
         case "Hotel":
             ovalContent = (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0 }}>
-                    <img src={HotelImg} style={{ width: xs ? 14 : small ? 28 : 50, height: "auto" }} alt="Hotel" />
-                    <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: xs ? 4 : small ? 9 : 16, textTransform: "uppercase", color: "#222", textAlign: "center", lineHeight: 1 }}>HOTEL</div>
+                    <img src={HotelImg} style={{ width: xs ? 18 : small ? 28 : 50, height: "auto" }} alt="Hotel" />
+                    <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: xs ? 5 : small ? 9 : 16, textTransform: "uppercase", color: "#222", textAlign: "center", lineHeight: 1 }}>HOTEL</div>
                 </div>
             );
             break;
         case "ItsMyBirthday":
             ovalContent = (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 0 }}>
-                    <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: xs ? 2 : small ? 6 : 11, textTransform: "uppercase", letterSpacing: xs ? 0 : 1, color: "#222", textAlign: "center", lineHeight: 1.2 }}>IT'S MY</div>
-                    <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: xs ? 3 : small ? 7 : 13, textTransform: "uppercase", letterSpacing: xs ? 0 : 1, color: "#222", textAlign: "center", lineHeight: 1 }}>BIRTHDAY</div>
-                    <img src={BirthdayImg} style={{ width: xs ? 7 : small ? 22 : 40, height: "auto", marginTop: xs ? 0 : small ? 1 : 2 }} alt="Birthday" />
+                    <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: xs ? 4 : small ? 6 : 11, textTransform: "uppercase", letterSpacing: xs ? 0 : 1, color: "#222", textAlign: "center", lineHeight: 1.2 }}>IT'S MY</div>
+                    <div style={{ fontFamily: "Inter, sans-serif", fontWeight: 900, fontSize: xs ? 5 : small ? 7 : 13, textTransform: "uppercase", letterSpacing: xs ? 0 : 1, color: "#222", textAlign: "center", lineHeight: 1 }}>BIRTHDAY</div>
+                    <img src={BirthdayImg} style={{ width: xs ? 12 : small ? 22 : 40, height: "auto", marginTop: xs ? 0 : small ? 1 : 2 }} alt="Birthday" />
                 </div>
             );
             break;

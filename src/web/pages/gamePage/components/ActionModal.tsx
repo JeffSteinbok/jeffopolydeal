@@ -15,6 +15,7 @@ interface ActionModalProps {
 export function ActionModal({ pendingAction, myState, paymentError, onRespond, otherPlayers, onInspect }: ActionModalProps) {
     const [selectedCardIds, setSelectedCardIds] = useState<number[]>([]);
     const [payHint, setPayHint] = useState(false);
+    const [showHand, setShowHand] = useState(false);
 
     const hasJustSayNo = myState.hand?.some((c) => c.actionKind === "JustSayNo") ?? false;
     const isPayment = ["PayRent", "PayDebtCollector", "PayBirthday"].includes(pendingAction.type);
@@ -176,8 +177,24 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                                     className="modalInspect-btn"
                                     onClick={() => onInspect(p)}
                                 >
-                                    👁 {p.name}
+                                    🔍 {p.name}
                                 </button>
+                            ))}
+                            <button
+                                className="modalInspect-btn"
+                                onClick={() => setShowHand(prev => !prev)}
+                            >
+                                🃏 {showHand ? "Hide Hand" : "Show Hand"}
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {showHand && myState.hand && myState.hand.length > 0 && (
+                    <div className="modalHand">
+                        <div className="modalHand-cards">
+                            {myState.hand.map(c => (
+                                <CardComponent key={c.id} card={c} small />
                             ))}
                         </div>
                     </div>

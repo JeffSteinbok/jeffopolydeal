@@ -71,7 +71,7 @@
     padding: 4px 0 2px;
     margin-top: 24px;
     text-align: center;
-    font-family: 'Arial Black', 'Segoe UI Black', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 900;
     font-size: 10px;
     text-transform: uppercase;
@@ -112,7 +112,7 @@
 }
 
 .md-card__oval-text {
-    font-family: 'Arial Black', 'Segoe UI Black', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 900;
     font-size: 16px;
     line-height: 1.1;
@@ -146,7 +146,7 @@
     height: 26px;
     border-radius: 50%;
     color: #000;
-    font-family: 'Arial Black', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 900;
     font-size: 11px;
     display: flex;
@@ -160,8 +160,7 @@
 .md-badge__num {
     font-size: 14px;
     line-height: 1;
-    letter-spacing: -1.5px;
-    padding-right: 1.5px;
+    letter-spacing: -0.5px;
 }
 
 .md-card--sm .md-badge {
@@ -170,6 +169,7 @@
     font-size: 9px;
     top: 2px;
     left: 2px;
+    border-width: 1.5px;
 }
 
 .md-card--sm .md-badge__num {
@@ -213,7 +213,7 @@
 }
 
 .md-money__amount {
-    font-family: 'Arial Black', 'Impact', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 900;
     font-size: 54px;
     color: #000;
@@ -233,7 +233,7 @@
 
 /* Stylised currency "M" — reusable anywhere */
 .md-sym {
-    font-family: 'Georgia', 'Times New Roman', serif;
+    font-family: 'Inter', sans-serif;
     font-style: italic;
     font-weight: 700;
     font-size: 0.75em;
@@ -241,7 +241,7 @@
 }
 
 .md-money__sym {
-    font-family: 'Georgia', 'Times New Roman', serif;
+    font-family: 'Inter', sans-serif;
     font-style: italic;
     font-weight: 700;
     font-size: 0.55em;
@@ -249,7 +249,7 @@
 }
 
 .md-money__label {
-    font-family: 'Arial Black', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 900;
     font-size: 12px;
     color: rgba(0,0,0,0.6);
@@ -267,7 +267,7 @@
     height: 34px;
     padding: 0 38px;
     text-align: center;
-    font-family: 'Arial', 'Segoe UI', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 400;
     font-size: 11px;
     line-height: 1.2;
@@ -286,11 +286,12 @@
     padding: 0 30px;
 }
 
-/* Tiny variant: smaller text, wraps to fit */
+/* Tiny variant: smaller text, wraps to fit, below badge */
 .md-card__name-band--tiny {
-    height: 18px;
-    font-size: 7px;
-    padding: 0 20px;
+    height: auto;
+    min-height: 18px;
+    font-size: 6px;
+    padding: 14px 2px 1px;
     word-break: break-word;
     hyphens: auto;
 }
@@ -317,7 +318,7 @@
 }
 
 .md-rent-tbl__hdr {
-    font-family: 'Arial Black', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 900;
     font-size: 13px;
     text-align: right;
@@ -354,7 +355,7 @@
     height: 18px;
     border: 1.5px solid #888;
     border-radius: 2px;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 700;
     font-size: 9px;
     color: #333;
@@ -380,6 +381,15 @@
 
 .md-card--sm .md-rent-tbl td {
     padding: 0;
+    font-size: 7px;
+}
+
+.md-card--sm .md-rent-tbl__icons {
+    padding-right: 4px;
+}
+
+.md-card--sm .md-rent-tbl__val {
+    padding-left: 6px;
 }
 
 .md-card--xs .md-rent-tbl__card-icon {
@@ -441,7 +451,7 @@
 
 /* Title box for multi-color wild */
 .md-wild__title-box {
-    font-family: 'Arial Black', 'Segoe UI Black', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 900;
     font-size: 10px;
     text-transform: uppercase;
@@ -453,7 +463,7 @@
 }
 
 .md-card--sm .md-wild__title-box {
-    font-size: 7px;
+    font-size: 5.5px;
     padding: 2px 3px;
     margin: 0 3px;
 }
@@ -469,10 +479,22 @@
 .md-wild__placeholder {
     font-size: 48px;
     line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.md-wild__indicator {
+    width: 60px;
+    height: auto;
 }
 
 .md-card--sm .md-wild__placeholder {
     font-size: 32px;
+}
+
+.md-card--sm .md-wild__indicator {
+    width: 38px;
 }
 
 /* Description text for multi-color wild (always visible) */
@@ -505,7 +527,7 @@
 .md-wild-dual__header {
     padding: 2px 4px;
     text-align: center;
-    font-family: 'Arial Black', 'Segoe UI Black', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 900;
     color: #fff;
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);
@@ -549,7 +571,7 @@
 
 /* Side-by-side rent tables in dual wild */
 .md-wild-dual__rent-label {
-    font-family: 'Arial Black', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 900;
     font-size: 13px;
     text-align: right;
@@ -637,16 +659,23 @@
 }
 
 .md-card--sm .md-wild-dual__rent-side .md-rent-tbl__rent-icon {
-    width: 12px;
+    width: 10px;
+    height: 8px;
+}
+
+.md-card--sm .md-wild-dual__rent-side .md-rent-tbl__card-icon {
+    width: 8px;
     height: 10px;
+    font-size: 5px;
 }
 
 .md-card--sm .md-wild-dual__rent-side .md-rent-tbl__icons {
-    padding-right: 2px;
+    padding-right: 1px;
+    width: 14px;
 }
 
 .md-card--sm .md-wild-dual__rent-side .md-rent-tbl__val {
-    padding-left: 2px;
+    padding-left: 1px;
 }
 
 /* Double-click hint */
@@ -765,7 +794,7 @@
 
 /* ── Tiny property rent display ───────────────── */
 .md-tiny__rent {
-    font-family: 'Arial Black', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-weight: 900;
     font-size: 18px;
     color: #fff;
@@ -805,7 +834,11 @@
 .md-card--xs .md-card__inner {
     inset: 2px;
     border-width: 1px;
-    border-radius: 3px;
+}
+
+.md-card--xs .md-card:has(.md-card__name-band) .md-card__inner,
+.md-card--xs.md-card:has(.md-card__name-band) .md-card__inner {
+    border-radius: 10px 3px 3px 3px;
 }
 
 .md-card--xs .md-card__header {
@@ -815,14 +848,14 @@
 }
 
 .md-card--xs .md-card__oval {
-    width: 28px;
-    height: 28px;
+    width: 34px;
+    height: 34px;
     border-width: 1px;
     padding: 1px;
 }
 
 .md-card--xs .md-card__oval-text {
-    font-size: 4px;
+    font-size: 4.5px;
 }
 
 .md-card--xs .md-card__desc {
@@ -854,11 +887,12 @@
 }
 
 .md-card--xs .md-card__name-band {
-    font-size: 6px;
-    padding: 2px 2px;
+    font-size: 5px;
+    padding: 14px 2px 1px;
     line-height: 1.2;
     word-break: break-word;
     hyphens: auto;
+    height: auto;
 }
 
 .md-card--xs .md-card__body--rent {
@@ -876,7 +910,7 @@
 
 .md-card--xs .md-wild__bar { height: 3px; }
 .md-card--xs .md-wild__title-box { font-size: 4px; padding: 1px 1px; margin: 0 1px; border-width: 1px; }
-.md-card--xs .md-wild__placeholder { font-size: 12px; }
+.md-card--xs .md-wild__placeholder { font-size: 18px; }
 .md-card--xs .md-wild__desc-text { font-size: 3px; padding: 1px 1px; }
 
 .md-card--xs .md-wild-dual__pretitle { font-size: 4px; }
@@ -890,14 +924,14 @@
 .md-card--xs .md-wild-dual__header { padding: 1px 2px; }
 
 .md-card--xs .md-rent-ring {
-    width: 30px;
-    height: 30px;
+    width: 34px;
+    height: 34px;
     border-width: 1px;
 }
 
 .md-card--xs .md-rent-ring__inner {
-    width: 18px;
-    height: 18px;
+    width: 21px;
+    height: 21px;
 }
 
 .md-card--xs .md-wild__dot {

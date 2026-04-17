@@ -77,10 +77,12 @@ namespace JeffopolyDeal.Models
         /// </summary>
         public List<Card> GetStealableProperties()
         {
-            return PropertySets
+            var cards = PropertySets
                 .Where(s => !s.IsComplete)
                 .SelectMany(s => s.Cards)
                 .ToList();
+            cards.AddRange(UnboundWilds);
+            return cards;
         }
 
         /// <summary>

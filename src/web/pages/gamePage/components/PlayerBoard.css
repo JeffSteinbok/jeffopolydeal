@@ -7,6 +7,7 @@
 
 .playerBoard-me {
     border: 2px solid #0f3460;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
     flex: 1;
     overflow-y: auto;
     scrollbar-width: none;
@@ -34,10 +35,18 @@
 .playerBoard-cards {
     color: #aaa;
     font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.playerBoard-cardIcon {
+    width: 16px;
+    height: auto;
 }
 
 .playerBoard-sets {
-    color: #e94560;
+    color: #fff;
     font-weight: 600;
     font-size: 0.85rem;
 }
@@ -87,6 +96,7 @@
     font-size: 1.1rem;
     color: #4caf50;
     min-width: 60px;
+    text-align: right;
 }
 
 .bank-denoms {
@@ -139,7 +149,7 @@
     flex-direction: column;
     border: 2px dashed transparent;
     border-radius: 8px;
-    padding: 4px;
+    padding: 4px 4px 4px 0;
     transition: border-color 0.15s, background-color 0.15s;
 }
 
@@ -187,7 +197,7 @@
 
 /* "New Set" drop target */
 .propertySet-new {
-    min-width: 80px;
+    width: 88px;
     min-height: 80px;
     border: 2px dashed #555;
     border-radius: 8px;

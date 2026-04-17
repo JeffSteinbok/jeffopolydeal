@@ -2,12 +2,13 @@ import React from "react";
 import { PlayerState, Card } from "../../../Types";
 import { CardComponent } from "./Card";
 import { PropertyColorMap } from "../../../utilities/PropertyColors";
+import IndicatorSvg from "../../../assets/Indicator.svg";
 import "./PlayerBoard.css";
 
 // Color for each money denomination
 const moneyColors: Record<number, string> = {
     1: "#f0ecc8",
-    2: "#a0c8a0",
+    2: "#e8c8b0",
     3: "#d4e4bc",
     4: "#b8d4e8",
     5: "#8b7bb5",
@@ -157,6 +158,22 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
         if (pointerDragging.current && dragClone.current) {
             dragClone.current.style.left = `${e.clientX - 40}px`;
             dragClone.current.style.top = `${e.clientY - 55}px`;
+
+            // Highlight drop target under pointer
+            const elem = document.elementFromPoint(e.clientX, e.clientY);
+            const setCol = elem?.closest(".propertySet-column");
+            const newSetEl = elem?.closest(".propertySet-new");
+            const unboundEl = elem?.closest(".propertySet-unbound");
+            if (unboundEl) {
+                setDragOverTarget("unbound");
+            } else if (newSetEl) {
+                setDragOverTarget("new");
+            } else if (setCol) {
+                const setId = setCol.getAttribute("data-set-id");
+                setDragOverTarget(setId ? `set-${setId}` : null);
+            } else {
+                setDragOverTarget(null);
+            }
         }
     };
 
@@ -210,12 +227,10 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
 
     return (
         <div className={`playerBoard ${isMe ? "playerBoard-me" : "playerBoard--opponent"}`}>
-            {!isMe && (
-                <div className="playerBoard-header">
-                    <span className="playerBoard-name">{player.name}</span>
-                    <span className="playerBoard-cards">🃏 {player.handCount}</span>
-                </div>
-            )}
+            <div className="playerBoard-header">
+                <span className="playerBoard-name">{player.name}</span>
+                <span className="playerBoard-cards"><img src={IndicatorSvg} alt="cards" className="playerBoard-cardIcon" /> {isMe ? (player.hand?.length ?? 0) : player.handCount}</span>
+            </div>
 
             <div className="playerBoard-sections">
                 {/* Bank */}
@@ -277,7 +292,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                         ))}
 
                         {/* Unassigned wilds as a standard stack */}
-                        {isMe && (player.unboundWilds?.length > 0 || canDrag) && (
+                        {(isMe || inspectMode) && (player.unboundWilds?.length > 0 || canDrag) && (
                             <div
                                 className={`propertySet-column propertySet-unbound ${canDrag ? "propertySet-column--droppable" : ""} ${dragOverTarget === "unbound" ? "propertySet-column--drag-over" : ""}`}
                                 onDragOver={canDrag ? handleDragOver : undefined}
@@ -298,7 +313,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                                             onPointerMove={canDrag ? handlePropertyPointerMove : undefined}
                                             onPointerUp={canDrag ? handlePropertyPointerUp : undefined}
                                         >
-                                            <CardComponent card={card} small={!compact} compact={compact} />
+                                            <CardComponent card={card} small={!compact} compact={compact} currentRent={compact ? 0 : undefined} />
                                         </div>
                                     ))}
                                 </div>

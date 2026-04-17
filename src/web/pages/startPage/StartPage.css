@@ -9,6 +9,17 @@
 .startPageContent {
     text-align: center;
     padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.startPageForm {
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
 }
 
 .title {

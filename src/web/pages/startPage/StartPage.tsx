@@ -27,73 +27,75 @@ export function StartPage({ onJoinGame }: StartPageProps) {
             <div className="startPageContent">
                 <img src={titleImage} alt="Jeffopoly Deal" className="titleImage" />
 
-                {mode === "menu" && (
-                    <div className="menuButtons">
-                        <button className="primary menuButton" onClick={() => setMode("create")}>
-                            Create Game
-                        </button>
-                        <button className="secondary menuButton" onClick={() => setMode("join")}>
-                            Join Game
-                        </button>
-                    </div>
-                )}
+                <div className="startPageForm">
+                    {mode === "menu" && (
+                        <div className="menuButtons">
+                            <button className="primary menuButton" onClick={() => setMode("create")}>
+                                Create Game
+                            </button>
+                            <button className="secondary menuButton" onClick={() => setMode("join")}>
+                                Join Game
+                            </button>
+                        </div>
+                    )}
 
-                {mode === "create" && (
-                    <div className="formSection">
-                        <input
-                            type="text"
-                            placeholder="Your Name"
-                            value={playerName}
-                            onChange={(e) => setPlayerName(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-                            autoFocus
-                            maxLength={20}
-                            autoComplete="off"
-                            data-1p-ignore
-                            data-lpignore="true"
-                        />
-                        <button className="primary" onClick={handleCreate} disabled={!playerName.trim()}>
-                            Create Game
-                        </button>
-                        <button className="secondary" onClick={() => setMode("menu")}>
-                            Back
-                        </button>
-                    </div>
-                )}
+                    {mode === "create" && (
+                        <div className="formSection">
+                            <input
+                                type="text"
+                                placeholder="Your Name"
+                                value={playerName}
+                                onChange={(e) => setPlayerName(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+                                autoFocus
+                                maxLength={20}
+                                autoComplete="off"
+                                data-1p-ignore
+                                data-lpignore="true"
+                            />
+                            <button className="primary" onClick={handleCreate} disabled={!playerName.trim()}>
+                                Create Game
+                            </button>
+                            <button className="secondary" onClick={() => setMode("menu")}>
+                                Back
+                            </button>
+                        </div>
+                    )}
 
-                {mode === "join" && (
-                    <div className="formSection">
-                        <input
-                            type="text"
-                            placeholder="Your Name"
-                            value={playerName}
-                            onChange={(e) => setPlayerName(e.target.value)}
-                            autoFocus
-                            maxLength={20}
-                            autoComplete="off"
-                            data-1p-ignore
-                            data-lpignore="true"
-                        />
-                        <input
-                            type="text"
-                            placeholder="Game Code"
-                            value={gameCode}
-                            onChange={(e) => setGameCode(e.target.value.toUpperCase())}
-                            onKeyDown={(e) => e.key === "Enter" && handleJoin()}
-                            maxLength={4}
-                            style={{ textTransform: "uppercase", letterSpacing: "0.2em" }}
-                            autoComplete="off"
-                            data-1p-ignore
-                            data-lpignore="true"
-                        />
-                        <button className="primary" onClick={handleJoin} disabled={!playerName.trim() || !gameCode.trim()}>
-                            Join Game
-                        </button>
-                        <button className="secondary" onClick={() => setMode("menu")}>
-                            Back
-                        </button>
-                    </div>
-                )}
+                    {mode === "join" && (
+                        <div className="formSection">
+                            <input
+                                type="text"
+                                placeholder="Your Name"
+                                value={playerName}
+                                onChange={(e) => setPlayerName(e.target.value)}
+                                autoFocus
+                                maxLength={20}
+                                autoComplete="off"
+                                data-1p-ignore
+                                data-lpignore="true"
+                            />
+                            <input
+                                type="text"
+                                placeholder="Game Code"
+                                value={gameCode}
+                                onChange={(e) => setGameCode(e.target.value.toUpperCase())}
+                                onKeyDown={(e) => e.key === "Enter" && handleJoin()}
+                                maxLength={4}
+                                style={{ textTransform: "uppercase", letterSpacing: "0.2em" }}
+                                autoComplete="off"
+                                data-1p-ignore
+                                data-lpignore="true"
+                            />
+                            <button className="primary" onClick={handleJoin} disabled={!playerName.trim() || !gameCode.trim()}>
+                                Join Game
+                            </button>
+                            <button className="secondary" onClick={() => setMode("menu")}>
+                                Back
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

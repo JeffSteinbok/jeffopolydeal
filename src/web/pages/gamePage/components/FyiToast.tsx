@@ -66,8 +66,8 @@ export function FyiToast({ toasts, smallCards }: FyiToastProps) {
                 )}
                 <div className="fyiToast-body">
                     <div className="fyiToast-header">
-                        <span className="fyiToast-name">{current.playerName}</span>{" "}
-                        {current.text}
+                        <div className="fyiToast-name">{current.playerName}</div>
+                        <div className="fyiToast-text">{current.text}</div>
                     </div>
                     {(current.sourceCards?.length || current.targetCards?.length) ? (
                         <div className="fyiToast-cards">
@@ -83,9 +83,9 @@ export function FyiToast({ toasts, smallCards }: FyiToastProps) {
                             )}
                             {current.targetCards && current.targetCards.length > 0 && (
                                 <div className="fyiToast-cardGroup">
-                                    <span className="fyiToast-label">
-                                        {current.sourceCards?.length ? "Got:" : "Paid:"}
-                                    </span>
+                                    {current.sourceCards && current.sourceCards.length > 0 && (
+                                        <span className="fyiToast-label">Got:</span>
+                                    )}
                                     <div className="fyiToast-cardRow">
                                         {current.targetCards.map((c) => (
                                             <CardComponent key={c.id} card={c} small />

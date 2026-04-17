@@ -63,6 +63,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     const [state, setState] = useState<GameState | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [inspectedPlayer, setInspectedPlayer] = useState<PlayerState | null>(null);
+    const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
     const [toasts, setToasts] = useState<GameAction[]>([]);
     const clientRef = useRef<GameSignalRClient | null>(null);
     const seenActionIdsRef = useRef<Set<number>>(new Set());
@@ -187,7 +188,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     const isCreator = state && me && state.players[0]?.playerId === playerId;
 
     const handleExitGame = () => {
-        if (window.confirm("Leave the game?")) onLeave();
+        setShowLeaveConfirm(true);
     };
 
     const handleEndGame = async () => {
@@ -229,12 +230,12 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         return (
             <div className="gamePage">
                 <div className="lobby">
-                    <h2>Jeffopoly Deal</h2>
-                    <div className="gameCodeDisplay">
+                    <img src={titleImage} alt="Jeffopoly Deal" className="lobbyTitleImage" />
+                    <div className="gameCodeDisplay lobbyFadeIn">
                         Game Code: <span className="code">{state.gameCode}</span>
                     </div>
                     <div className="playerList">
-                        <h3>Players ({state.players.length})</h3>
+                        <h3>Players ({state.players.length}/5)</h3>
                         {state.players.map((p) => (
                             <div key={p.connectionId} className="playerName">
                                 {p.name} {p.connectionId === myConnectionId ? "(you)" : ""}
@@ -286,9 +287,8 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 <img src={titleImage} alt="Jeffopoly Deal" className="gameHeaderTitleImage" />
                 <div className="gameHeader-right">
                     <span className="deckInfo">
-                        Draw: {state.drawPileCount} | Discard: {state.discardPileCount}
+                        Draw: {state.drawPileCount} | Discard: {state.discardPileCount} |
                     </span>
-                    <span className="gameHeader-divider">|</span>
                     <button className="exitButton" onClick={handleExitGame}>✕</button>
                 </div>
             </div>
@@ -422,6 +422,24 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     player={inspectedPlayer}
                     onClose={() => setInspectedPlayer(null)}
                 />
+            )}
+
+            {/* Leave game confirmation dialog */}
+            {showLeaveConfirm && (
+                <div className="modalOverlay" onClick={() => setShowLeaveConfirm(false)}>
+                    <div className="leaveConfirmDialog" onClick={e => e.stopPropagation()}>
+                        <h3>Leave Game?</h3>
+                        <p>Are you sure you want to leave the game? This will end the game for all players.</p>
+                        <div className="leaveConfirmButtons">
+                            <button className="primary" onClick={() => { setShowLeaveConfirm(false); onLeave(); }}>
+                                Leave Game
+                            </button>
+                            <button className="secondary" onClick={() => setShowLeaveConfirm(false)}>
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {Debug.isFlagSet(DebugFlags.ShowDeck) && client && (

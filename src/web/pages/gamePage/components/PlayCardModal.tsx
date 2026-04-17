@@ -172,7 +172,7 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                             </button>
                             {canPlayAsMoney && (
                                 <button className="choiceButton choiceButton--money" onClick={() => onPlay(card.id, { playAsMoney: true })}>
-                                    <span className="money-diamond">◆</span>Bank
+                                    <span className="money-diamond">◆</span> Bank
                                 </button>
                             )}
                         </div>
@@ -319,7 +319,7 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                                         aria-label={`Inspect ${p.name}'s board`}
                                         title={`Inspect ${p.name}'s board`}
                                     >
-                                        👁
+                                        🔍
                                     </button>
                                 )}
                             </div>
@@ -334,9 +334,10 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
     // Step: pick target's property (for Sly Deal / Force Deal)
     if (step === "pickTargetProperty") {
         const target = gameState.players.find(p => p.connectionId === request.targetPlayerId);
-        const stealable = target?.propertySets
-            .filter(s => !s.isComplete)
-            .flatMap(s => s.cards) ?? [];
+        const stealable = [
+            ...(target?.propertySets.filter(s => !s.isComplete).flatMap(s => s.cards) ?? []),
+            ...(target?.unboundWilds ?? []),
+        ];
 
         return (
             <div className="modalOverlay" onClick={onCancel}>
@@ -484,15 +485,17 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
             case "DebtCollector":
                 return otherPlayers.length > 0;
             case "SlyDeal": {
-                // Any opponent has stealable (non-complete-set) properties
+                // Any opponent has stealable (non-complete-set) properties or unbound wilds
                 return otherPlayers.some(p =>
-                    p.propertySets.some(s => !s.isComplete && s.cards.length > 0)
+                    p.propertySets.some(s => !s.isComplete && s.cards.length > 0) ||
+                    (p.unboundWilds?.length > 0)
                 );
             }
             case "ForceDeal": {
-                const iHaveStealable = myState.propertySets.some(s => !s.isComplete && s.cards.length > 0);
+                const iHaveStealable = myState.propertySets.some(s => !s.isComplete && s.cards.length > 0) || (myState.unboundWilds?.length > 0);
                 const theyHaveStealable = otherPlayers.some(p =>
-                    p.propertySets.some(s => !s.isComplete && s.cards.length > 0)
+                    p.propertySets.some(s => !s.isComplete && s.cards.length > 0) ||
+                    (p.unboundWilds?.length > 0)
                 );
                 return iHaveStealable && theyHaveStealable;
             }

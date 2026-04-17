@@ -36,18 +36,20 @@ button:active {
 }
 
 button.primary {
-    background: #e94560;
+    background: #b71c1c;
     color: white;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
 }
 
 button.primary:hover {
-    background: #d63851;
+    background: #9a1616;
 }
 
 button.secondary {
     background: #16213e;
     color: #eee;
     border: 1px solid #0f3460;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
 }
 
 button.secondary:hover {

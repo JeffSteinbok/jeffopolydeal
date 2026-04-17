@@ -109,6 +109,20 @@
     transform: none;
 }
 
+.modalHand {
+    margin-top: 12px;
+    padding: 10px;
+    background: rgba(76, 175, 80, 0.15);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    border-radius: 8px;
+}
+
+.modalHand-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
 .payButtonWrapper {
     position: relative;
     display: flex;

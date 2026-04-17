@@ -60,10 +60,11 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, smallCa
                 setOverlapMargin(0);
                 return;
             }
-            const cardWidth = smallCards ? 88 : 156;
-            const gap = 8; // matches CSS gap
+            const cardWidth = smallCards ? 88 : 150;
+            const gap = 3; // matches CSS gap
+            const padding = 24; // 12px padding on each side of .hand
             const totalWidth = cards.length * cardWidth + (cards.length - 1) * gap;
-            const available = el.clientWidth;
+            const available = el.clientWidth - padding;
             if (totalWidth > available) {
                 setNeedsOverlap(true);
                 const excess = totalWidth - available;

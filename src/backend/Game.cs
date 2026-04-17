@@ -49,6 +49,8 @@ namespace JeffopolyDeal
 
         #region Connection Management
 
+        private const int MaxPlayers = 5;
+
         public async Task ConnectPlayerAsync(string connectionId, string playerName, string playerId)
         {
             lock (_lock)
@@ -59,6 +61,9 @@ namespace JeffopolyDeal
                 _connections[connectionId] = true;
 
                 if (_players.Any(p => p.ConnectionId == connectionId))
+                    return;
+
+                if (_players.Count >= MaxPlayers)
                     return;
 
                 _players.Add(new Player
@@ -352,6 +357,7 @@ namespace JeffopolyDeal
 
                 player.Hand.Remove(card);
                 _deck.Discard(card);
+                LogAction(player.Name, $"discarded {card.Name}", cardPlayed: card);
 
                 if (player.Hand.Count <= GameConfig.MaxHandSize)
                 {
@@ -951,6 +957,18 @@ namespace JeffopolyDeal
                 }
             }
 
+            // Check unbound wilds if not found in property sets
+            if (stolenCard == null)
+            {
+                var card = target.UnboundWilds.FirstOrDefault(c => c.Id == _pendingAction.TargetCardId);
+                if (card != null)
+                {
+                    stolenCard = card;
+                    target.UnboundWilds.Remove(card);
+                    source.UnboundWilds.Add(card);
+                }
+            }
+
             LogAction(source.Name, $"stole {_pendingAction.TargetCardName ?? "a card"} from {target.Name}",
                 targetPlayerName: target.Name,
                 targetCards: stolenCard != null ? new List<Card> { stolenCard } : null);
@@ -981,6 +999,12 @@ namespace JeffopolyDeal
                     break;
                 }
             }
+            // Check unbound wilds if not found in property sets
+            if (stolenCard == null)
+            {
+                stolenCard = target.UnboundWilds.FirstOrDefault(c => c.Id == _pendingAction.TargetCardId);
+                if (stolenCard != null) target.UnboundWilds.Remove(stolenCard);
+            }
 
             // Remove offered card from source
             foreach (var set in source.PropertySets.ToList())
@@ -995,17 +1019,29 @@ namespace JeffopolyDeal
                     break;
                 }
             }
+            // Check unbound wilds if not found in property sets
+            if (offeredCard == null)
+            {
+                offeredCard = source.UnboundWilds.FirstOrDefault(c => c.Id == _pendingAction.OfferedCardId);
+                if (offeredCard != null) source.UnboundWilds.Remove(offeredCard);
+            }
 
             // Swap
             if (stolenCard != null)
             {
                 var color = stolenCard.ActiveColor ?? stolenCard.Color;
-                if (color.HasValue) PlayProperty(source, stolenCard, color.Value);
+                if (color.HasValue)
+                    PlayProperty(source, stolenCard, color.Value);
+                else
+                    source.UnboundWilds.Add(stolenCard);
             }
             if (offeredCard != null)
             {
                 var color = offeredCard.ActiveColor ?? offeredCard.Color;
-                if (color.HasValue) PlayProperty(target, offeredCard, color.Value);
+                if (color.HasValue)
+                    PlayProperty(target, offeredCard, color.Value);
+                else
+                    target.UnboundWilds.Add(offeredCard);
             }
 
             LogAction(source.Name,
@@ -1446,29 +1482,24 @@ namespace JeffopolyDeal
             if (currentPlayer == null || currentPlayer.ConnectionId != player.ConnectionId) return;
             if (_phase != GamePhase.Play) return;
 
-            // Find and remove the card from wherever it is
+            // Find the card and its source location, but don't remove yet
             Card? card = null;
+            bool fromUnbound = false;
+            PropertySet? sourceSet = null;
 
             card = player.UnboundWilds.FirstOrDefault(c => c.Id == cardId);
             if (card != null)
             {
-                player.UnboundWilds.Remove(card);
+                fromUnbound = true;
             }
             else
             {
-                foreach (var set in player.PropertySets.ToList())
+                foreach (var set in player.PropertySets)
                 {
                     card = set.Cards.FirstOrDefault(c => c.Id == cardId);
                     if (card != null)
                     {
-                        set.Cards.Remove(card);
-                        if (!set.IsComplete)
-                        {
-                            set.HasHouse = false;
-                            set.HasHotel = false;
-                        }
-                        if (set.Cards.Count == 0)
-                            player.PropertySets.Remove(set);
+                        sourceSet = set;
                         break;
                     }
                 }
@@ -1480,6 +1511,11 @@ namespace JeffopolyDeal
             if (targetSetId == -1)
             {
                 if (!(card.CardType == CardType.PropertyWildcard && card.IsMulticolorWild)) return;
+                if (fromUnbound) return; // already there
+                // Validated — now remove from source
+                sourceSet!.Cards.Remove(card);
+                if (!sourceSet.IsComplete) { sourceSet.HasHouse = false; sourceSet.HasHotel = false; }
+                if (sourceSet.Cards.Count == 0) player.PropertySets.Remove(sourceSet);
                 card.ActiveColor = null;
                 player.UnboundWilds.Add(card);
                 return;
@@ -1506,12 +1542,30 @@ namespace JeffopolyDeal
             {
                 var existingSet = player.PropertySets.First(s => s.SetId == targetSetId);
                 if (existingSet.Cards.Count >= existingSet.RequiredSize) return;
+
+                // Validated — now remove from source
+                if (fromUnbound) player.UnboundWilds.Remove(card);
+                else
+                {
+                    sourceSet!.Cards.Remove(card);
+                    if (!sourceSet.IsComplete) { sourceSet.HasHouse = false; sourceSet.HasHotel = false; }
+                    if (sourceSet.Cards.Count == 0) player.PropertySets.Remove(sourceSet);
+                }
+
                 card.ActiveColor = color;
                 existingSet.Cards.Add(card);
             }
             else
             {
-                // Create new set
+                // Create new set — remove from source first
+                if (fromUnbound) player.UnboundWilds.Remove(card);
+                else
+                {
+                    sourceSet!.Cards.Remove(card);
+                    if (!sourceSet.IsComplete) { sourceSet.HasHouse = false; sourceSet.HasHotel = false; }
+                    if (sourceSet.Cards.Count == 0) player.PropertySets.Remove(sourceSet);
+                }
+
                 card.ActiveColor = color;
                 var newSet = new PropertySet { Color = color.Value };
                 newSet.Cards.Add(card);
