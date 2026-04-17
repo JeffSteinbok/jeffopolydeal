@@ -1,5 +1,6 @@
 .deckPage {
-    min-height: 100vh;
+    height: 100%;
+    overflow-y: auto;
     background: #e8f5e9;
     color: #222;
     padding: 20px 30px;
