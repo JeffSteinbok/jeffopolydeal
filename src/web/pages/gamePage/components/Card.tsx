@@ -228,7 +228,7 @@ function TinyPropertyLayout({ card, rent }: { card: CardType; rent: number }) {
         <>
             <div className="md-card__name-band md-card__name-band--tiny" style={{ color: info.textColor, textShadow: textShadowFor(info.textColor) }}>{card.name}</div>
             <div className="md-card__body-center">
-                <div className="md-tiny__rent" style={{ color: info.textColor }}>◆{rent}</div>
+                <div className="md-tiny__rent" style={{ color: info.textColor, textShadow: textShadowFor(info.textColor) }}>◆{rent}</div>
             </div>
         </>
     );
