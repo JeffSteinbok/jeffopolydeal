@@ -1,5 +1,13 @@
 # Jeffopoly Deal 🎩🃏
 
+[![CI](https://github.com/JeffSteinbok/jeffopolydeal/actions/workflows/ci.yml/badge.svg)](https://github.com/JeffSteinbok/jeffopolydeal/actions/workflows/ci.yml)
+[![Deploy](https://github.com/JeffSteinbok/jeffopolydeal/actions/workflows/deploy.yml/badge.svg)](https://github.com/JeffSteinbok/jeffopolydeal/actions/workflows/deploy.yml)
+[![Health Check](https://github.com/JeffSteinbok/jeffopolydeal/actions/workflows/health-check.yml/badge.svg)](https://github.com/JeffSteinbok/jeffopolydeal/actions/workflows/health-check.yml)
+
+<p align="center">
+  <img src="src/web/assets/JeffopolyDeal.png" alt="Jeffopoly Deal" width="500" />
+</p>
+
 A real-time multiplayer **Monopoly Deal** card game built with React, ASP.NET Core, and SignalR. Play with friends in your browser — no installs needed.
 
 > **Live at:** [jeffopolydeal.azurewebsites.net](https://jeffopolydeal.azurewebsites.net)
@@ -73,44 +81,19 @@ A real-time multiplayer **Monopoly Deal** card game built with React, ASP.NET Co
 
 ## Getting Started
 
-### Prerequisites
+See [**DEVELOPMENT.md**](DEVELOPMENT.md) for full build, run, debug, and testing instructions.
 
-- [Node.js](https://nodejs.org/) (v18+)
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
-
-### Run Locally
-
-**Backend:**
+**Quick start:**
 
 ```bash
-dotnet restore src/backend/JeffopolyDeal.csproj
+# Terminal 1 — Backend
 dotnet run --project src/backend/JeffopolyDeal.csproj
+
+# Terminal 2 — Frontend (dev server with hot reload)
+npm install && npm run dev
 ```
 
-The backend runs on `https://localhost:5011` / `http://localhost:5010`.
-
-**Frontend (dev server with hot reload):**
-
-```bash
-npm install
-npm run dev
-```
-
-The Vite dev server runs on `http://localhost:5173` and proxies API/SignalR calls to the backend.
-
-### Build for Production
-
-```bash
-npm run build              # Frontend → wwwroot/
-dotnet publish src/backend/JeffopolyDeal.csproj -c Release -o publish/
-```
-
-### Run Tests
-
-```bash
-npm run test               # Frontend tests (Vitest)
-dotnet test src/backend.Tests  # Backend tests (xUnit)
-```
+Then open `http://localhost:5173` in your browser.
 
 ---
 
