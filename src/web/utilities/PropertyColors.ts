@@ -3,7 +3,7 @@ import { PropertyColor } from "./Types";
 /// Maps PropertyColor enum values to CSS-friendly display data.
 export const PropertyColorMap: Record<PropertyColor, { name: string; short: string; hex: string; textColor: string }> = {
     Brown:     { name: "Brown",      short: "Brn",    hex: "#6d3b15", textColor: "#fff" },
-    LightBlue: { name: "Light Blue", short: "Lt Blue", hex: "#72c5e8", textColor: "#000" },
+    LightBlue: { name: "Light Blue", short: "Lt Blue", hex: "#72c5e8", textColor: "#fff" },
     Pink:      { name: "Pink",       short: "Pink",   hex: "#d9308e", textColor: "#fff" },
     Orange:    { name: "Orange",     short: "Org",    hex: "#f58220", textColor: "#fff" },
     Red:       { name: "Red",        short: "Red",    hex: "#e3242b", textColor: "#fff" },

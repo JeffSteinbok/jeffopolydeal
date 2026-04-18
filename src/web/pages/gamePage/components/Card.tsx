@@ -11,6 +11,11 @@ import { RentIcon } from "./RentIcon";
 import IndicatorSvg from "../../../assets/Indicator.svg";
 import "./Card.css";
 
+/** For dark text on light backgrounds, use a subtle white shadow instead of a dark one. */
+function textShadowFor(textColor: string): string {
+    return textColor === "#000" ? "0 1px 2px rgba(255,255,255,0.5)" : "0 1px 2px rgba(0,0,0,0.3)";
+}
+
 interface CardProps {
     card: CardType;
     onClick?: () => void;
@@ -119,7 +124,7 @@ function PropertyLayout({ card, small }: { card: CardType; small?: boolean }) {
 
     return (
         <>
-            <div className="md-card__name-band" style={{ color: info.textColor }}>
+            <div className="md-card__name-band" style={{ color: info.textColor, textShadow: textShadowFor(info.textColor) }}>
                 {card.name}
             </div>
             <div className="md-card__body--rent">
@@ -186,7 +191,7 @@ function WildcardLayout({ card, small }: { card: CardType; small?: boolean }) {
         <>
             <div className="md-wild-dual">
                 {/* Active color header */}
-                <div className="md-wild-dual__header" style={{ backgroundColor: activeInfo.hex, color: activeInfo.textColor }}>
+                <div className="md-wild-dual__header" style={{ backgroundColor: activeInfo.hex, color: activeInfo.textColor, textShadow: textShadowFor(activeInfo.textColor) }}>
                     <div className="md-wild-dual__pretitle">Property</div>
                     <div className="md-wild-dual__title">Wild Card</div>
                     <div className="md-wild-dual__subtitle">(Use card either way up.)</div>
@@ -205,7 +210,7 @@ function WildcardLayout({ card, small }: { card: CardType; small?: boolean }) {
                     <div className="md-wild-dual__rent-label md-wild-dual__rent--flipped">RENT</div>
                 </div>
                 {/* Inactive color header (upside down) */}
-                <div className="md-wild-dual__header md-wild-dual__header--bottom" style={{ backgroundColor: inactiveInfo.hex, color: inactiveInfo.textColor }}>
+                <div className="md-wild-dual__header md-wild-dual__header--bottom" style={{ backgroundColor: inactiveInfo.hex, color: inactiveInfo.textColor, textShadow: textShadowFor(inactiveInfo.textColor) }}>
                     <div className="md-wild-dual__pretitle">Property</div>
                     <div className="md-wild-dual__title">Wild Card</div>
                     <div className="md-wild-dual__subtitle">(Use card either way up.)</div>
@@ -221,9 +226,9 @@ function TinyPropertyLayout({ card, rent }: { card: CardType; rent: number }) {
     const info = PropertyColorMap[color];
     return (
         <>
-            <div className="md-card__name-band md-card__name-band--tiny" style={{ color: info.textColor }}>{card.name}</div>
+            <div className="md-card__name-band md-card__name-band--tiny" style={{ color: info.textColor, textShadow: textShadowFor(info.textColor) }}>{card.name}</div>
             <div className="md-card__body-center">
-                <div className="md-tiny__rent">◆{rent}</div>
+                <div className="md-tiny__rent" style={{ color: info.textColor }}>◆{rent}</div>
             </div>
         </>
     );

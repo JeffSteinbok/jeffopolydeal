@@ -288,12 +288,14 @@
 
 /* Tiny variant: smaller text, wraps to fit, below badge */
 .md-card__name-band--tiny {
-    height: auto;
-    min-height: 18px;
-    font-size: 6px;
+    height: 28px;
+    min-height: 28px;
+    max-height: 28px;
+    font-size: 10px;
     padding: 14px 2px 1px;
     word-break: break-word;
     hyphens: auto;
+    overflow: hidden;
 }
 
 /* ── Rent table ───────────────────────────────── */
@@ -814,6 +816,7 @@
     color: #fff;
     text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     letter-spacing: -1px;
+    margin-top: -4px;
 }
 
 .md-tiny__dual {
@@ -848,10 +851,13 @@
 .md-card--xs .md-card__inner {
     inset: 2px;
     border-width: 1px;
+    border-radius: 3px;
 }
 
 .md-card--xs .md-card:has(.md-card__name-band) .md-card__inner,
-.md-card--xs.md-card:has(.md-card__name-band) .md-card__inner {
+.md-card--xs.md-card:has(.md-card__name-band) .md-card__inner,
+.md-card--xs .md-card:has(.md-card__header) .md-card__inner,
+.md-card--xs.md-card:has(.md-card__header) .md-card__inner {
     border-radius: 10px 3px 3px 3px;
 }
 
@@ -901,7 +907,7 @@
 }
 
 .md-card--xs .md-card__name-band {
-    font-size: 5px;
+    font-size: 6px;
     padding: 14px 2px 1px;
     line-height: 1.2;
     word-break: break-word;
