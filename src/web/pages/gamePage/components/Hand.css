@@ -2,7 +2,8 @@
     background: transparent;
     border-radius: 8px;
     padding: 12px;
-    overflow: hidden;
+    padding-top: 18px;
+    overflow: visible;
     flex-shrink: 0;
     height: 180px;
 }

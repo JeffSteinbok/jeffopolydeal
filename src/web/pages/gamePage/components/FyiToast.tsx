@@ -61,7 +61,7 @@ export function FyiToast({ toasts, smallCards }: FyiToastProps) {
             >
                 {current.cardPlayed && (
                     <div className="fyiToast-cardGroup">
-                        <CardComponent card={current.cardPlayed} small />
+                        <CardComponent card={current.cardPlayed} small={!smallCards} compact={smallCards} />
                     </div>
                 )}
                 <div className="fyiToast-body">
@@ -76,7 +76,7 @@ export function FyiToast({ toasts, smallCards }: FyiToastProps) {
                                     <span className="fyiToast-label">Gave:</span>
                                     <div className="fyiToast-cardRow">
                                         {current.sourceCards.map((c) => (
-                                            <CardComponent key={c.id} card={c} small />
+                                            <CardComponent key={c.id} card={c} small={!smallCards} compact={smallCards} />
                                         ))}
                                     </div>
                                 </div>
@@ -88,7 +88,7 @@ export function FyiToast({ toasts, smallCards }: FyiToastProps) {
                                     )}
                                     <div className="fyiToast-cardRow">
                                         {current.targetCards.map((c) => (
-                                            <CardComponent key={c.id} card={c} small />
+                                            <CardComponent key={c.id} card={c} small={!smallCards} compact={smallCards} />
                                         ))}
                                     </div>
                                 </div>

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { PendingAction, PlayerState, ActionResponse, Card } from "../../../Types";
 import { CardComponent } from "./Card";
+import IndicatorSvg from "../../../assets/Indicator.svg";
 import "./ActionModal.css";
 
 interface ActionModalProps {
@@ -14,7 +15,6 @@ interface ActionModalProps {
 
 export function ActionModal({ pendingAction, myState, paymentError, onRespond, otherPlayers, onInspect }: ActionModalProps) {
     const [selectedCardIds, setSelectedCardIds] = useState<number[]>([]);
-    const [payHint, setPayHint] = useState(false);
     const [showHand, setShowHand] = useState(false);
 
     const hasJustSayNo = myState.hand?.some((c) => c.actionKind === "JustSayNo") ?? false;
@@ -24,6 +24,14 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
 
     const payableCards = [...myState.bank];
     myState.propertySets.forEach((set) => payableCards.push(...set.cards));
+
+    // Clear stale selections when payable cards change
+    const payableIds = new Set(payableCards.map(c => c.id));
+    const validSelectedIds = selectedCardIds.filter(id => payableIds.has(id));
+    if (validSelectedIds.length !== selectedCardIds.length) {
+        // Use a timeout to avoid setting state during render
+        setTimeout(() => setSelectedCardIds(validSelectedIds), 0);
+    }
 
     const selectedTotal = selectedCardIds.reduce((sum, id) => {
         const card = payableCards.find((c) => c.id === id);
@@ -37,18 +45,15 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
 
     const toggleCard = (id: number) => {
         if (!canAfford) return;
-        setPayHint(false);
         setSelectedCardIds((prev) =>
             prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
         );
     };
 
     const handlePay = () => {
-        if (needsMore) {
-            setPayHint(true);
-            return;
-        }
-        onRespond({ playJustSayNo: false, paymentCardIds: canAfford ? selectedCardIds : [] });
+        // Filter out any stale card IDs that are no longer in payable cards
+        const validIds = selectedCardIds.filter(id => payableCards.some(c => c.id === id));
+        onRespond({ playJustSayNo: false, paymentCardIds: canAfford ? validIds : [] });
     };
 
     const handleJustSayNo = () => {
@@ -102,7 +107,7 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                     <>
                         {canAfford ? (
                             <p className="modalHint">
-                                Select cards to pay with (◆{selectedTotal} / ◆{pendingAction.amount})
+                                Select cards to pay (◆{selectedTotal} / ◆{pendingAction.amount}):
                             </p>
                         ) : (
                             <p className="modalHint">
@@ -122,12 +127,13 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                             ))}
                             {payableCards.length === 0 && <p>You have nothing to pay with!</p>}
                         </div>
-                        <div className="modalButtons">
+                        <div className="modalButtonBar">
                             <div className="payButtonWrapper">
                                 <button
                                     className="primary payButton"
                                     onClick={handlePay}
-                                    style={{ background: "#2e7d32", borderColor: "#1b5e20" }}
+                                    disabled={needsMore}
+                                    style={needsMore ? {} : { background: "#2e7d32", borderColor: "#1b5e20" }}
                                 >
                                     {payableCards.length === 0
                                         ? "I have nothing"
@@ -135,11 +141,6 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                                             ? `Pay ◆${selectedTotal}`
                                             : `Give Everything (◆${totalAssets})`}
                                 </button>
-                                {payHint && (
-                                    <div className="payHint">
-                                        Select cards above to pay at least ◆{pendingAction.amount}. You've selected ◆{selectedTotal} so far.
-                                    </div>
-                                )}
                             </div>
                             {hasJustSayNo && (
                                 <button className="primary" onClick={handleJustSayNo}>Just Say No!</button>
@@ -149,20 +150,24 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                 )}
 
                 {isStealResponse && (
-                    <div className="modalButtons">
-                        {hasJustSayNo && (
-                            <button className="primary" onClick={handleJustSayNo}>Just Say No!</button>
-                        )}
+                    <div className="modalButtonBar">
                         <button className="secondary" onClick={handleAccept}>Accept</button>
+                        <div className="modalButtonBar-right">
+                            {hasJustSayNo && (
+                                <button className="primary" onClick={handleJustSayNo}>Just Say No!</button>
+                            )}
+                        </div>
                     </div>
                 )}
 
                 {pendingAction.type === "JustSayNoChain" && (
-                    <div className="modalButtons">
-                        {hasJustSayNo && (
-                            <button className="primary" onClick={handleJustSayNo}>Counter with Just Say No!</button>
-                        )}
+                    <div className="modalButtonBar">
                         <button className="secondary" onClick={handleAccept}>Let it go</button>
+                        <div className="modalButtonBar-right">
+                            {hasJustSayNo && (
+                                <button className="primary" onClick={handleJustSayNo}>Counter with Just Say No!</button>
+                            )}
+                        </div>
                     </div>
                 )}
 
@@ -184,7 +189,8 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                                 className="modalInspect-btn"
                                 onClick={() => setShowHand(prev => !prev)}
                             >
-                                🃏 {showHand ? "Hide Hand" : "Show Hand"}
+                                <img src={IndicatorSvg} alt="cards" style={{ width: 14, height: "auto", verticalAlign: "middle", marginRight: 4 }} />
+                                {showHand ? "Hide Hand" : "Show Hand"}
                             </button>
                         </div>
                     </div>

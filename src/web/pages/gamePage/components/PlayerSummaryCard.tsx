@@ -1,6 +1,7 @@
 import React from "react";
 import { PlayerState } from "../../../Types";
 import { PropertyColorMap } from "../../../utilities/PropertyColors";
+import IndicatorSvg from "../../../assets/Indicator.svg";
 import "./PlayerSummaryCard.css";
 
 interface PlayerSummaryCardProps {
@@ -28,15 +29,18 @@ export function PlayerSummaryCard({ player, isCurrentTurn, onClick }: PlayerSumm
             tabIndex={0}
             aria-label={`View ${player.name}'s board${isCurrentTurn ? " (their turn)" : ""}`}
         >
-            <div className="playerSummary-name">
-                {isCurrentTurn && (
-                    <span className="playerSummary-turn-dot" aria-label="Current turn" role="img" />
-                )}
-                {player.name}
-            </div>
-            <div className="playerSummary-row">
-                <span className="playerSummary-stat playerSummary-money"><span className="money-diamond">◆</span>{bankTotal}</span>
-                <span className="playerSummary-stat">🃏 {player.handCount}</span>
+            <div className="playerSummary-header">
+                <div className="playerSummary-name">
+                    {isCurrentTurn && (
+                        <span className="playerSummary-turn-dot" aria-label="Current turn" role="img" />
+                    )}
+                    {player.name}
+                </div>
+                <div className="playerSummary-stats">
+                    <span className="playerSummary-stat playerSummary-money"><span className="money-diamond">◆</span>{bankTotal}</span>
+                    <span className="playerSummary-stat"><img src={IndicatorSvg} alt="cards" className="playerSummary-cardIcon" /> {player.handCount}</span>
+                    <span className="playerSummary-chevron" />
+                </div>
             </div>
             <div className="playerSummary-setpills">
                 {player.propertySets.map((set, i) => (
@@ -60,7 +64,6 @@ export function PlayerSummaryCard({ player, isCurrentTurn, onClick }: PlayerSumm
                     <span className="playerSummary-no-props">no props</span>
                 )}
             </div>
-            <span className="playerSummary-hint">tap ›</span>
         </div>
     );
 }

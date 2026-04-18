@@ -164,7 +164,7 @@
     flex-wrap: wrap;
     justify-content: center;
     flex-shrink: 0;
-    height: 170px;
+    align-items: flex-start;
     overflow: hidden;
 }
 
