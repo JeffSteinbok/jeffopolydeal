@@ -10,36 +10,6 @@
 
 A real-time multiplayer **Monopoly Deal** card game built with React, ASP.NET Core, and SignalR. Play with friends in your browser — no installs needed.
 
-> **Live at:** [jeffopolydeal.azurewebsites.net](https://jeffopolydeal.azurewebsites.net)
-
----
-
-## Features
-
-- **Real-time multiplayer** — 2–4 players via SignalR websockets
-- **AI opponents** — play against bots with built-in AI
-- **Full Monopoly Deal rules** — rent, action cards, property sets, houses/hotels, Just Say No chains
-- **Responsive UI** — desktop and mobile layouts
-- **Reconnection support** — drop and rejoin mid-game without losing your place
-- **Spectator mode** — inspect other players' boards
-
-### Implemented Cards
-
-| Category | Cards |
-|---|---|
-| **Money** | 1M, 2M, 3M, 4M, 5M, 10M |
-| **Properties** | 10 color sets (Brown → Utility), dual-color wildcards, rainbow wildcard |
-| **Actions** | Pass Go, Debt Collector, It's My Birthday, Sly Deal, Force Deal, Deal Breaker, Just Say No, Double the Rent, House, Hotel |
-| **Rent** | Single-color and multi-color rent cards |
-
-### Game Rules
-
-- Draw **2 cards** per turn (5 if your hand is empty)
-- Play up to **3 cards** per turn
-- Hand limit of **7** — discard down at end of turn
-- Collect **3 complete property sets** to win
-- Any card can be banked as money
-- Houses (+3M rent) and Hotels (+4M rent) on complete sets
 
 ---
 
