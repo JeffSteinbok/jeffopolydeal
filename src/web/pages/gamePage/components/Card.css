@@ -35,7 +35,8 @@
 }
 
 .md-card--selected {
-    border: 3px solid #4caf50 !important;
+    outline: 3px solid #4caf50;
+    outline-offset: -1px;
     box-shadow: 0 0 18px rgba(76,175,80,0.7);
     z-index: 11;
 }

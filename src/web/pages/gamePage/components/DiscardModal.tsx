@@ -36,7 +36,7 @@ export function DiscardModal({ hand, maxHandSize, onDiscard }: DiscardModalProps
                     You have {hand.length} cards — max is {maxHandSize}.
                     Select {excess} card{excess > 1 ? "s" : ""} to discard.
                 </p>
-                <div className="paymentCards">
+                <div className="paymentCards discardCards">
                     {hand.map((card) => (
                         <CardComponent
                             key={card.id}

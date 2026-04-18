@@ -237,6 +237,18 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     <img src={titleImage} alt="Jeffopoly Deal" className="lobbyTitleImage" />
                     <div className="gameCodeDisplay lobbyFadeIn">
                         Game Code: <span className="code">{state.gameCode}</span>
+                        {typeof navigator.share === "function" && (
+                            <button
+                                className="shareButton"
+                                onClick={() => navigator.share({
+                                    title: "Join my Jeffopoly Deal game!",
+                                    text: `Join my game with code: ${state.gameCode}`,
+                                    url: `${window.location.origin}?join=${state.gameCode}`,
+                                }).catch(() => {})}
+                            >
+                                📤 Share
+                            </button>
+                        )}
                     </div>
                     <div className="playerList">
                         <h3>Players ({connectedCount}/5)</h3>
@@ -431,7 +443,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
 
             {/* Leave game confirmation dialog */}
             {showLeaveConfirm && (
-                <div className="modalOverlay" onClick={() => setShowLeaveConfirm(false)}>
+                <div className="modalOverlay leaveConfirmOverlay" onClick={() => setShowLeaveConfirm(false)}>
                     <div className="leaveConfirmDialog" onClick={e => e.stopPropagation()}>
                         <h3>Leave Game?</h3>
                         <p>Are you sure you want to leave the game? This will end the game for all players.</p>

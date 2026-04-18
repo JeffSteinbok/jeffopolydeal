@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import titleImage from "../../assets/JeffopolyDeal.png";
 import "./StartPage.css";
 
@@ -10,6 +10,18 @@ export function StartPage({ onJoinGame }: StartPageProps) {
     const [mode, setMode] = useState<"menu" | "create" | "join">("menu");
     const [playerName, setPlayerName] = useState("");
     const [gameCode, setGameCode] = useState("");
+
+    // Auto-switch to join mode if ?join=CODE is in the URL
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const joinCode = params.get("join");
+        if (joinCode) {
+            setGameCode(joinCode.toUpperCase());
+            setMode("join");
+            // Clean up the URL
+            window.history.replaceState({}, "", window.location.pathname);
+        }
+    }, []);
 
     const handleCreate = () => {
         if (!playerName.trim()) return;

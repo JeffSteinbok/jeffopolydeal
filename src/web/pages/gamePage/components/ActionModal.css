@@ -110,6 +110,11 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+    align-items: center;
+}
+
+.modalInspect-showHand {
+    margin-left: auto;
 }
 
 .modalInspect-btn {
@@ -131,16 +136,33 @@
 
 .modalHand {
     margin-top: 12px;
-    padding: 10px;
-    background: rgba(76, 175, 80, 0.15);
-    border: 1px solid rgba(76, 175, 80, 0.3);
+    padding: 12px;
+    background: rgba(76, 175, 80, 0.12);
+    border: 1px solid rgba(76, 175, 80, 0.25);
     border-radius: 8px;
+}
+
+.modalHand-label {
+    font-size: 0.75rem;
+    color: #4caf50;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
 }
 
 .modalHand-cards {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
+}
+
+/* Disable hover animation on payment and discard card selections */
+.paymentCards .md-card--clickable:hover,
+.discardCards .md-card--clickable:hover {
+    transform: none;
+    box-shadow: 0 0 0 3px #4caf50;
+    border-radius: 8px;
 }
 
 .payButtonWrapper {
@@ -152,6 +174,19 @@
 
 .payButton {
     width: 100%;
+    background: #2e7d32;
+    border-color: #1b5e20;
+}
+
+.payButton:disabled {
+    background: #2e7d3288;
+    border-color: #1b5e2088;
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.justSayNoBtn {
+    white-space: nowrap;
 }
 
 /* Mobile adjustments */
