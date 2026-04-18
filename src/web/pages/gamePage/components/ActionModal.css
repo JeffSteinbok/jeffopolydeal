@@ -172,15 +172,19 @@
     width: 100%;
 }
 
-.payButton {
+button.payButton {
     width: 100%;
-    background: #2e7d32;
-    border-color: #1b5e20;
+    background: #2e7d32 !important;
+    border-color: #1b5e20 !important;
 }
 
-.payButton:disabled {
-    background: #2e7d3288;
-    border-color: #1b5e2088;
+button.payButton:hover {
+    background: #256b29 !important;
+}
+
+button.payButton:disabled {
+    background: #2e7d3288 !important;
+    border-color: #1b5e2088 !important;
     opacity: 0.7;
     cursor: not-allowed;
 }
