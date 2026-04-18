@@ -321,6 +321,14 @@
 }
 
 @media (max-width: 680px) {
+    /* Portrait mobile: allow scrolling so content isn't cut off on small screens */
+    .gamePage:not(.gamePage--landscape) {
+        height: auto;
+        min-height: 100vh;
+        min-height: 100dvh;
+        overflow-y: auto;
+    }
+
     .gamePage {
         padding: 6px;
         gap: 6px;
