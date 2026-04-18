@@ -437,7 +437,7 @@ namespace JeffopolyDeal
 
                 player.Hand.Remove(card);
                 _deck.Discard(card);
-                LogAction(player.Name, $"discarded {card.Name}", cardPlayed: card);
+                LogAction(player.Name, $"Discarded {card.Name}", cardPlayed: card);
 
                 if (player.Hand.Count <= GameConfig.MaxHandSize)
                 {
@@ -801,7 +801,7 @@ namespace JeffopolyDeal
                 {
                     responder.Hand.Remove(justSayNo);
                     _deck.Discard(justSayNo);
-                    LogAction(responder.Name, "played Just Say No!", cardPlayed: justSayNo);
+                    LogAction(responder.Name, "Played Just Say No!", cardPlayed: justSayNo);
 
                     // Save original action info the first time a JSN is played (not on subsequent counter-JSNs)
                     if (_pendingAction.OriginalSourcePlayerId == null)
@@ -1008,7 +1008,7 @@ namespace JeffopolyDeal
             }
 
             if (totalPaid > 0)
-                LogAction(payer.Name, $"paid ◆{totalPaid} to {receiver.Name}",
+                LogAction(payer.Name, $"Paid ◆{totalPaid} to {receiver.Name}",
                     targetPlayerName: receiver.Name,
                     targetCards: paidCards);
 
@@ -1052,7 +1052,7 @@ namespace JeffopolyDeal
                 }
             }
 
-            LogAction(source.Name, $"stole {_pendingAction.TargetCardName ?? "a card"} from {target.Name}",
+            LogAction(source.Name, $"Stole {_pendingAction.TargetCardName ?? "a card"} from {target.Name}",
                 targetPlayerName: target.Name,
                 targetCards: stolenCard != null ? new List<Card> { stolenCard } : null);
             _pendingAction.TargetPlayerIds.Clear();
@@ -1154,7 +1154,7 @@ namespace JeffopolyDeal
             newSet.HasHouse = targetSet.HasHouse;
             newSet.HasHotel = targetSet.HasHotel;
 
-            LogAction(source.Name, $"took {target.Name}'s complete {targetSet.Color} set!",
+            LogAction(source.Name, $"Took {target.Name}'s complete {targetSet.Color} set!",
                 targetPlayerName: target.Name,
                 targetCards: targetSet.Cards.ToList());
             _pendingAction.TargetPlayerIds.Clear();
@@ -1186,26 +1186,26 @@ namespace JeffopolyDeal
         {
             if (request.PlayAsMoney)
                 return card.CardType == CardType.Money
-                    ? $"banked ◆{card.MoneyValue}"
-                    : $"banked {card.Name}";
+                    ? $"Banked ◆{card.MoneyValue}"
+                    : $"Banked {card.Name}";
 
             switch (card.CardType)
             {
                 case CardType.Money:
-                    return $"banked ◆{card.MoneyValue}";
+                    return $"Banked ◆{card.MoneyValue}";
                 case CardType.Property:
-                    return $"placed {card.Name}";
+                    return $"Placed {card.Name}";
                 case CardType.PropertyWildcard:
-                    return $"placed {card.Name}";
+                    return $"Placed {card.Name}";
                 case CardType.Rent:
                 {
                     var color = request.RentColor?.ToString() ?? "?";
-                    return $"charged {color} Rent";
+                    return $"Charged {color} Rent";
                 }
                 case CardType.Action:
                     return DescribeAction(card, request);
                 default:
-                    return $"played {card.Name}";
+                    return $"Played {card.Name}";
             }
         }
 
@@ -1214,38 +1214,38 @@ namespace JeffopolyDeal
             switch (card.ActionKind)
             {
                 case ActionType.PassGo:
-                    return "played Pass Go";
+                    return "Played Pass Go";
                 case ActionType.DebtCollector:
                 {
                     var target = _players.FirstOrDefault(p => p.ConnectionId == request.TargetPlayerId);
-                    return $"played Debt Collector on {target?.Name ?? "a player"}";
+                    return $"Played Debt Collector on {target?.Name ?? "a player"}";
                 }
                 case ActionType.ItsMyBirthday:
-                    return "played It's My Birthday";
+                    return "Played It's My Birthday";
                 case ActionType.SlyDeal:
                 {
                     var target = _players.FirstOrDefault(p => p.ConnectionId == request.TargetPlayerId);
-                    return $"played Sly Deal on {target?.Name ?? "a player"}";
+                    return $"Played Sly Deal on {target?.Name ?? "a player"}";
                 }
                 case ActionType.ForceDeal:
                 {
                     var target = _players.FirstOrDefault(p => p.ConnectionId == request.TargetPlayerId);
-                    return $"played Force Deal with {target?.Name ?? "a player"}";
+                    return $"Played Force Deal with {target?.Name ?? "a player"}";
                 }
                 case ActionType.DealBreaker:
                 {
                     var target = _players.FirstOrDefault(p => p.ConnectionId == request.TargetPlayerId);
                     var color = request.TargetSetColor?.ToString() ?? "?";
-                    return $"played Deal Breaker on {target?.Name ?? "a player"}'s {color} set";
+                    return $"Played Deal Breaker on {target?.Name ?? "a player"}'s {color} set";
                 }
                 case ActionType.JustSayNo:
-                    return "played Just Say No!";
+                    return "Played Just Say No!";
                 case ActionType.House:
-                    return $"added House to {request.TargetSetColor} set";
+                    return $"Added House to {request.TargetSetColor} set";
                 case ActionType.Hotel:
-                    return $"added Hotel to {request.TargetSetColor} set";
+                    return $"Added Hotel to {request.TargetSetColor} set";
                 default:
-                    return $"played {card.Name}";
+                    return $"Played {card.Name}";
             }
         }
 

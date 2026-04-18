@@ -131,8 +131,22 @@
 .propertySets-row {
     display: flex;
     gap: 10px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+    scrollbar-width: thin;
+    scrollbar-color: #0f3460 transparent;
     align-items: flex-start;
+}
+
+.propertySets-row::-webkit-scrollbar {
+    height: 4px;
+}
+
+.propertySets-row::-webkit-scrollbar-thumb {
+    background: #0f3460;
+    border-radius: 2px;
 }
 
 /* Inspect mode: sets scroll horizontally, cards within each set shown side-by-side */

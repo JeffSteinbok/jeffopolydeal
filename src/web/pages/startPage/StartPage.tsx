@@ -109,6 +109,10 @@ export function StartPage({ onJoinGame }: StartPageProps) {
                     )}
                 </div>
             </div>
+            <div className="copyrightFooter">
+                <p>© {new Date().getFullYear()} Jeff Steinbok. All rights reserved.</p>
+                <p>Monopoly Deal is a trademark of Hasbro, Inc.</p>
+            </div>
         </div>
     );
 }

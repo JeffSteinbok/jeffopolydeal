@@ -88,3 +88,16 @@ input[type="text"]:focus {
     color: inherit;
     margin-right: -1px;
 }
+
+.copyrightFooter {
+    margin-top: auto;
+    padding: 12px 0 8px;
+    text-align: center;
+    font-size: 0.55rem;
+    color: #888;
+    line-height: 1.4;
+}
+
+.copyrightFooter p {
+    margin: 0;
+}

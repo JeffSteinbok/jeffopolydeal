@@ -13,6 +13,7 @@ import { DiscardModal } from "./components/DiscardModal";
 import { FyiToast } from "./components/FyiToast";
 import { DebugDeckViewer } from "./components/DebugDeckViewer";
 import titleImage from "../../assets/JeffopolyDeal.png";
+import ShareIcon from "../../assets/Share.svg";
 import "./styles/game.css";
 
 function useIsMobile(breakpoint = 680): boolean {
@@ -246,7 +247,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                                     url: `${window.location.origin}?join=${state.gameCode}`,
                                 }).catch(() => {})}
                             >
-                                📤 Share
+                                <img src={ShareIcon} alt="" className="shareIcon" /> Share
                             </button>
                         )}
                     </div>
@@ -275,6 +276,10 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     )}
                     {!canStart && <p className="waitingText">Waiting for host to start...</p>}
                     <button className="secondary" onClick={onLeave}>Exit Game</button>
+                    <div className="copyrightFooter">
+                        <p>© {new Date().getFullYear()} Jeff Steinbok. All rights reserved.</p>
+                        <p>Monopoly Deal is a trademark of Hasbro, Inc.</p>
+                    </div>
                 </div>
             </div>
         );

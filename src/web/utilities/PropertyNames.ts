@@ -14,72 +14,72 @@ export interface PropertyDef {
  * Must stay in sync with backend PropertyNames.cs.
  */
 export const PropertyNames: Record<PropertyColor, PropertyDef[]> = {
-    // Brown — Duncan, BC area / rural Vancouver Island
+    // Brown
     Brown: [
-        { cardId: "brown1", displayName: "Cowichan Station" },
-        { cardId: "brown2", displayName: "Glenora General Store" },
+        { cardId: "brown1", displayName: "Chan's Market" },
+        { cardId: "brown2", displayName: "Wendy's" },
     ],
 
-    // LightBlue — Honeymoon Bay / Lake Cowichan area
+    // LightBlue
     LightBlue: [
-        { cardId: "lightblue1", displayName: "Honeymoon Bay" },
-        { cardId: "lightblue2", displayName: "Lake Cowichan" },
-        { cardId: "lightblue3", displayName: "Mesachie Lake" },
+        { cardId: "lightblue1", displayName: "Cowichan River" },
+        { cardId: "lightblue2", displayName: "The Lot" },
+        { cardId: "lightblue3", displayName: "Inner Harbour" },
     ],
 
-    // Pink — Duncan / Cowichan Valley
+    // Pink
     Pink: [
-        { cardId: "pink1", displayName: "Duncan" },
-        { cardId: "pink2", displayName: "Maple Bay" },
-        { cardId: "pink3", displayName: "Genoa Bay" },
+        { cardId: "pink1", displayName: "Carmel Drive" },
+        { cardId: "pink2", displayName: "Doral Place" },
+        { cardId: "pink3", displayName: "Hudson Street" },
     ],
 
-    // Orange — Vancouver / Burnaby
+    // Orange
     Orange: [
-        { cardId: "orange1", displayName: "Gastown" },
-        { cardId: "orange2", displayName: "Kitsilano" },
-        { cardId: "orange3", displayName: "Commercial Drive" },
+        { cardId: "orange1", displayName: "Duncan" },
+        { cardId: "orange2", displayName: "Victoria" },
+        { cardId: "orange3", displayName: "Vancouver" },
     ],
 
-    // Red — East Side / Bellevue
+    // Red
     Red: [
-        { cardId: "red1", displayName: "Bellevue Square" },
-        { cardId: "red2", displayName: "Crossroads Mall" },
-        { cardId: "red3", displayName: "Factoria" },
+        { cardId: "red1", displayName: "SushiMe" },
+        { cardId: "red2", displayName: "Din Tai Fung" },
+        { cardId: "red3", displayName: "Prime Steakhouse" },
     ],
 
-    // Yellow — Lake Sammamish / Issaquah
+    // Yellow
     Yellow: [
-        { cardId: "yellow1", displayName: "Pine Lake" },
-        { cardId: "yellow2", displayName: "Issaquah Highlands" },
-        { cardId: "yellow3", displayName: "Sammamish Landing" },
+        { cardId: "yellow1", displayName: "Bellevue" },
+        { cardId: "yellow2", displayName: "Redmond" },
+        { cardId: "yellow3", displayName: "Sammamish" },
     ],
 
-    // Green — Seattle proper / premium areas
+    // Green
     Green: [
-        { cardId: "green1", displayName: "Capitol Hill" },
-        { cardId: "green2", displayName: "Queen Anne" },
-        { cardId: "green3", displayName: "Fremont" },
+        { cardId: "green1", displayName: "Woodbridge" },
+        { cardId: "green2", displayName: "Timberline" },
+        { cardId: "green3", displayName: "Lake House" },
     ],
 
-    // DarkBlue — Waterfront / flagship locations
+    // DarkBlue
     DarkBlue: [
-        { cardId: "darkblue1", displayName: "Alki Beach" },
-        { cardId: "darkblue2", displayName: "Pike Place Market" },
+        { cardId: "darkblue1", displayName: "False Creek" },
+        { cardId: "darkblue2", displayName: "Lake Sammamish" },
     ],
 
-    // Railroad → Sports Stadiums (Seattle & Vancouver)
+    // Railroad → Sports Stadiums
     Railroad: [
-        { cardId: "railroad1", displayName: "Lumen Field" },
-        { cardId: "railroad2", displayName: "T-Mobile Park" },
-        { cardId: "railroad3", displayName: "Climate Pledge Arena" },
-        { cardId: "railroad4", displayName: "Rogers Arena" },
+        { cardId: "railroad1", displayName: "ESP Ball Fields" },
+        { cardId: "railroad2", displayName: "Folsom Field" },
+        { cardId: "railroad3", displayName: "Lumen Field" },
+        { cardId: "railroad4", displayName: "T-Mobile Park" },
     ],
 
     // Utility
     Utility: [
-        { cardId: "utility1", displayName: "Xfinity" },
-        { cardId: "utility2", displayName: "Puget Sound Energy" },
+        { cardId: "utility1", displayName: "Safeway" },
+        { cardId: "utility2", displayName: "Whole Foods" },
     ],
 };
 

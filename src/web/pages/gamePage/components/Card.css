@@ -269,7 +269,7 @@
     text-align: center;
     font-family: 'Inter', sans-serif;
     font-weight: 400;
-    font-size: 11px;
+    font-size: 12px;
     line-height: 1.2;
     color: #fff;
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);
@@ -283,7 +283,7 @@
 .md-card--sm .md-card__name-band {
     height: 26px;
     font-size: 8px;
-    padding: 0 30px;
+    padding: 0 18px;
 }
 
 /* Tiny variant: smaller text, wraps to fit, below badge */
@@ -336,14 +336,14 @@
     font-weight: 700;
 }
 
+.md-rent-tbl__val {
+    padding-left: 30px;
+}
+
 .md-rent-tbl__icons {
     display: flex;
     align-items: center;
-    padding-right: 14px;
-}
-
-.md-rent-tbl__val {
-    padding-left: 22px;
+    padding-right: 30px;
 }
 
 /* Mini card icon with count number */
@@ -385,11 +385,15 @@
 }
 
 .md-card--sm .md-rent-tbl__icons {
-    padding-right: 4px;
+    padding-right: 16px;
 }
 
 .md-card--sm .md-rent-tbl__val {
-    padding-left: 6px;
+    padding-left: 16px;
+}
+
+.md-card--sm .md-rent-tbl__full .md-rent-tbl__val {
+    padding-left: 12px;
 }
 
 .md-card--xs .md-rent-tbl__card-icon {
@@ -411,8 +415,8 @@
 
 .md-rent-tbl__full .md-rent-tbl__val {
     color: #c62828;
-    font-weight: 900;
-    padding-left: 6px;
+    font-weight: 700;
+    padding-left: 20px;
 }
 
 .md-rent-tbl__label {
@@ -601,7 +605,7 @@
     display: flex;
     flex-direction: row;
     overflow: hidden;
-    padding: 0 3px;
+    padding: 0 10px;
 }
 
 .md-wild-dual__rent-side {
@@ -631,12 +635,12 @@
 }
 
 .md-wild-dual__rent-side .md-rent-tbl__icons {
-    padding-right: 0;
+    padding-right: 6px;
     width: 20px;
 }
 
 .md-wild-dual__rent-side .md-rent-tbl__val {
-    padding-left: 1px;
+    padding-left: 6px;
     white-space: nowrap;
 }
 
@@ -670,12 +674,12 @@
 }
 
 .md-card--sm .md-wild-dual__rent-side .md-rent-tbl__icons {
-    padding-right: 1px;
+    padding-right: 4px;
     width: 14px;
 }
 
 .md-card--sm .md-wild-dual__rent-side .md-rent-tbl__val {
-    padding-left: 1px;
+    padding-left: 4px;
 }
 
 /* Double-click hint */

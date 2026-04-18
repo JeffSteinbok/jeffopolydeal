@@ -237,7 +237,7 @@ namespace JeffopolyDeal.Models
                     CardId = NextCardId(prefix),
                     CardType = CardType.PropertyWildcard,
                     MoneyValue = moneyValue,
-                    Name = $"{color1}/{color2} Wildcard",
+                    Name = $"{color1.DisplayName()}/{color2.DisplayName()} Wildcard",
                     Color = color1,
                     AltColor = color2,
                     ActiveColor = color1,
@@ -256,7 +256,7 @@ namespace JeffopolyDeal.Models
                     CardId = NextCardId(prefix),
                     CardType = CardType.Rent,
                     MoneyValue = 1,
-                    Name = $"{colors[0]}/{colors[1]} Rent",
+                    Name = $"{colors[0].DisplayName()}/{colors[1].DisplayName()} Rent",
                     RentColors = colors.ToList(),
                 });
             }

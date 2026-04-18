@@ -405,7 +405,6 @@ function RentTable({ rents, setSize, color, reversed, hideHeader, small, isWildc
                     );
                     const valCell = (
                         <td className="md-rent-tbl__val">
-                            {full && <span className="md-rent-tbl__label">{label}</span>}
                             ◆{rent}
                         </td>
                     );

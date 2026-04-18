@@ -15,72 +15,72 @@ namespace JeffopolyDeal.Models
     /// </summary>
     public static class PropertyNames
     {
-        // Brown (2 cards) — Duncan, BC area / rural Vancouver Island
+        // Brown (2 cards)
         public static readonly PropertyDef[] Brown = {
-            new("brown1", "Cowichan Station"),
-            new("brown2", "Glenora General Store"),
+            new("brown1", "Chan's Market"),
+            new("brown2", "Wendy's"),
         };
 
-        // LightBlue (3 cards) — Honeymoon Bay / Lake Cowichan area
+        // LightBlue (3 cards)
         public static readonly PropertyDef[] LightBlue = {
-            new("lightblue1", "Honeymoon Bay"),
-            new("lightblue2", "Lake Cowichan"),
-            new("lightblue3", "Mesachie Lake"),
+            new("lightblue1", "Cowichan River"),
+            new("lightblue2", "The Lot"),
+            new("lightblue3", "Inner Harbour"),
         };
 
-        // Pink (3 cards) — Duncan / Cowichan Valley
+        // Pink (3 cards)
         public static readonly PropertyDef[] Pink = {
-            new("pink1", "Duncan"),
-            new("pink2", "Maple Bay"),
-            new("pink3", "Genoa Bay"),
+            new("pink1", "Carmel Drive"),
+            new("pink2", "Doral Place"),
+            new("pink3", "Hudson Street"),
         };
 
-        // Orange (3 cards) — Vancouver / Burnaby
+        // Orange (3 cards)
         public static readonly PropertyDef[] Orange = {
-            new("orange1", "Gastown"),
-            new("orange2", "Kitsilano"),
-            new("orange3", "Commercial Drive"),
+            new("orange1", "Duncan"),
+            new("orange2", "Victoria"),
+            new("orange3", "Vancouver"),
         };
 
-        // Red (3 cards) — East Side / Bellevue
+        // Red (3 cards)
         public static readonly PropertyDef[] Red = {
-            new("red1", "Bellevue Square"),
-            new("red2", "Crossroads Mall"),
-            new("red3", "Factoria"),
+            new("red1", "SushiMe"),
+            new("red2", "Din Tai Fung"),
+            new("red3", "Prime Steakhouse"),
         };
 
-        // Yellow (3 cards) — Lake Sammamish / Issaquah
+        // Yellow (3 cards)
         public static readonly PropertyDef[] Yellow = {
-            new("yellow1", "Pine Lake"),
-            new("yellow2", "Issaquah Highlands"),
-            new("yellow3", "Sammamish Landing"),
+            new("yellow1", "Bellevue"),
+            new("yellow2", "Redmond"),
+            new("yellow3", "Sammamish"),
         };
 
-        // Green (3 cards) — Seattle proper / premium areas
+        // Green (3 cards)
         public static readonly PropertyDef[] Green = {
-            new("green1", "Capitol Hill"),
-            new("green2", "Queen Anne"),
-            new("green3", "Fremont"),
+            new("green1", "Woodbridge"),
+            new("green2", "Timberline"),
+            new("green3", "Lake House"),
         };
 
-        // DarkBlue (2 cards) — Waterfront / flagship locations
+        // DarkBlue (2 cards)
         public static readonly PropertyDef[] DarkBlue = {
-            new("darkblue1", "Alki Beach"),
-            new("darkblue2", "Pike Place Market"),
+            new("darkblue1", "False Creek"),
+            new("darkblue2", "Lake Sammamish"),
         };
 
-        // Railroad → Sports Stadiums (4 cards) — Seattle & Vancouver
+        // Railroad → Sports Stadiums (4 cards)
         public static readonly PropertyDef[] Stadium = {
-            new("railroad1", "Lumen Field"),
-            new("railroad2", "T-Mobile Park"),
-            new("railroad3", "Climate Pledge Arena"),
-            new("railroad4", "Rogers Arena"),
+            new("railroad1", "ESP Ball Fields"),
+            new("railroad2", "Folsom Field"),
+            new("railroad3", "Lumen Field"),
+            new("railroad4", "T-Mobile Park"),
         };
 
         // Utility (2 cards)
         public static readonly PropertyDef[] Utility = {
-            new("utility1", "Xfinity"),
-            new("utility2", "Puget Sound Energy"),
+            new("utility1", "Safeway"),
+            new("utility2", "Whole Foods"),
         };
 
         /// <summary>
