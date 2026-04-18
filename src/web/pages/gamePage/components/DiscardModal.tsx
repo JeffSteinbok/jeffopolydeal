@@ -16,7 +16,9 @@ export function DiscardModal({ hand, maxHandSize, onDiscard }: DiscardModalProps
 
     const toggleCard = (id: number) => {
         setSelectedCardIds((prev) =>
-            prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+            prev.includes(id)
+                ? prev.filter((x) => x !== id)
+                : prev.length < excess ? [...prev, id] : prev
         );
     };
 

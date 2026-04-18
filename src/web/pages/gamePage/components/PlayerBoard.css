@@ -29,6 +29,18 @@
     font-weight: 700;
     font-size: 1rem;
     color: #fff;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.playerBoard-bank-total {
+    color: #4caf50;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-right: 8px;
 }
 
 .playerBoard-cards {
@@ -196,7 +208,7 @@
 
 /* "New Set" drop target */
 .propertySet-new {
-    width: 88px;
+    width: 96px;
     min-height: 80px;
     border: 2px dashed #555;
     border-radius: 8px;
@@ -248,6 +260,11 @@
 .propertySets-row--compact::-webkit-scrollbar-thumb {
     background: #0f3460;
     border-radius: 2px;
+}
+
+.propertySets-row--compact .propertySet-new {
+    width: 54px;
+    min-height: 50px;
 }
 
 /* Opponent boards on desktop: reduced size */

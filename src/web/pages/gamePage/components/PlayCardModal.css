@@ -14,7 +14,7 @@
 }
 
 .playCardModal h3 {
-    color: #e94560;
+    color: #fff;
     text-align: center;
 }
 
@@ -28,6 +28,13 @@
     gap: 8px;
     justify-content: center;
     width: 100%;
+}
+
+/* Property selection: green highlight on hover, no animation */
+.cardChoices .md-card--clickable:hover {
+    transform: none;
+    box-shadow: 0 0 0 3px #4caf50;
+    border-radius: 8px;
 }
 
 .colorChoice {
@@ -51,49 +58,53 @@
 
 .targetChoice {
     width: 100%;
-    padding: 12px 16px;
-    background: #0f3460;
+    padding: 10px 14px;
+    background: #16213e;
     color: #eee;
-    border: 1px solid #1a4a7a;
+    border: 1px solid #0f3460;
     border-radius: 8px;
     font-size: 0.9rem;
     text-align: left;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background 0.15s, border-color 0.15s;
 }
 
 .targetChoice:hover {
-    background: #1a4a7a;
+    background: #1e2d52;
+    border-color: #4caf50;
 }
 
-.targetChoice-row {
+.targetChoice--card {
     display: flex;
-    gap: 6px;
-    align-items: stretch;
-    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
 }
 
-.targetChoice-row .targetChoice {
-    flex: 1;
+.targetChoice-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
 
-.targetChoice-inspect {
-    padding: 8px 12px;
-    background: #0f3460;
-    color: #aaa;
-    border: 1px solid #1a4a7a;
-    border-radius: 8px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+.targetChoice-stats {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     flex-shrink: 0;
 }
 
-.targetChoice-inspect:hover {
-    background: #1a4a7a;
-    color: #eee;
-    transform: none;
+.targetChoice-stat {
+    font-size: 0.78rem;
+    color: #aaa;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
 }
+
 
 
 /* Action vs Money choice buttons */
@@ -194,15 +205,16 @@
     }
 
     .choiceButtons .choiceButton {
-        min-height: 52px;
-        padding: 14px 16px;
+        min-height: 44px;
+        padding: 10px 12px;
+        font-size: 0.85rem;
     }
 
     .modalButtonBar .secondary,
     .modalButtonBar-right .choiceButton {
         min-height: 0;
-        padding: 8px 14px;
-        font-size: 0.85rem;
+        padding: 6px 12px;
+        font-size: 0.78rem;
     }
 
     .cardChoices {

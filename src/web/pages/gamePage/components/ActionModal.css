@@ -54,6 +54,26 @@
     margin-top: 16px;
 }
 
+.modal .modalButtonBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    width: 100%;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.modal .modalButtonBar .secondary {
+    padding: 8px 18px;
+    font-size: 0.9rem;
+}
+
+.modal .modalButtonBar-right {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+
 .modalWarning {
     color: #ffa500;
     font-weight: bold;
@@ -134,22 +154,6 @@
     width: 100%;
 }
 
-.payHint {
-    background: #e94560;
-    color: #fff;
-    font-size: 0.8rem;
-    padding: 8px 12px;
-    border-radius: 6px;
-    margin-top: 6px;
-    text-align: center;
-    animation: fadeIn 0.15s ease-out;
-}
-
-@keyframes hintFadeIn {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-
 /* Mobile adjustments */
 @media (max-width: 680px) {
     .modal {
@@ -169,7 +173,18 @@
     }
 
     .modalButtons button {
-        min-height: 48px;
+        min-height: 40px;
+        font-size: 0.82rem;
+    }
+
+    .modal .modalButtonBar {
+        flex-direction: row;
+    }
+
+    .modal .modalButtonBar .secondary,
+    .modal .modalButtonBar .primary {
+        min-height: 40px;
+        font-size: 0.82rem;
     }
 
     .paymentCards {

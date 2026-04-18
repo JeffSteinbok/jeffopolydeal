@@ -351,6 +351,10 @@ namespace JeffopolyDeal
                 if (player == null || player.ConnectionId != connectionId)
                     return;
 
+                // Don't allow discarding if already at or below max hand size
+                if (player.Hand.Count <= GameConfig.MaxHandSize)
+                    return;
+
                 var card = player.Hand.FirstOrDefault(c => c.Id == cardId);
                 if (card == null)
                     return;
@@ -685,7 +689,10 @@ namespace JeffopolyDeal
             foreach (var id in cardIds)
             {
                 var card = payableCards.FirstOrDefault(c => c.Id == id);
-                if (card == null) return "Invalid card selected.";
+                if (card == null)
+                {
+                    return "Invalid card selected.";
+                }
                 selectedTotal += card.MoneyValue;
             }
 
@@ -693,7 +700,7 @@ namespace JeffopolyDeal
             {
                 // Player can afford it — must pay at least the required amount
                 if (selectedTotal < amountOwed)
-                    return $"You must pay at least M{amountOwed}. Selected: M{selectedTotal}.";
+                    return $"You must pay at least ◆{amountOwed}. Selected: ◆{selectedTotal}.";
             }
             else
             {
@@ -925,7 +932,7 @@ namespace JeffopolyDeal
             }
 
             if (totalPaid > 0)
-                LogAction(payer.Name, $"paid M{totalPaid} to {receiver.Name}",
+                LogAction(payer.Name, $"paid ◆{totalPaid} to {receiver.Name}",
                     targetPlayerName: receiver.Name,
                     targetCards: paidCards);
 
@@ -1103,13 +1110,13 @@ namespace JeffopolyDeal
         {
             if (request.PlayAsMoney)
                 return card.CardType == CardType.Money
-                    ? $"banked M{card.MoneyValue}"
+                    ? $"banked ◆{card.MoneyValue}"
                     : $"banked {card.Name}";
 
             switch (card.CardType)
             {
                 case CardType.Money:
-                    return $"banked M{card.MoneyValue}";
+                    return $"banked ◆{card.MoneyValue}";
                 case CardType.Property:
                     return $"placed {card.Name}";
                 case CardType.PropertyWildcard:

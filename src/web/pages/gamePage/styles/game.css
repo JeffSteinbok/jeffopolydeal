@@ -15,7 +15,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
+    height: 100%;
     gap: 20px;
     background: linear-gradient(135deg, #c8e6c9 0%, #e8f5e9 50%, #dcedc8 100%);
     margin: -8px;
@@ -88,7 +88,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
+    height: 100%;
     gap: 20px;
 }
 
@@ -164,7 +164,7 @@
     flex-wrap: wrap;
     justify-content: center;
     flex-shrink: 0;
-    height: 170px;
+    align-items: flex-start;
     overflow: hidden;
 }
 
@@ -263,7 +263,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
+    height: 100%;
     font-size: 1.3rem;
 }
 
@@ -321,6 +321,14 @@
 }
 
 @media (max-width: 680px) {
+    /* Portrait mobile: allow scrolling so content isn't cut off on small screens */
+    .gamePage:not(.gamePage--landscape) {
+        height: auto;
+        min-height: 100vh;
+        min-height: 100dvh;
+        overflow-y: auto;
+    }
+
     .gamePage {
         padding: 6px;
         gap: 6px;

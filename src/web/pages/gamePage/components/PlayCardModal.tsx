@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { Card, PlayCardRequest, GameState, PlayerState, PropertyColor } from "../../../Types";
 import { CardComponent } from "./Card";
 import { PropertyColorMap } from "../../../utilities/PropertyColors";
+import IndicatorSvg from "../../../assets/Indicator.svg";
 import "./PlayCardModal.css";
 
 interface PlayCardModalProps {
@@ -292,10 +293,12 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                 <div className="playCardModal" onClick={e => e.stopPropagation()}>
                     <h3>Choose target player</h3>
                     <div className="targetChoices">
-                        {otherPlayers.map(p => (
-                            <div key={p.connectionId} className="targetChoice-row">
+                        {otherPlayers.map(p => {
+                            const bankTotal = p.bank.reduce((s, c) => s + c.moneyValue, 0);
+                            return (
                                 <button
-                                    className="targetChoice"
+                                    key={p.connectionId}
+                                    className="targetChoice targetChoice--card"
                                     onClick={() => {
                                         const newReq = { ...request, targetPlayerId: p.connectionId };
                                         setRequest(newReq);
@@ -310,20 +313,15 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                                         }
                                     }}
                                 >
-                                    {p.name} — 🃏{p.handCount} | <span className="money-diamond">◆</span>{p.bank.reduce((s, c) => s + c.moneyValue, 0)} | {p.completedSetCount}/3 sets
+                                    <span className="targetChoice-name">{p.name}</span>
+                                    <span className="targetChoice-stats">
+                                        <span className="targetChoice-stat" style={{ color: "#4caf50" }}>◆{bankTotal}</span>
+                                        <span className="targetChoice-stat"><img src={IndicatorSvg} alt="cards" style={{ width: 12, height: "auto", verticalAlign: "middle" }} /> {p.handCount}</span>
+                                        <span className="targetChoice-stat">{p.completedSetCount}/3</span>
+                                    </span>
                                 </button>
-                                {onInspect && (
-                                    <button
-                                        className="targetChoice-inspect"
-                                        onClick={e => { e.stopPropagation(); onInspect(p); }}
-                                        aria-label={`Inspect ${p.name}'s board`}
-                                        title={`Inspect ${p.name}'s board`}
-                                    >
-                                        🔍
-                                    </button>
-                                )}
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                     <button className="secondary" onClick={onCancel}>Cancel</button>
                 </div>

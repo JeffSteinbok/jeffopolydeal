@@ -1,16 +1,16 @@
 .playerSummary {
     background: #16213e;
     border: 1px solid #0f3460;
-    border-radius: 10px;
-    padding: 10px 12px;
+    border-radius: 8px;
+    padding: 6px 12px;
     cursor: pointer;
     transition: background 0.15s, transform 0.1s;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    flex: 0 0 160px;
-    min-width: 160px;
-    max-width: 160px;
+    gap: 3px;
+    flex: 0 0 140px;
+    min-width: 140px;
+    max-width: 140px;
     position: relative;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
@@ -26,22 +26,36 @@
     box-shadow: 0 0 0 2px rgba(233, 69, 96, 0.3);
 }
 
+.playerSummary-header {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
 .playerSummary-name {
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: 0.72rem;
     color: #fff;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding-right: 20px;
+    gap: 4px;
+    min-width: 0;
+    flex: 1;
+}
+
+.playerSummary-stats {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
 }
 
 .playerSummary-turn-dot {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     background: #e94560;
     flex-shrink: 0;
@@ -53,16 +67,13 @@
     50% { opacity: 0.4; }
 }
 
-.playerSummary-row {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
 .playerSummary-stat {
-    font-size: 0.78rem;
+    font-size: 0.56rem;
     color: #ccc;
     white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
 }
 
 .playerSummary-money {
@@ -70,10 +81,25 @@
     font-weight: 700;
 }
 
+.playerSummary-cardIcon {
+    width: 10px;
+    height: auto;
+}
+
+.playerSummary-chevron {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-right: 2px solid #555;
+    border-bottom: 2px solid #555;
+    transform: rotate(-45deg);
+    flex-shrink: 0;
+}
+
 /* Set pills */
 .playerSummary-setpills {
     display: flex;
-    gap: 4px;
+    gap: 3px;
     flex-wrap: wrap;
     align-items: center;
 }
@@ -82,9 +108,9 @@
     display: inline-flex;
     align-items: center;
     gap: 2px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-size: 0.7rem;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 0.56rem;
     font-weight: 700;
     border: 1px solid rgba(255, 255, 255, 0.2);
     white-space: nowrap;
@@ -98,25 +124,17 @@
 }
 
 .playerSummary-setpill-check {
-    font-size: 0.65rem;
+    font-size: 0.52rem;
     opacity: 0.9;
 }
 
 .playerSummary-setpill-icon {
-    font-size: 0.7rem;
+    font-size: 0.56rem;
     line-height: 1;
 }
 
 .playerSummary-no-props {
-    font-size: 0.7rem;
+    font-size: 0.56rem;
     color: #555;
     font-style: italic;
-}
-
-.playerSummary-hint {
-    position: absolute;
-    top: 8px;
-    right: 10px;
-    font-size: 0.7rem;
-    color: #555;
 }

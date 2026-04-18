@@ -16,7 +16,7 @@ const moneyColors: Record<number, string> = {
 };
 
 function BankDisplay({ bank }: { bank: Card[] }) {
-    const total = bank.reduce((sum, c) => sum + c.moneyValue, 0);
+    const bankTotal = bank.reduce((sum, c) => sum + c.moneyValue, 0);
 
     // Group by denomination
     const denomCounts: Record<number, number> = {};
@@ -29,10 +29,6 @@ function BankDisplay({ bank }: { bank: Card[] }) {
 
     return (
         <div className="bank-display">
-            <div className="bank-header-row">
-                <span className="section-label">Bank</span>
-                <span className="bank-total"><span className="money-diamond">◆</span>{total}</span>
-            </div>
             <div className="bank-denoms">
                 {denoms.map(d => (
                     <span
@@ -47,7 +43,7 @@ function BankDisplay({ bank }: { bank: Card[] }) {
                         ◆{d.value} ×{d.count}
                     </span>
                 ))}
-                {denoms.length === 0 && <span className="emptyHint">Empty</span>}
+                {denoms.length === 0 && <span className="emptyHint">Bank Empty</span>}
             </div>
         </div>
     );
@@ -71,6 +67,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
     // Pointer drag state for mobile
     const pointerDragCardId = React.useRef<number | null>(null);
     const pointerStartPos = React.useRef<{ x: number; y: number } | null>(null);
+    const pointerOffset = React.useRef<{ x: number; y: number }>({ x: 0, y: 0 });
     const pointerDragging = React.useRef(false);
     const dragClone = React.useRef<HTMLElement | null>(null);
     const draggedElement = React.useRef<HTMLElement | null>(null);
@@ -131,6 +128,8 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
         if (e.pointerType === "mouse" || !canDrag) return;
         pointerDragCardId.current = cardId;
         pointerStartPos.current = { x: e.clientX, y: e.clientY };
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        pointerOffset.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
         pointerDragging.current = false;
         draggedElement.current = e.currentTarget as HTMLElement;
         (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
@@ -156,8 +155,8 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
         }
 
         if (pointerDragging.current && dragClone.current) {
-            dragClone.current.style.left = `${e.clientX - 40}px`;
-            dragClone.current.style.top = `${e.clientY - 55}px`;
+            dragClone.current.style.left = `${e.clientX - pointerOffset.current.x}px`;
+            dragClone.current.style.top = `${e.clientY - pointerOffset.current.y}px`;
 
             // Highlight drop target under pointer
             const elem = document.elementFromPoint(e.clientX, e.clientY);
@@ -229,6 +228,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
         <div className={`playerBoard ${isMe ? "playerBoard-me" : "playerBoard--opponent"}`}>
             <div className="playerBoard-header">
                 <span className="playerBoard-name">{player.name}</span>
+                <span className="playerBoard-bank-total"><span className="money-diamond">◆</span>{player.bank.reduce((s, c) => s + c.moneyValue, 0)}</span>
                 <span className="playerBoard-cards"><img src={IndicatorSvg} alt="cards" className="playerBoard-cardIcon" /> {isMe ? (player.hand?.length ?? 0) : player.handCount}</span>
             </div>
 
@@ -292,7 +292,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                         ))}
 
                         {/* Unassigned wilds as a standard stack */}
-                        {(isMe || inspectMode) && (player.unboundWilds?.length > 0 || canDrag) && (
+                        {(isMe || inspectMode) && player.unboundWilds?.length > 0 && (
                             <div
                                 className={`propertySet-column propertySet-unbound ${canDrag ? "propertySet-column--droppable" : ""} ${dragOverTarget === "unbound" ? "propertySet-column--drag-over" : ""}`}
                                 onDragOver={canDrag ? handleDragOver : undefined}
@@ -329,7 +329,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDropNewSet}
                             >
-                                <div className="propertySet-new-label">+ New Set</div>
+                                <div className="propertySet-new-label">New Set</div>
                             </div>
                         )}
 

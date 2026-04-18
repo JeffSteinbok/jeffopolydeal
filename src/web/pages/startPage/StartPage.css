@@ -2,7 +2,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 100vh;
+    height: 100%;
     background: linear-gradient(135deg, #c8e6c9 0%, #e8f5e9 50%, #dcedc8 100%);
 }
 
