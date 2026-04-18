@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,6 +13,12 @@ namespace JeffopolyDeal.Models
         public string PlayerId { get; set; } = "";
         public string ConnectionId { get; set; } = "";
         public string Name { get; set; } = "";
+
+        /// <summary>Whether this player currently has an active connection.</summary>
+        public bool IsConnected { get; set; } = true;
+
+        /// <summary>When the player disconnected (null if connected).</summary>
+        public DateTime? DisconnectedAt { get; set; }
 
         /// <summary>Cards in the player's hand (hidden from other players).</summary>
         public List<Card> Hand { get; set; } = new();

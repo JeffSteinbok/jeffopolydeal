@@ -49,6 +49,7 @@ export interface PlayerState {
     connectionId: string;
     name: string;
     handCount: number;
+    isConnected: boolean;
     hand?: Card[];
     bank: Card[];
     propertySets: PropertySetState[];
