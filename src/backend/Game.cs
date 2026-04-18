@@ -147,6 +147,32 @@ namespace JeffopolyDeal
                     player.ConnectionId = newConnectionId;
                     player.IsConnected = true;
                     player.DisconnectedAt = null;
+
+                    // Remap pending action references from old to new ConnectionId
+                    if (_pendingAction != null)
+                    {
+                        if (_pendingAction.SourcePlayerId == oldConnectionId)
+                            _pendingAction.SourcePlayerId = newConnectionId;
+                        if (_pendingAction.JustSayNoResponderId == oldConnectionId)
+                            _pendingAction.JustSayNoResponderId = newConnectionId;
+                        if (_pendingAction.OriginalSourcePlayerId == oldConnectionId)
+                            _pendingAction.OriginalSourcePlayerId = newConnectionId;
+
+                        for (int i = 0; i < _pendingAction.TargetPlayerIds.Count; i++)
+                        {
+                            if (_pendingAction.TargetPlayerIds[i] == oldConnectionId)
+                                _pendingAction.TargetPlayerIds[i] = newConnectionId;
+                        }
+                        if (_pendingAction.OriginalTargetPlayerIds != null)
+                        {
+                            for (int i = 0; i < _pendingAction.OriginalTargetPlayerIds.Count; i++)
+                            {
+                                if (_pendingAction.OriginalTargetPlayerIds[i] == oldConnectionId)
+                                    _pendingAction.OriginalTargetPlayerIds[i] = newConnectionId;
+                            }
+                        }
+                    }
+
                     found = true;
                 }
                 else if (_phase == GamePhase.Lobby)
