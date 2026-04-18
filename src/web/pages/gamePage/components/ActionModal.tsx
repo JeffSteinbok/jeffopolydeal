@@ -101,16 +101,15 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
         <div className="modalOverlay">
             <div className="modal">
                 <h3>{getTitle()}</h3>
-                {getDescription() && <p className="modalDescription">{getDescription()}</p>}
 
-                {isPayment && (
+                {isPayment ? (
                     <>
                         {canAfford ? (
-                            <p className="modalHint">
-                                Select cards to pay (◆{selectedTotal} / ◆{pendingAction.amount}):
+                            <p className="modalDescription">
+                                {getDescription()} Select cards (◆{selectedTotal} / ◆{pendingAction.amount}):
                             </p>
                         ) : (
-                            <p className="modalHint">
+                            <p className="modalDescription">
                                 <span className="modalWarning">You can't afford ◆{pendingAction.amount} — the game will take everything you have (◆{totalAssets}).</span>
                             </p>
                         )}
@@ -133,7 +132,6 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                                     className="primary payButton"
                                     onClick={handlePay}
                                     disabled={needsMore}
-                                    style={needsMore ? {} : { background: "#2e7d32", borderColor: "#1b5e20" }}
                                 >
                                     {payableCards.length === 0
                                         ? "I have nothing"
@@ -143,10 +141,12 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                                 </button>
                             </div>
                             {hasJustSayNo && (
-                                <button className="primary" onClick={handleJustSayNo}>Just Say No!</button>
+                                <button className="primary justSayNoBtn" onClick={handleJustSayNo}>Just Say No!</button>
                             )}
                         </div>
                     </>
+                ) : (
+                    getDescription() && <p className="modalDescription">{getDescription()}</p>
                 )}
 
                 {isStealResponse && (
@@ -154,7 +154,7 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                         <button className="secondary" onClick={handleAccept}>Accept</button>
                         <div className="modalButtonBar-right">
                             {hasJustSayNo && (
-                                <button className="primary" onClick={handleJustSayNo}>Just Say No!</button>
+                                <button className="primary justSayNoBtn" onClick={handleJustSayNo}>Just Say No!</button>
                             )}
                         </div>
                     </div>
@@ -165,7 +165,7 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                         <button className="secondary" onClick={handleAccept}>Let it go</button>
                         <div className="modalButtonBar-right">
                             {hasJustSayNo && (
-                                <button className="primary" onClick={handleJustSayNo}>Counter with Just Say No!</button>
+                                <button className="primary justSayNoBtn" onClick={handleJustSayNo}>Counter with Just Say No!</button>
                             )}
                         </div>
                     </div>
@@ -186,7 +186,7 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                                 </button>
                             ))}
                             <button
-                                className="modalInspect-btn"
+                                className="modalInspect-btn modalInspect-showHand"
                                 onClick={() => setShowHand(prev => !prev)}
                             >
                                 <img src={IndicatorSvg} alt="cards" style={{ width: 14, height: "auto", verticalAlign: "middle", marginRight: 4 }} />
@@ -198,6 +198,7 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
 
                 {showHand && myState.hand && myState.hand.length > 0 && (
                     <div className="modalHand">
+                        <div className="modalHand-label">Your Hand</div>
                         <div className="modalHand-cards">
                             {myState.hand.map(c => (
                                 <CardComponent key={c.id} card={c} small />

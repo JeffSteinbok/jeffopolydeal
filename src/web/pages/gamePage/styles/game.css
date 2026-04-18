@@ -47,6 +47,11 @@
 .gameCodeDisplay {
     font-size: 1rem;
     color: #aaa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
 }
 
 .gameCodeDisplay .code {
@@ -54,6 +59,21 @@
     font-weight: 800;
     color: #b71c1c;
     letter-spacing: 0.15em;
+}
+
+.shareButton {
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    background: #0f3460;
+    color: #ccc;
+    border: 1px solid #1a4a7a;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.shareButton:hover {
+    background: #1a4a7a;
+    color: #eee;
 }
 
 .playerList {
@@ -414,6 +434,10 @@
 }
 
 /* Leave game confirmation dialog */
+.leaveConfirmOverlay {
+    align-items: center !important;
+}
+
 .leaveConfirmDialog {
     background: #16213e;
     border: 1px solid rgba(100, 180, 255, 0.4);

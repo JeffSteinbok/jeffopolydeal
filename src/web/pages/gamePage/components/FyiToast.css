@@ -3,6 +3,8 @@
     top: 58px;
     left: 8px;
     right: 8px;
+    max-width: 500px;
+    margin: 0 auto;
     z-index: 900;
     pointer-events: none;
 }
@@ -16,7 +18,7 @@
     color: #e0e0e0;
     animation: fyiToastIn 0.3s ease-out;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-    width: 100%;
+    max-width: none;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -59,7 +61,7 @@
     align-items: center;
     gap: 10px;
     margin-top: 6px;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
 }
 
 .fyiToast-cardGroup {
@@ -106,6 +108,7 @@
 @media (max-width: 680px) {
     .fyiToast-container {
         top: 50px;
+        max-width: none;
     }
 
     .fyiToast {
