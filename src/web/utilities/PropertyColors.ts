@@ -5,7 +5,7 @@ export const PropertyColorMap: Record<PropertyColor, { name: string; short: stri
     Brown:     { name: "Brown",      short: "Brn",    hex: "#6d3b15", textColor: "#fff" },
     LightBlue: { name: "Light Blue", short: "Lt Blue", hex: "#72c5e8", textColor: "#000" },
     Pink:      { name: "Pink",       short: "Pink",   hex: "#d9308e", textColor: "#fff" },
-    Orange:    { name: "Orange",     short: "Org",    hex: "#f58220", textColor: "#000" },
+    Orange:    { name: "Orange",     short: "Org",    hex: "#f58220", textColor: "#fff" },
     Red:       { name: "Red",        short: "Red",    hex: "#e3242b", textColor: "#fff" },
     Yellow:    { name: "Yellow",     short: "Yel",    hex: "#feed00", textColor: "#000" },
     Green:     { name: "Green",      short: "Grn",    hex: "#1fb25a", textColor: "#fff" },

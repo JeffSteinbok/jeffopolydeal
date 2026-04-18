@@ -265,10 +265,10 @@
 .md-card__name-band {
     width: 100%;
     height: 34px;
-    padding: 0 38px;
+    padding: 0 36px;
     text-align: center;
     font-family: 'Inter', sans-serif;
-    font-weight: 400;
+    font-weight: 700;
     font-size: 12px;
     line-height: 1.2;
     color: #fff;
@@ -529,13 +529,18 @@
 }
 
 .md-wild-dual__header {
-    padding: 2px 4px;
+    padding: 6px 4px;
     text-align: center;
     font-family: 'Inter', sans-serif;
     font-weight: 900;
     color: #fff;
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);
     flex-shrink: 0;
+    height: 34px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .md-wild-dual__header--bottom {
@@ -543,34 +548,39 @@
 }
 
 .md-wild-dual__pretitle {
-    font-size: 6px;
+    font-size: 7px;
     text-transform: uppercase;
     line-height: 1.1;
     letter-spacing: 0.1em;
 }
 
 .md-card--sm .md-wild-dual__pretitle {
-    font-size: 5px;
+    font-size: 6px;
+}
+
+.md-card--sm .md-wild-dual__header {
+    height: 26px;
+    padding: 2px 4px;
 }
 
 .md-wild-dual__title {
-    font-size: 8px;
+    font-size: 10px;
     text-transform: uppercase;
     line-height: 1.1;
 }
 
 .md-card--sm .md-wild-dual__title {
-    font-size: 6px;
+    font-size: 8px;
 }
 
 .md-wild-dual__subtitle {
-    font-size: 6px;
+    font-size: 7px;
     opacity: 0.8;
     line-height: 1.1;
 }
 
 .md-card--sm .md-wild-dual__subtitle {
-    font-size: 4px;
+    font-size: 5px;
 }
 
 /* Side-by-side rent tables in dual wild */

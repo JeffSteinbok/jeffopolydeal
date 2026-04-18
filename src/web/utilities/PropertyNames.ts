@@ -43,7 +43,7 @@ export const PropertyNames: Record<PropertyColor, PropertyDef[]> = {
 
     // Red
     Red: [
-        { cardId: "red1", displayName: "SushiMe" },
+        { cardId: "red1", displayName: "Sushi Me" },
         { cardId: "red2", displayName: "Din Tai Fung" },
         { cardId: "red3", displayName: "Prime Steakhouse" },
     ],

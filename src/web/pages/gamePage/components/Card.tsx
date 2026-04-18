@@ -132,13 +132,13 @@ function PropertyLayout({ card, small }: { card: CardType; small?: boolean }) {
 /* ── Property Wildcard ─────────────────────────── */
 const RAINBOW_COLORS = [
     PropertyColorMap.Brown.hex,
+    PropertyColorMap.LightBlue.hex,
     PropertyColorMap.Pink.hex,
     PropertyColorMap.Orange.hex,
     PropertyColorMap.Red.hex,
     PropertyColorMap.Yellow.hex,
     PropertyColorMap.Green.hex,
     PropertyColorMap.DarkBlue.hex,
-    PropertyColorMap.LightBlue.hex,
     PropertyColorMap.Railroad.hex,
     PropertyColorMap.Utility.hex,
 ];
@@ -186,7 +186,7 @@ function WildcardLayout({ card, small }: { card: CardType; small?: boolean }) {
         <>
             <div className="md-wild-dual">
                 {/* Active color header */}
-                <div className="md-wild-dual__header" style={{ backgroundColor: activeInfo.hex }}>
+                <div className="md-wild-dual__header" style={{ backgroundColor: activeInfo.hex, color: activeInfo.textColor }}>
                     <div className="md-wild-dual__pretitle">Property</div>
                     <div className="md-wild-dual__title">Wild Card</div>
                     <div className="md-wild-dual__subtitle">(Use card either way up.)</div>
@@ -205,7 +205,7 @@ function WildcardLayout({ card, small }: { card: CardType; small?: boolean }) {
                     <div className="md-wild-dual__rent-label md-wild-dual__rent--flipped">RENT</div>
                 </div>
                 {/* Inactive color header (upside down) */}
-                <div className="md-wild-dual__header md-wild-dual__header--bottom" style={{ backgroundColor: inactiveInfo.hex }}>
+                <div className="md-wild-dual__header md-wild-dual__header--bottom" style={{ backgroundColor: inactiveInfo.hex, color: inactiveInfo.textColor }}>
                     <div className="md-wild-dual__pretitle">Property</div>
                     <div className="md-wild-dual__title">Wild Card</div>
                     <div className="md-wild-dual__subtitle">(Use card either way up.)</div>

@@ -44,7 +44,7 @@ namespace JeffopolyDeal.Models
 
         // Red (3 cards)
         public static readonly PropertyDef[] Red = {
-            new("red1", "SushiMe"),
+            new("red1", "Sushi Me"),
             new("red2", "Din Tai Fung"),
             new("red3", "Prime Steakhouse"),
         };
