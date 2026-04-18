@@ -227,6 +227,10 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
 
     // Lobby
     if (state.phase === "Lobby") {
+        const connectedCount = state.players.filter(p => p.isConnected).length;
+        // Allow any connected player to start if the original host is disconnected
+        const canStart = isCreator || (state.players[0] && !state.players[0].isConnected);
+
         return (
             <div className="gamePage">
                 <div className="lobby">
@@ -235,14 +239,15 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                         Game Code: <span className="code">{state.gameCode}</span>
                     </div>
                     <div className="playerList">
-                        <h3>Players ({state.players.length}/5)</h3>
+                        <h3>Players ({connectedCount}/5)</h3>
                         {state.players.map((p) => (
-                            <div key={p.connectionId} className="playerName">
-                                {p.name} {p.connectionId === myConnectionId ? "(you)" : ""}
+                            <div key={p.playerId} className={`playerName${p.isConnected ? "" : " disconnected"}`}>
+                                {p.name} {p.playerId === playerId ? "(you)" : ""}
+                                {!p.isConnected && <span className="disconnectedLabel"> (reconnecting...)</span>}
                             </div>
                         ))}
                     </div>
-                    {isCreator && (
+                    {canStart && (
                         <button
                             className="primary"
                             onClick={() => client?.startGame(
@@ -251,12 +256,12 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                                 Debug.isFlagSet(DebugFlags.PopulatedBoards),
                                 Debug.isFlagSet(DebugFlags.PlayVsAi) || Debug.isFlagSet(DebugFlags.PopulatedBoards)
                             )}
-                            disabled={state.players.length < minPlayers}
+                            disabled={connectedCount < minPlayers}
                         >
-                            Start Game {state.players.length < minPlayers ? `(need ${minPlayers}+ players)` : ""}
+                            Start Game {connectedCount < minPlayers ? `(need ${minPlayers}+ players)` : ""}
                         </button>
                     )}
-                    {!isCreator && <p className="waitingText">Waiting for host to start...</p>}
+                    {!canStart && <p className="waitingText">Waiting for host to start...</p>}
                     <button className="secondary" onClick={onLeave}>Exit Game</button>
                 </div>
             </div>

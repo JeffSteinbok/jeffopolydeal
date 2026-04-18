@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace JeffopolyDeal
@@ -16,7 +17,9 @@ namespace JeffopolyDeal
         private readonly IHubContext<GameHub> _hubContext;
         private readonly ConcurrentDictionary<string, string> _connectionToGame = new();
         private readonly ConcurrentDictionary<string, Game> _games = new();
+        private readonly ConcurrentDictionary<string, CancellationTokenSource> _cleanupTimers = new();
         private readonly Random _rng = new();
+        private static readonly TimeSpan LobbyCleanupDelay = TimeSpan.FromMinutes(2);
 
         public GameCache(IHubContext<GameHub> hubContext)
         {
@@ -50,6 +53,7 @@ namespace JeffopolyDeal
             if (!_games.TryGetValue(gameCode, out var game))
                 return;
 
+            CancelCleanupTimer(gameCode);
             _connectionToGame[connectionId] = gameCode;
             await game.ConnectPlayerAsync(connectionId, playerName, playerId);
         }
@@ -64,6 +68,7 @@ namespace JeffopolyDeal
             if (!_games.TryGetValue(gameCode, out var game))
                 return false;
 
+            CancelCleanupTimer(gameCode);
             _connectionToGame[connectionId] = gameCode;
             return await game.ReconnectPlayerAsync(connectionId, playerName, playerId);
         }
@@ -129,11 +134,60 @@ namespace JeffopolyDeal
             if (_games.TryGetValue(gameCode, out var game))
             {
                 await game.RemovePlayerAsync(connectionId);
-                // Only delete the game if it's safe (lobby or game over with no connections)
+
                 if (game.CanBeDeleted)
                 {
-                    _games.TryRemove(gameCode, out _);
+                    // Schedule delayed cleanup — gives disconnected lobby players time to rejoin
+                    ScheduleGameCleanup(gameCode);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Schedule a delayed cleanup for a lobby game. Cancels any existing timer for this game.
+        /// </summary>
+        private void ScheduleGameCleanup(string gameCode)
+        {
+            // Cancel any existing timer for this game
+            CancelCleanupTimer(gameCode);
+
+            var cts = new CancellationTokenSource();
+            _cleanupTimers[gameCode] = cts;
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(LobbyCleanupDelay, cts.Token);
+                }
+                catch (TaskCanceledException)
+                {
+                    return; // Timer was cancelled (player reconnected)
+                }
+
+                // Timer fired — clean up expired players first
+                if (_games.TryGetValue(gameCode, out var game))
+                {
+                    await game.CleanupExpiredLobbyPlayersAsync();
+
+                    // Re-check: if still deletable, remove the game
+                    if (game.CanBeDeleted)
+                    {
+                        _games.TryRemove(gameCode, out _);
+                    }
+                }
+
+                _cleanupTimers.TryRemove(gameCode, out _);
+            });
+        }
+
+        /// <summary>Cancel a pending cleanup timer for a game (e.g., when a player reconnects).</summary>
+        private void CancelCleanupTimer(string gameCode)
+        {
+            if (_cleanupTimers.TryRemove(gameCode, out var cts))
+            {
+                cts.Cancel();
+                cts.Dispose();
             }
         }
 

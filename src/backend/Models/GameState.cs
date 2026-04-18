@@ -147,6 +147,9 @@ namespace JeffopolyDeal.Models
         public string Name { get; set; } = "";
         public int HandCount { get; set; }
 
+        /// <summary>Whether this player is currently connected.</summary>
+        public bool IsConnected { get; set; } = true;
+
         /// <summary>Only populated for the requesting player.</summary>
         public List<Card>? Hand { get; set; }
 

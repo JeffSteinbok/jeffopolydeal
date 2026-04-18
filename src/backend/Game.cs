@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace JeffopolyDeal
@@ -50,6 +51,13 @@ namespace JeffopolyDeal
         #region Connection Management
 
         private const int MaxPlayers = 5;
+        private static readonly TimeSpan LobbyGracePeriod = TimeSpan.FromMinutes(2);
+
+        /// <summary>Number of currently connected players (excludes disconnected lobby players).</summary>
+        public int ConnectedPlayerCount
+        {
+            get { lock (_lock) { return _players.Count(p => p.IsConnected); } }
+        }
 
         public async Task ConnectPlayerAsync(string connectionId, string playerName, string playerId)
         {
@@ -63,14 +71,15 @@ namespace JeffopolyDeal
                 if (_players.Any(p => p.ConnectionId == connectionId))
                     return;
 
-                if (_players.Count >= MaxPlayers)
+                if (_players.Count(p => p.IsConnected) >= MaxPlayers)
                     return;
 
                 _players.Add(new Player
                 {
                     PlayerId = playerId,
                     ConnectionId = connectionId,
-                    Name = playerName
+                    Name = playerName,
+                    IsConnected = true,
                 });
             }
 
@@ -83,13 +92,39 @@ namespace JeffopolyDeal
             lock (_lock)
             {
                 _connections.Remove(connectionId);
-                // Only remove from player list during lobby — active game players may reconnect
                 if (_phase == GamePhase.Lobby)
                 {
-                    _players.RemoveAll(p => p.ConnectionId == connectionId);
+                    // Mark as disconnected instead of removing — give them a grace period
+                    var player = _players.FirstOrDefault(p => p.ConnectionId == connectionId);
+                    if (player != null)
+                    {
+                        player.IsConnected = false;
+                        player.DisconnectedAt = DateTime.UtcNow;
+                    }
                 }
             }
             await BroadcastGameStateAsync();
+        }
+
+        /// <summary>
+        /// Remove lobby players whose grace period has expired.
+        /// Returns true if any players were removed.
+        /// </summary>
+        public async Task<bool> CleanupExpiredLobbyPlayersAsync()
+        {
+            bool removed = false;
+            lock (_lock)
+            {
+                if (_phase != GamePhase.Lobby) return false;
+                var now = DateTime.UtcNow;
+                removed = _players.RemoveAll(p =>
+                    !p.IsConnected &&
+                    p.DisconnectedAt.HasValue &&
+                    (now - p.DisconnectedAt.Value) >= LobbyGracePeriod) > 0;
+            }
+            if (removed)
+                await BroadcastGameStateAsync();
+            return removed;
         }
 
         /// <summary>Whether the game can be safely deleted (no connections AND in lobby or game over).</summary>
@@ -110,14 +145,25 @@ namespace JeffopolyDeal
                     _connections.Remove(oldConnectionId);
                     _connections[newConnectionId] = true;
                     player.ConnectionId = newConnectionId;
+                    player.IsConnected = true;
+                    player.DisconnectedAt = null;
                     found = true;
                 }
                 else if (_phase == GamePhase.Lobby)
                 {
-                    // Player not found — join as new player in lobby
-                    _connections[newConnectionId] = true;
-                    _players.Add(new Player { PlayerId = playerId, ConnectionId = newConnectionId, Name = playerName });
-                    found = true;
+                    // Player not found — join as new player in lobby (if room)
+                    if (_players.Count(p => p.IsConnected) < MaxPlayers)
+                    {
+                        _connections[newConnectionId] = true;
+                        _players.Add(new Player
+                        {
+                            PlayerId = playerId,
+                            ConnectionId = newConnectionId,
+                            Name = playerName,
+                            IsConnected = true,
+                        });
+                        found = true;
+                    }
                 }
             }
 
@@ -138,6 +184,10 @@ namespace JeffopolyDeal
             lock (_lock)
             {
                 int minPlayers = allowSinglePlayer ? 1 : 2;
+
+                // Remove disconnected players before starting
+                _players.RemoveAll(p => !p.IsConnected);
+
                 if (_phase != GamePhase.Lobby || _players.Count < minPlayers)
                     return;
 
@@ -1370,6 +1420,7 @@ namespace JeffopolyDeal
                     ConnectionId = player.ConnectionId,
                     Name = player.Name,
                     HandCount = player.Hand.Count,
+                    IsConnected = player.IsConnected,
                     Bank = player.Bank.ToList(),
                     UnboundWilds = player.UnboundWilds.ToList(),
                     CompletedSetCount = player.CompletedSetCount,
@@ -1445,9 +1496,11 @@ namespace JeffopolyDeal
                 playersCopy = _players.ToList();
             }
 
-            // Send personalized state to each player (with their own hand)
+            // Send personalized state to each connected player (with their own hand)
             foreach (var player in playersCopy)
             {
+                if (!player.IsConnected) continue;
+
                 GameState state;
                 lock (_lock)
                 {
