@@ -136,6 +136,18 @@ namespace JeffopolyDeal.Hubs
             }
         }
 
+        public async Task CancelDiscard()
+        {
+            try
+            {
+                await _gameCache.CancelDiscardAsync(Context.ConnectionId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CancelDiscard");
+            }
+        }
+
         public async Task RespondToAction(ActionResponse response)
         {
             try

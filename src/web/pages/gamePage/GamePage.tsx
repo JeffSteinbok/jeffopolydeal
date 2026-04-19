@@ -348,6 +348,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                                     await client?.discardCard(id);
                                 }
                             }}
+                            onCancel={state.playsUsed < 3 ? () => client?.cancelDiscard() : undefined}
                         />
                     )}
 
@@ -394,6 +395,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                                         await client?.discardCard(id);
                                     }
                                 }}
+                                onCancel={state.playsUsed < 3 ? () => client?.cancelDiscard() : undefined}
                             />
                         )}
 

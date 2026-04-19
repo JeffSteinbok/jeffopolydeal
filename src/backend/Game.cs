@@ -416,6 +416,25 @@ namespace JeffopolyDeal
             await BroadcastGameStateAsync();
         }
 
+        public async Task CancelDiscardAsync(string connectionId)
+        {
+            lock (_lock)
+            {
+                if (_phase != GamePhase.Discard)
+                    return;
+
+                var player = GetCurrentPlayer();
+                if (player == null || player.ConnectionId != connectionId)
+                    return;
+
+                if (_playsUsed >= GameConfig.MaxPlaysPerTurn)
+                    return;
+
+                _phase = GamePhase.Play;
+            }
+            await BroadcastGameStateAsync();
+        }
+
         public async Task DiscardCardAsync(string connectionId, int cardId)
         {
             lock (_lock)

@@ -7,9 +7,10 @@ interface DiscardModalProps {
     hand: Card[];
     maxHandSize: number;
     onDiscard: (cardIds: number[]) => void;
+    onCancel?: () => void;
 }
 
-export function DiscardModal({ hand, maxHandSize, onDiscard }: DiscardModalProps) {
+export function DiscardModal({ hand, maxHandSize, onDiscard, onCancel }: DiscardModalProps) {
     const [selectedCardIds, setSelectedCardIds] = useState<number[]>([]);
     const excess = hand.length - maxHandSize;
     const remaining = excess - selectedCardIds.length;
@@ -53,6 +54,11 @@ export function DiscardModal({ hand, maxHandSize, onDiscard }: DiscardModalProps
                         : "Ready to discard!"}
                 </p>
                 <div className="modalButtons">
+                    {onCancel && (
+                        <button className="secondary" onClick={onCancel}>
+                            Go Back &amp; Play
+                        </button>
+                    )}
                     <button
                         className="primary"
                         onClick={handleConfirm}

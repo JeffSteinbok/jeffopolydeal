@@ -97,6 +97,10 @@ export class GameSignalRClient {
         await this.connection.invoke("DiscardCard", cardId);
     }
 
+    async cancelDiscard(): Promise<void> {
+        await this.connection.invoke("CancelDiscard");
+    }
+
     async respondToAction(response: ActionResponse): Promise<void> {
         await this.connection.invoke("RespondToAction", response);
     }

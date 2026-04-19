@@ -119,6 +119,13 @@ namespace JeffopolyDeal
             await game.DiscardCardAsync(connectionId, cardId);
         }
 
+        public async Task CancelDiscardAsync(string connectionId)
+        {
+            var game = GetGameForConnection(connectionId);
+            if (game == null) return;
+            await game.CancelDiscardAsync(connectionId);
+        }
+
         public async Task RespondToActionAsync(string connectionId, ActionResponse response)
         {
             var game = GetGameForConnection(connectionId);
