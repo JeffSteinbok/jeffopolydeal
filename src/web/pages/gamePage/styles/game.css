@@ -25,7 +25,15 @@
     min-height: 100vh;
     min-height: 100dvh;
     margin: -8px;
+    margin-top: calc(-1 * max(8px, env(safe-area-inset-top)));
+    margin-left: calc(-1 * max(8px, env(safe-area-inset-left)));
+    margin-right: calc(-1 * max(8px, env(safe-area-inset-right)));
+    margin-bottom: calc(-1 * max(8px, env(safe-area-inset-bottom)));
     padding: 8px;
+    padding-top: max(8px, env(safe-area-inset-top));
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
 }
 
 .lobbyTitleImage {

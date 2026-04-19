@@ -21,7 +21,7 @@
     animation: fyiToastIn 0.3s ease-out;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     max-width: none;
-    overflow: hidden;
+    overflow: visible;
     display: flex;
     align-items: center;
     gap: 12px;

@@ -223,7 +223,7 @@ namespace JeffopolyDeal
                     player.Hand.AddRange(_deck.Draw(GameConfig.InitialHandSize));
                 }
 
-                _currentPlayerIndex = 0;
+                _currentPlayerIndex = Random.Shared.Next(_players.Count);
                 _playsUsed = 0;
                 _phase = GamePhase.Draw;
 

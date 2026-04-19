@@ -882,8 +882,9 @@
     font-size: 6px;
     padding: 10px 2px 1px;
     line-height: 1.2;
-    word-break: break-word;
-    hyphens: auto;
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: none;
     height: 25px;
     min-height: 25px;
     max-height: 25px;
