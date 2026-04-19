@@ -4,6 +4,7 @@ import { GameState, Card, PlayCardRequest, PlayerState, GameAction } from "../..
 import { Logger } from "../../utilities/Logger";
 import { Debug, DebugFlags } from "../../utilities/Debug";
 import { CardComponent } from "./components/Card";
+import { PropertyColorMap } from "../../utilities/PropertyColors";
 import { PlayerBoard } from "./components/PlayerBoard";
 import { PlayerSummaryCard } from "./components/PlayerSummaryCard";
 import { PlayerInspectModal } from "./components/PlayerInspectModal";
@@ -288,11 +289,33 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
 
     // Game Over
     if (state.phase === "GameOver") {
+        const winner = state.players.find(p => p.playerId === state.winnerId);
+        const completeSets = winner?.propertySets.filter(s => s.isComplete) ?? [];
         return (
             <div className="gamePage">
                 <div className="gameOver">
                     <h2>🎉 Game Over!</h2>
                     <p className="winnerName">{state.winnerName} wins!</p>
+                    {completeSets.length > 0 && (
+                        <div className="gameOver-sets">
+                            {completeSets.map((set) => (
+                                <div key={set.setId} className="gameOver-set">
+                                    <div
+                                        className="gameOver-set-header"
+                                        style={{ backgroundColor: PropertyColorMap[set.color].hex, color: PropertyColorMap[set.color].textColor }}
+                                    >
+                                        {set.cards.length}/{set.requiredSize} ✓
+                                        {set.hasHotel ? " 🏨" : set.hasHouse ? " 🏠" : ""}
+                                    </div>
+                                    <div className="gameOver-set-cards">
+                                        {set.cards.map((card) => (
+                                            <CardComponent key={card.id} card={card} small />
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                     <button className="primary" onClick={onLeave}>Play Again</button>
                 </div>
             </div>
