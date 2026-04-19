@@ -53,13 +53,14 @@ interface PlayerBoardProps {
     player: PlayerState;
     isMe?: boolean;
     isMyTurn?: boolean;
+    isCurrentTurn?: boolean;
     compact?: boolean;
     inspectMode?: boolean;
     onFlipCard?: (cardId: number) => void;
     onMoveProperty?: (cardId: number, targetSetId: number, targetColor: string | null) => void;
 }
 
-export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFlipCard, onMoveProperty }: PlayerBoardProps) {
+export function PlayerBoard({ player, isMe, isMyTurn, isCurrentTurn, compact, inspectMode, onFlipCard, onMoveProperty }: PlayerBoardProps) {
     const canDrag = isMe && isMyTurn && !!onMoveProperty;
     const [expandedSet, setExpandedSet] = React.useState<PropertySetState | null>(null);
 
@@ -235,9 +236,9 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
     };
 
     return (
-        <div className={`playerBoard ${isMe ? "playerBoard-me" : "playerBoard--opponent"}`}>
+        <div className={`playerBoard ${isMe ? "playerBoard-me" : "playerBoard--opponent"}${isCurrentTurn ? " playerBoard--currentTurn" : ""}`}>
             <div className="playerBoard-header">
-                <span className="playerBoard-name">{player.name}</span>
+                <span className="playerBoard-name">{player.name}{isCurrentTurn && " 🎲"}</span>
                 <span className="playerBoard-bank-total"><span className="money-diamond">◆</span>{player.bank.reduce((s, c) => s + c.moneyValue, 0)}</span>
                 <span className="playerBoard-cards"><img src={IndicatorSvg} alt="cards" className="playerBoard-cardIcon" /> {isMe ? (player.hand?.length ?? 0) : player.handCount}</span>
             </div>

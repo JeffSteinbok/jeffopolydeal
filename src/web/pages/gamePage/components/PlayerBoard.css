@@ -287,6 +287,10 @@
     min-width: 180px;
 }
 
+.playerBoard--currentTurn {
+    box-shadow: 0 0 0 2px #e94560, 0 0 12px rgba(233, 69, 96, 0.3);
+}
+
 .playerBoard--opponent .playerBoard-header {
     margin-bottom: 4px;
     padding-bottom: 4px;

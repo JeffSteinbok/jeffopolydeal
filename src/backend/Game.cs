@@ -231,6 +231,13 @@ namespace JeffopolyDeal
                 {
                     PopulateBoardsForDebug();
                 }
+
+                // If the starting player is a bot, auto-play their turn
+                var firstPlayer = GetCurrentPlayer();
+                if (firstPlayer != null && BotAI.IsBot(firstPlayer.ConnectionId))
+                {
+                    PlayBotTurn(firstPlayer);
+                }
             }
             await BroadcastGameStateAsync();
         }

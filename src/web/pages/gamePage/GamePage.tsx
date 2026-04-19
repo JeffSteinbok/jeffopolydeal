@@ -294,24 +294,17 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         return (
             <div className="gamePage">
                 <div className="gameOver">
-                    <h2>🎉 Game Over!</h2>
-                    <p className="winnerName">{state.winnerName} wins!</p>
+                    <img src={titleImage} alt="Jeffopoly Deal" className="gameOver-logo" />
+                    <p className="winnerName">🎉 {state.winnerName} Wins! 🎉</p>
                     {completeSets.length > 0 && (
                         <div className="gameOver-sets">
                             {completeSets.map((set) => (
                                 <div key={set.setId} className="gameOver-set">
-                                    <div
-                                        className="gameOver-set-header"
-                                        style={{ backgroundColor: PropertyColorMap[set.color].hex, color: PropertyColorMap[set.color].textColor }}
-                                    >
-                                        {set.cards.length}/{set.requiredSize} ✓
-                                        {set.hasHotel ? " 🏨" : set.hasHouse ? " 🏠" : ""}
-                                    </div>
-                                    <div className="gameOver-set-cards">
-                                        {set.cards.map((card) => (
-                                            <CardComponent key={card.id} card={card} small />
-                                        ))}
-                                    </div>
+                                    {set.cards.map((card, idx) => (
+                                        <div key={card.id} className="gameOver-set-card" style={idx > 0 ? { marginTop: -95 } : undefined}>
+                                            <CardComponent card={card} small />
+                                        </div>
+                                    ))}
                                 </div>
                             ))}
                         </div>
@@ -396,7 +389,12 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 <div className="desktopLayout">
                     <div className="opponentSidebar">
                         {otherPlayers.map((p) => (
-                            <PlayerBoard key={p.connectionId} player={p} compact />
+                            <PlayerBoard
+                                key={p.connectionId}
+                                player={p}
+                                isCurrentTurn={state.players[state.currentPlayerIndex]?.playerId === p.playerId}
+                                compact
+                            />
                         ))}
                     </div>
 
