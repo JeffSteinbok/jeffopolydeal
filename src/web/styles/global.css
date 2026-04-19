@@ -8,12 +8,12 @@ html {
     height: 100%;
     overflow: hidden;
     overscroll-behavior: none;
-    background: #0a1628;
 }
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #0a1628;
+    background: linear-gradient(135deg, #c8e6c9 0%, #e8f5e9 50%, #dcedc8 100%);
+    background-attachment: fixed;
     color: #222;
     height: 100%;
     overflow: hidden;
