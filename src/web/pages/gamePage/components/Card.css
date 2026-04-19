@@ -28,10 +28,17 @@
 }
 
 .md-card--clickable { cursor: pointer; }
-.md-card--clickable:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 14px 28px rgba(0,0,0,0.4);
-    z-index: 10;
+@media (hover: hover) {
+    .md-card--clickable:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 14px 28px rgba(0,0,0,0.4);
+        z-index: 10;
+    }
+    .gamePage--mobile .md-card--clickable:hover {
+        transform: none !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.3) !important;
+        z-index: unset !important;
+    }
 }
 
 .md-card--selected {

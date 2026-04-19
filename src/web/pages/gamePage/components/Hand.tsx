@@ -115,7 +115,7 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, smallCa
             </div>
             <div
                 ref={containerRef}
-                className={`hand-cards${!canPlay ? " hand-cards--disabled" : ""}${needsOverlap ? " hand-cards--overlap" : ""}`}
+                className={`hand-cards${!canPlay ? " hand-cards--disabled" : ""}${needsOverlap && !smallCards ? " hand-cards--overlap" : ""}`}
             >
                 {cards.map((card, idx) => (
                     <div

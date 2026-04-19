@@ -66,6 +66,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     const [inspectedPlayer, setInspectedPlayer] = useState<PlayerState | null>(null);
     const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
     const [toasts, setToasts] = useState<GameAction[]>([]);
+    const [toastBusy, setToastBusy] = useState(false);
     const clientRef = useRef<GameSignalRClient | null>(null);
     const seenActionIdsRef = useRef<Set<number>>(new Set());
     const firstStateRef = useRef(true);
@@ -304,7 +305,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         state.pendingAction?.targetPlayerIds.includes(myConnectionId ?? "");
 
     return (
-        <div className={`gamePage${isLandscape ? " gamePage--landscape" : ""}`}>
+        <div className={`gamePage${isLandscape ? " gamePage--landscape" : ""}${isMobile ? " gamePage--mobile" : ""}`}>
             <div className="gameHeader">
                 <img src={titleImage} alt="Jeffopoly Deal" className="gameHeaderTitleImage" />
                 <div className="gameHeader-right">
@@ -338,7 +339,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                         onMoveProperty={(cardId, targetSetId, targetColor) => client?.moveProperty(cardId, targetSetId, targetColor)}
                     />
 
-                    {state.phase === "Discard" && isMyTurn && me.hand && (
+                    {state.phase === "Discard" && isMyTurn && me.hand && !toastBusy && (
                         <DiscardModal
                             hand={me.hand}
                             maxHandSize={7}
@@ -384,7 +385,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                             onMoveProperty={(cardId, targetSetId, targetColor) => client?.moveProperty(cardId, targetSetId, targetColor)}
                         />
 
-                        {state.phase === "Discard" && isMyTurn && me.hand && (
+                        {state.phase === "Discard" && isMyTurn && me.hand && !toastBusy && (
                             <DiscardModal
                                 hand={me.hand}
                                 maxHandSize={7}
@@ -414,7 +415,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 </>
             )}
 
-            {state.phase === "Draw" && isMyTurn && (
+            {state.phase === "Draw" && isMyTurn && !toastBusy && (
                 <div className="modalOverlay" style={{ alignItems: "center" }}>
                     <div className="drawTurnPopup">
                         <h2 className="drawTurnPopup-title">It's Your Turn!</h2>
@@ -425,7 +426,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 </div>
             )}
 
-            {needsResponse && state.pendingAction && (
+            {needsResponse && state.pendingAction && !toastBusy && (
                 <ActionModal
                     pendingAction={state.pendingAction}
                     myState={me}
@@ -436,7 +437,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 />
             )}
 
-            <FyiToast toasts={toasts} smallCards={isMobile} />
+            <FyiToast toasts={toasts} smallCards={isMobile} onBusyChange={setToastBusy} />
 
             {/* Player inspect bottom sheet — z-index above ActionModal */}
             {inspectedPlayer && (

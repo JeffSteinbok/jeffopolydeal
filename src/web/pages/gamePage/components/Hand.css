@@ -147,15 +147,25 @@
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* Overlapping mode: hover behavior */
-.hand-cards--overlap .hand-card-wrapper:hover {
+/* Overlapping mode: hover behavior (desktop only) */
+.gamePage:not(.gamePage--mobile) .hand-cards--overlap .hand-card-wrapper:hover {
     transform: translateY(-6px);
     z-index: 20;
     margin-right: 0px !important;
 }
 
-.hand-cards--overlap .hand-card-wrapper:hover + .hand-card-wrapper {
+.gamePage:not(.gamePage--mobile) .hand-cards--overlap .hand-card-wrapper:hover + .hand-card-wrapper {
     margin-left: 0px;
+}
+
+.gamePage--mobile .hand-cards--overlap .hand-card-wrapper:hover {
+    transform: none !important;
+    margin-right: unset !important;
+    z-index: unset !important;
+}
+
+.gamePage--mobile .hand-cards--overlap .hand-card-wrapper:hover + .hand-card-wrapper {
+    margin-left: unset !important;
 }
 
 /* Mobile/landscape: horizontal scroll, no wrap */
@@ -180,13 +190,26 @@
         border-radius: 2px;
     }
 
-    /* No overlap on mobile — scroll instead */
-    .hand-cards--overlap .hand-card-wrapper {
-        margin-right: 0;
+    .hand-card-wrapper:hover {
+        transform: none !important;
     }
+
+    /* No overlap fan-out on mobile */
     .hand-cards--overlap .hand-card-wrapper:hover {
-        transform: none;
-        margin-right: 0;
+        transform: none !important;
+        margin-right: inherit;
+    }
+    .hand-cards--overlap .hand-card-wrapper:hover + .hand-card-wrapper {
+        margin-left: inherit;
+    }
+
+    .hand {
+        padding-top: 6px;
+        height: 160px;
+    }
+
+    .hand-header {
+        margin-bottom: 4px;
     }
 }
 

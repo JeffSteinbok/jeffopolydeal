@@ -16,10 +16,12 @@
     border: 2px solid #0f3460;
     border-radius: 12px;
     padding: 24px;
-    max-width: 500px;
+    max-width: 560px;
     width: 90%;
     max-height: 80vh;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 
 .modal h3 {
@@ -45,6 +47,10 @@
     flex-wrap: wrap;
     gap: 6px;
     margin-bottom: 16px;
+    overflow-y: auto;
+    flex-shrink: 1;
+    min-height: 0;
+    padding: 4px;
 }
 
 .modalButtons {

@@ -1,5 +1,5 @@
 import React from "react";
-import { PlayerState, Card } from "../../../Types";
+import { PlayerState, Card, PropertySetState } from "../../../Types";
 import { CardComponent } from "./Card";
 import { PropertyColorMap } from "../../../utilities/PropertyColors";
 import IndicatorSvg from "../../../assets/Indicator.svg";
@@ -61,7 +61,17 @@ interface PlayerBoardProps {
 
 export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFlipCard, onMoveProperty }: PlayerBoardProps) {
     const canDrag = isMe && isMyTurn && !!onMoveProperty;
-    const [expandedCard, setExpandedCard] = React.useState<Card | null>(null);
+    const [expandedSet, setExpandedSet] = React.useState<PropertySetState | null>(null);
+
+    // ESC to close expanded set
+    React.useEffect(() => {
+        if (!expandedSet) return;
+        const handler = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setExpandedSet(null);
+        };
+        window.addEventListener("keydown", handler);
+        return () => window.removeEventListener("keydown", handler);
+    }, [expandedSet]);
     const [dragOverTarget, setDragOverTarget] = React.useState<string | null>(null);
 
     // Pointer drag state for mobile
@@ -275,7 +285,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                                             onPointerDown={canDrag ? (e) => handlePropertyPointerDown(e, card.id) : undefined}
                                             onPointerMove={canDrag ? handlePropertyPointerMove : undefined}
                                             onPointerUp={canDrag ? handlePropertyPointerUp : undefined}
-                                            onDoubleClick={compact ? () => setExpandedCard(card) : undefined}
+                                            onClick={() => setExpandedSet(set)}
                                         >
                                             <CardComponent
                                                 card={card}
@@ -338,24 +348,38 @@ export function PlayerBoard({ player, isMe, isMyTurn, compact, inspectMode, onFl
                 </div>
             </div>
 
-            {/* Card expand overlay for mobile/compact mode */}
-            {expandedCard && (
-                <div className="cardExpand-overlay" onClick={() => setExpandedCard(null)}>
-                    <div className="cardExpand-card" onClick={(e) => e.stopPropagation()}>
-                        <CardComponent card={expandedCard} />
-                        {isMe && expandedCard.cardType === "PropertyWildcard" && !expandedCard.isMulticolorWild && onFlipCard && (
-                            <button
-                                className="secondary"
-                                style={{ marginTop: 8, fontSize: "0.8rem", padding: "6px 12px" }}
-                                onClick={() => { onFlipCard(expandedCard.id); setExpandedCard(null); }}
-                            >
-                                Flip
-                            </button>
-                        )}
+            {/* Card expand overlay */}
+            {expandedSet && (
+                <div className="cardExpand-overlay" onClick={() => setExpandedSet(null)}>
+                    <div className="cardExpand-card cardExpand-set" onClick={(e) => e.stopPropagation()}>
+                        <div
+                            className="cardExpand-set-header"
+                            style={{ backgroundColor: PropertyColorMap[expandedSet.color].hex, color: PropertyColorMap[expandedSet.color].textColor }}
+                        >
+                            {`${expandedSet.cards.length}/${expandedSet.requiredSize}`}
+                            {expandedSet.isComplete && " ✓"}
+                            {expandedSet.hasHotel ? " 🏨" : expandedSet.hasHouse ? " 🏠" : ""}
+                        </div>
+                        <div className="cardExpand-set-cards">
+                            {expandedSet.cards.map((card) => (
+                                <div key={card.id} className="cardExpand-set-item">
+                                    <CardComponent card={card} small />
+                                    {isMe && card.cardType === "PropertyWildcard" && !card.isMulticolorWild && onFlipCard && (
+                                        <button
+                                            className="secondary"
+                                            style={{ marginTop: 4, fontSize: "0.7rem", padding: "4px 8px" }}
+                                            onClick={() => { onFlipCard(card.id); setExpandedSet(null); }}
+                                        >
+                                            Flip
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                         <button
                             className="secondary"
                             style={{ marginTop: 8, fontSize: "0.8rem", padding: "6px 12px" }}
-                            onClick={() => setExpandedCard(null)}
+                            onClick={() => setExpandedSet(null)}
                         >
                             Close
                         </button>

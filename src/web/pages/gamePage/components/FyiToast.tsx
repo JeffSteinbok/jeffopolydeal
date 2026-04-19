@@ -6,13 +6,36 @@ import "./FyiToast.css";
 interface FyiToastProps {
     toasts: GameAction[];
     smallCards?: boolean;
+    onBusyChange?: (busy: boolean) => void;
 }
 
-export function FyiToast({ toasts, smallCards }: FyiToastProps) {
+export function FyiToast({ toasts, smallCards, onBusyChange }: FyiToastProps) {
     const [queue, setQueue] = useState<GameAction[]>([]);
     const [current, setCurrent] = useState<GameAction | null>(null);
     const [leaving, setLeaving] = useState(false);
     const seenRef = useRef<Set<number>>(new Set());
+
+    // Notify parent when busy state changes (debounce busy→false to avoid dialog flash)
+    const busy = current !== null || queue.length > 0;
+    const prevBusyRef = useRef(false);
+    const busyTimerRef = useRef<ReturnType<typeof setTimeout>>();
+    useEffect(() => {
+        if (busy !== prevBusyRef.current) {
+            clearTimeout(busyTimerRef.current);
+            if (busy) {
+                // Going busy: notify immediately
+                prevBusyRef.current = true;
+                onBusyChange?.(true);
+            } else {
+                // Going idle: delay longer than stagger interval so dialogs don't flash
+                busyTimerRef.current = setTimeout(() => {
+                    prevBusyRef.current = false;
+                    onBusyChange?.(false);
+                }, 1500);
+            }
+        }
+        return () => clearTimeout(busyTimerRef.current);
+    }, [busy, onBusyChange]);
 
     // Enqueue new toasts
     useEffect(() => {
@@ -59,6 +82,7 @@ export function FyiToast({ toasts, smallCards }: FyiToastProps) {
                 className={`fyiToast${leaving ? " fyiToast--leaving" : ""}`}
                 onAnimationEnd={(e) => handleAnimationEnd(e.animationName)}
             >
+                <button className="fyiToast-close" onClick={() => { setCurrent(null); setLeaving(false); }}>✕</button>
                 {current.cardPlayed && (
                     <div className="fyiToast-cardGroup">
                         <CardComponent card={current.cardPlayed} small={!smallCards} compact={smallCards} />

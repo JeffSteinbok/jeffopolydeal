@@ -10,6 +10,8 @@
 }
 
 .fyiToast {
+    pointer-events: auto;
+    position: relative;
     background: rgb(22, 33, 62);
     border: 2px solid rgba(100, 180, 255, 0.4);
     border-radius: 8px;
@@ -23,6 +25,23 @@
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+.fyiToast-close {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 4px;
+    line-height: 1;
+}
+
+.fyiToast-close:hover {
+    color: #fff;
 }
 
 .fyiToast-body {

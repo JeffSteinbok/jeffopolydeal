@@ -330,7 +330,7 @@
 .cardExpand-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.65);
+    background: rgba(0, 0, 0, 0.7);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -338,10 +338,40 @@
 }
 
 .cardExpand-card {
+    background: #16213e;
+    border: 2px solid #0f3460;
+    border-radius: 12px;
+    padding: 24px;
+    min-width: 320px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 12px;
+}
+
+.cardExpand-set-cards {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.cardExpand-set-header {
+    width: 100%;
+    text-align: left;
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 5px 12px;
+    border-radius: 8px;
+    letter-spacing: 0.03em;
+}
+
+.cardExpand-set-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 
