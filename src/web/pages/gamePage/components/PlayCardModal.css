@@ -153,6 +153,12 @@
     border-color: #1b5e20;
 }
 
+.choiceButton--secondary {
+    background: #16213e;
+    color: #eee;
+    border-color: #0f3460;
+}
+
 /* Button bar — cancel left, actions right */
 .modalButtonBar {
     display: flex;

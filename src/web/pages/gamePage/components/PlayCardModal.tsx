@@ -233,19 +233,12 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
     // Step: pick Double the Rent cards to stack
     if (step === "pickDoubleRent") {
         const doubleCards = (myState.hand ?? []).filter(c => c.actionKind === "DoubleTheRent" && c.id !== card.id);
-        const selectedDoubles = (request as any).doubleRentCardIds as number[] ?? [];
         const rentSet = myState.propertySets.find(s => s.color === request.rentColor);
         let baseRent = rentSet?.rent ?? 0;
-        let multiplied = baseRent * Math.pow(2, selectedDoubles.length);
 
-        const toggleDouble = (id: number) => {
-            const current = selectedDoubles;
-            const updated = current.includes(id) ? current.filter(x => x !== id) : [...current, id];
-            setRequest({ ...request, doubleRentCardIds: updated } as any);
-        };
-
-        const finishRent = () => {
-            const finalReq = { ...request, doubleRentCardIds: selectedDoubles.length > 0 ? selectedDoubles : undefined };
+        const finishWithDouble = (useDouble: boolean) => {
+            const doubleId = useDouble ? doubleCards[0]?.id : undefined;
+            const finalReq = { ...request, doubleRentCardIds: doubleId ? [doubleId] : undefined };
             if (card.isWildRent) {
                 setRequest(finalReq);
                 setStep("pickTarget");
@@ -259,28 +252,17 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                 <div className="playCardModal" onClick={e => e.stopPropagation()}>
                     <h3>Double the Rent?</h3>
                     <p className="modalHint">
-                        Base rent: ◆{baseRent} → With doubles: ◆{multiplied}
-                        <br />Each Double the Rent counts as a card play.
+                        Charge ◆{baseRent * 2} instead of ◆{baseRent}?
+                        <br />Uses an extra card play.
                     </p>
-                    <div className="cardChoices">
-                        {doubleCards.map(c => (
-                            <CardComponent
-                                key={c.id}
-                                card={c}
-                                small
-                                selected={selectedDoubles.includes(c.id)}
-                                onClick={() => toggleDouble(c.id)}
-                            />
-                        ))}
-                    </div>
                     <div className="choiceButtons">
-                        <button className="choiceButton choiceButton--action" onClick={finishRent}>
-                            {selectedDoubles.length > 0
-                                ? `⚡ Charge ◆${multiplied} (${selectedDoubles.length}x doubled)`
-                                : `⚡ Charge ◆${baseRent} (no double)`}
+                        <button className="choiceButton choiceButton--action" onClick={() => finishWithDouble(true)}>
+                            ⚡ Yes, Double It! (◆{baseRent * 2})
+                        </button>
+                        <button className="choiceButton choiceButton--secondary" onClick={() => finishWithDouble(false)}>
+                            No, Charge ◆{baseRent}
                         </button>
                     </div>
-                    <button className="secondary" onClick={onCancel}>Cancel</button>
                 </div>
             </div>
         );
