@@ -46,7 +46,7 @@ namespace JeffopolyDeal.Tests
         {
             var h = new TestGameHarness();
             var p1 = await h.AddPlayerAsync("Alice");
-            await h.Game.StartGameAsync(allowSinglePlayer: true);
+            await h.Game.StartGameAsync(allowSinglePlayer: true, startingPlayerIndex: 0);
 
             Assert.Equal(GamePhase.Draw, h.GetPhase(p1));
         }
@@ -203,7 +203,7 @@ namespace JeffopolyDeal.Tests
             var p1 = await h.AddPlayerAsync("Alice");
             var p2 = await h.AddPlayerAsync("Bob");
 
-            await h.Game.StartGameAsync(allowSinglePlayer: false, populateBoards: true);
+            await h.Game.StartGameAsync(allowSinglePlayer: false, populateBoards: true, startingPlayerIndex: 0);
 
             Assert.True(h.GetHand(p1).Count <= GameConfig.MaxHandSize);
             Assert.True(h.GetHand(p2).Count <= GameConfig.MaxHandSize);

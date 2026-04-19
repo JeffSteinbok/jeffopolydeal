@@ -58,7 +58,7 @@ namespace JeffopolyDeal.Tests
         {
             var p1 = await AddPlayerAsync(p1Name);
             var p2 = await AddPlayerAsync(p2Name);
-            await _game.StartGameAsync(allowSinglePlayer: false);
+            await _game.StartGameAsync(allowSinglePlayer: false, startingPlayerIndex: 0);
             return (p1, p2);
         }
 
@@ -69,7 +69,7 @@ namespace JeffopolyDeal.Tests
             var p1 = await AddPlayerAsync(p1Name);
             var p2 = await AddPlayerAsync(p2Name);
             var p3 = await AddPlayerAsync(p3Name);
-            await _game.StartGameAsync(allowSinglePlayer: false);
+            await _game.StartGameAsync(allowSinglePlayer: false, startingPlayerIndex: 0);
             return (p1, p2, p3);
         }
 

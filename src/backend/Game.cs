@@ -205,7 +205,7 @@ namespace JeffopolyDeal
 
         #region Game Flow
 
-        public async Task StartGameAsync(bool allowSinglePlayer = false, bool populateBoards = false)
+        public async Task StartGameAsync(bool allowSinglePlayer = false, bool populateBoards = false, int? startingPlayerIndex = null)
         {
             lock (_lock)
             {
@@ -223,7 +223,7 @@ namespace JeffopolyDeal
                     player.Hand.AddRange(_deck.Draw(GameConfig.InitialHandSize));
                 }
 
-                _currentPlayerIndex = Random.Shared.Next(_players.Count);
+                _currentPlayerIndex = startingPlayerIndex ?? Random.Shared.Next(_players.Count);
                 _playsUsed = 0;
                 _phase = GamePhase.Draw;
 

@@ -27,7 +27,7 @@ namespace JeffopolyDeal.Tests
             var h = new TestGameHarness();
             var human = await h.AddPlayerAsync("Human");
             var bot = await h.AddBotAsync("BotAlice");
-            await h.Game.StartGameAsync(allowSinglePlayer: false);
+            await h.Game.StartGameAsync(allowSinglePlayer: false, startingPlayerIndex: 0);
 
             await h.DrawAsync(human);
 
@@ -52,7 +52,7 @@ namespace JeffopolyDeal.Tests
             var h = new TestGameHarness();
             var human = await h.AddPlayerAsync("Human");
             var bot = await h.AddBotAsync("BotBob");
-            await h.Game.StartGameAsync(allowSinglePlayer: false);
+            await h.Game.StartGameAsync(allowSinglePlayer: false, startingPlayerIndex: 0);
 
             await h.DrawAsync(human);
 
@@ -88,7 +88,7 @@ namespace JeffopolyDeal.Tests
             var h = new TestGameHarness();
             var human = await h.AddPlayerAsync("Human");
             var bot = await h.AddBotAsync("BotCharlie");
-            await h.Game.StartGameAsync(allowSinglePlayer: false);
+            await h.Game.StartGameAsync(allowSinglePlayer: false, startingPlayerIndex: 0);
 
             await h.DrawAsync(human);
 
@@ -118,7 +118,7 @@ namespace JeffopolyDeal.Tests
             var human = await h.AddPlayerAsync("Human");
             var bot1 = await h.AddBotAsync("BotDiana");
             var bot2 = await h.AddBotAsync("BotEve");
-            await h.Game.StartGameAsync(allowSinglePlayer: false);
+            await h.Game.StartGameAsync(allowSinglePlayer: false, startingPlayerIndex: 0);
 
             await h.DrawAsync(human);
 
