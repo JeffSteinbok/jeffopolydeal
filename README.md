@@ -123,6 +123,39 @@ All flags are defined in [`src/web/utilities/Debug.ts`](src/web/utilities/Debug.
 | `?page=deck` | Deck test page — renders all 106 cards |
 | `/api/deck` | API endpoint — returns full deck JSON |
 
+### Themes
+
+Property names and category labels (e.g., "Stadium" vs "Railroad") are defined in JSON theme files under `src/backend/Themes/`.
+
+| Theme | File | Description |
+|---|---|---|
+| `jeffopoly` | `jeffopoly.json` | Default theme with custom property names |
+| `classic` | `classic.json` | Classic Monopoly property names |
+
+Use the `?theme=` query string parameter to select a theme:
+- `?theme=classic` — uses classic Monopoly names
+- `?theme=jeffopoly` or omitted — uses Jeffopoly names
+- Any unrecognized value falls back to `jeffopoly`
+
+The theme parameter works on both the main game and the deck test page (`?page=deck&theme=classic`).
+
+To create a new theme, add a JSON file to `src/backend/Themes/` with this structure:
+
+```json
+{
+    "name": "My Theme",
+    "categoryNames": {
+        "Railroad": "Railroad",
+        "Utility": "Utility"
+    },
+    "properties": {
+        "Brown": ["Name 1", "Name 2"],
+        "LightBlue": ["Name 1", "Name 2", "Name 3"],
+        ...
+    }
+}
+```
+
 ---
 
 ## Game Configuration

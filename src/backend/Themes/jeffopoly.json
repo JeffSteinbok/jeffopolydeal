@@ -1,0 +1,19 @@
+{
+    "name": "Jeffopoly",
+    "categoryNames": {
+        "Railroad": "Stadium",
+        "Utility": "Grocery"
+    },
+    "properties": {
+        "Brown": ["Chan's Market", "Wendy's"],
+        "LightBlue": ["Cowichan River", "The Lot", "Inner Harbour"],
+        "Pink": ["Carmel Drive", "Doral Place", "Hudson Street"],
+        "Orange": ["Duncan", "Victoria", "Vancouver"],
+        "Red": ["Sushi Me", "Din Tai Fung", "Prime Steakhouse"],
+        "Yellow": ["Bellevue", "Redmond", "Sammamish"],
+        "Green": ["Woodbridge", "Timberline", "Lake House"],
+        "DarkBlue": ["False Creek", "Lake Sammamish"],
+        "Railroad": ["ESP Ball Fields", "Folsom Field", "Lumen Field", "T-Mobile Park"],
+        "Utility": ["Safeway", "Whole Foods"]
+    }
+}

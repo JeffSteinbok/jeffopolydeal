@@ -23,11 +23,11 @@ namespace JeffopolyDeal.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
-        public string CreateGame(string? fixedCode = null)
+        public string CreateGame(string? fixedCode = null, string? themeName = null)
         {
             try
             {
-                return _gameCache.CreateGame(fixedCode);
+                return _gameCache.CreateGame(fixedCode, themeName);
             }
             catch (Exception ex)
             {

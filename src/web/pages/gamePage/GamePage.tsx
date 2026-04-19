@@ -98,7 +98,8 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 } else if (gameCode === "") {
                     // Creating a new game
                     const useFixedCode = Debug.isFlagSet(DebugFlags.FixedGameCode);
-                    const newCode = await client.createGame(useFixedCode ? "TEST" : undefined);
+                    const themeParam = new URLSearchParams(window.location.search).get("theme") || undefined;
+                    const newCode = await client.createGame(useFixedCode ? "TEST" : undefined, themeParam);
                     await client.joinGame(newCode, playerName, playerId);
                     onGameCodeResolved?.(newCode);
 

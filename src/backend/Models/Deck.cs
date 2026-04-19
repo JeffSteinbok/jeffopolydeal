@@ -13,6 +13,8 @@ namespace JeffopolyDeal.Models
         private readonly List<Card> _discardPile = new();
         private readonly Random _rng = new();
         private int _nextId = 1;
+        private readonly Dictionary<PropertyColor, PropertyDef[]> _propertyDefs;
+        private readonly string _themeName;
 
         public int DrawPileCount => _drawPile.Count;
         public int DiscardPileCount => _discardPile.Count;
@@ -61,24 +63,27 @@ namespace JeffopolyDeal.Models
             return $"{prefix}{_cardIdCounters[prefix]}";
         }
 
-        public Deck()
+        public Deck(string? themeName = null)
         {
+            _themeName = themeName ?? "jeffopoly";
+            var theme = ThemeLoader.Load(_themeName);
+            _propertyDefs = ThemeLoader.BuildPropertyDefs(theme);
             BuildDeck();
             Shuffle();
         }
 
         /// <summary>Returns the full deck in build order (unshuffled). For test/debug pages.</summary>
-        public static List<Card> GetOrderedDeck()
+        public static List<Card> GetOrderedDeck(string? themeName = null)
         {
-            var deck = new Deck();
-            // deck was shuffled in ctor, but _drawPile was built in order before shuffle
-            // Rebuild without shuffle
-            var ordered = new Deck(skipShuffle: true);
+            var ordered = new Deck(themeName, skipShuffle: true);
             return ordered._drawPile.ToList();
         }
 
-        private Deck(bool skipShuffle)
+        private Deck(string? themeName, bool skipShuffle)
         {
+            _themeName = themeName ?? "jeffopoly";
+            var theme = ThemeLoader.Load(_themeName);
+            _propertyDefs = ThemeLoader.BuildPropertyDefs(theme);
             BuildDeck();
             if (!skipShuffle) Shuffle();
         }
@@ -133,8 +138,8 @@ namespace JeffopolyDeal.Models
             AddMoney(5, 2);
             AddMoney(10, 1);
 
-            // Property cards (28) — names come from PropertyNames registry
-            foreach (var (color, defs) in PropertyNames.ByColor)
+            // Property cards (28) — names come from theme
+            foreach (var (color, defs) in _propertyDefs)
             {
                 AddProperties(color, defs);
             }
@@ -237,7 +242,7 @@ namespace JeffopolyDeal.Models
                     CardId = NextCardId(prefix),
                     CardType = CardType.PropertyWildcard,
                     MoneyValue = moneyValue,
-                    Name = $"{color1.DisplayName()}/{color2.DisplayName()} Wildcard",
+                    Name = $"{color1.DisplayName(_themeName)}/{color2.DisplayName(_themeName)} Wildcard",
                     Color = color1,
                     AltColor = color2,
                     ActiveColor = color1,
@@ -256,7 +261,7 @@ namespace JeffopolyDeal.Models
                     CardId = NextCardId(prefix),
                     CardType = CardType.Rent,
                     MoneyValue = 1,
-                    Name = $"{colors[0].DisplayName()}/{colors[1].DisplayName()} Rent",
+                    Name = $"{colors[0].DisplayName(_themeName)}/{colors[1].DisplayName(_themeName)} Rent",
                     RentColors = colors.ToList(),
                 });
             }

@@ -26,12 +26,12 @@ namespace JeffopolyDeal
             _hubContext = hubContext;
         }
 
-        public string CreateGame(string? fixedCode = null)
+        public string CreateGame(string? fixedCode = null, string? themeName = null)
         {
             if (!string.IsNullOrEmpty(fixedCode))
             {
                 var code = fixedCode.ToUpperInvariant();
-                var game = new Game(_hubContext, code);
+                var game = new Game(_hubContext, code, themeName);
                 _games[code] = game;
                 return code;
             }
@@ -42,7 +42,7 @@ namespace JeffopolyDeal
                 gameCode = GenerateGameCode();
             } while (_games.ContainsKey(gameCode));
 
-            var newGame = new Game(_hubContext, gameCode);
+            var newGame = new Game(_hubContext, gameCode, themeName);
             _games[gameCode] = newGame;
             return gameCode;
         }

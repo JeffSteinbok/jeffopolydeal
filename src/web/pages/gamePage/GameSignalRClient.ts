@@ -55,8 +55,8 @@ export class GameSignalRClient {
         await this.connection.stop();
     }
 
-    async createGame(fixedCode?: string): Promise<string> {
-        return await this.connection.invoke<string>("CreateGame", fixedCode ?? null);
+    async createGame(fixedCode?: string, themeName?: string): Promise<string> {
+        return await this.connection.invoke<string>("CreateGame", fixedCode ?? null, themeName ?? null);
     }
 
     async joinGame(gameCode: string, playerName: string, playerId: string): Promise<void> {

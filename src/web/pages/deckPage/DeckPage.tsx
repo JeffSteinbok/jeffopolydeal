@@ -54,7 +54,9 @@ export function DeckPage() {
     };
 
     useEffect(() => {
-        fetch("/api/deck")
+        const themeParam = new URLSearchParams(window.location.search).get("theme");
+        const url = themeParam ? `/api/deck?theme=${encodeURIComponent(themeParam)}` : "/api/deck";
+        fetch(url)
             .then((r) => r.json())
             .then((data: Card[]) => {
                 setCards(data);

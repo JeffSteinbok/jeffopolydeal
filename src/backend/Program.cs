@@ -1,5 +1,7 @@
 using JeffopolyDeal.Hubs;
 using Microsoft.AspNetCore.Builder;
+using System.Linq;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System.Text.Json;
@@ -37,9 +39,10 @@ app.UseRouting();
 app.MapHub<GameHub>("/hub/game");
 
 // API endpoint: returns the full unshuffled deck for the test/debug page
-app.MapGet("/api/deck", () =>
+app.MapGet("/api/deck", (HttpRequest request) =>
 {
-    var cards = JeffopolyDeal.Models.Deck.GetOrderedDeck();
+    var theme = request.Query["theme"].FirstOrDefault();
+    var cards = JeffopolyDeal.Models.Deck.GetOrderedDeck(theme);
     return Microsoft.AspNetCore.Http.Results.Json(cards, new JsonSerializerOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,

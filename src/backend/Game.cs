@@ -21,6 +21,7 @@ namespace JeffopolyDeal
         private readonly Deck _deck;
 
         public string GameCode { get; }
+        public string ThemeName { get; }
 
         private readonly List<Player> _players = new();
         private readonly Dictionary<string, bool> _connections = new();
@@ -36,11 +37,12 @@ namespace JeffopolyDeal
         private const int MaxRecentActions = 20;
         private int _nextActionId = 1;
 
-        public Game(IHubContext<GameHub> hubContext, string gameCode)
+        public Game(IHubContext<GameHub> hubContext, string gameCode, string? themeName = null)
         {
             _hubContext = hubContext;
             GameCode = gameCode;
-            _deck = new Deck();
+            ThemeName = themeName ?? "jeffopoly";
+            _deck = new Deck(ThemeName);
         }
 
         public bool IsEmpty
@@ -291,8 +293,9 @@ namespace JeffopolyDeal
                     var color = availableColors[colorIdx];
                     availableColors.RemoveAt(colorIdx);
 
-                    var propDefs = PropertyNames.ByColor.ContainsKey(color)
-                        ? PropertyNames.ByColor[color]
+                    var themeDefs = ThemeLoader.BuildPropertyDefs(ThemeLoader.Load(ThemeName));
+                    var propDefs = themeDefs.ContainsKey(color)
+                        ? themeDefs[color]
                         : null;
                     if (propDefs == null) continue;
 
