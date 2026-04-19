@@ -76,11 +76,17 @@ export function CardComponent({ card, onClick, onDoubleClick, selected, small, c
     const outerBg = isRegularProp ? "#fff" : bg;
     const innerBg = isRegularProp ? bg : undefined;
 
+    const showRentOverlay = compact && currentRent !== undefined &&
+        (card.cardType === "Property" || card.cardType === "PropertyWildcard");
+
     return (
         <div className={cls} onClick={onClick} onDoubleClick={onDoubleClick} style={{ backgroundColor: outerBg }}>
             <div className="md-card__inner" style={innerBg ? { backgroundColor: innerBg } : undefined}>
                 {renderCard(card, small || compact, compact, currentRent)}
             </div>
+            {showRentOverlay && (
+                <div className="md-card__rent-overlay">◆{currentRent}</div>
+            )}
             {/* Corner badge */}
             {card.moneyValue > 0 && <Badge value={card.moneyValue} bg={badgeBg} light={badgeLight} compact={!!(small || compact)} borderColor={badgeBorder} />}
         </div>
@@ -91,10 +97,8 @@ function renderCard(card: CardType, small?: boolean, compact?: boolean, currentR
     switch (card.cardType) {
         case "Money": return <MoneyLayout card={card} />;
         case "Property":
-            if (compact && currentRent !== undefined) return <TinyPropertyLayout card={card} rent={currentRent} />;
             return <PropertyLayout card={card} small={small} />;
         case "PropertyWildcard":
-            if (compact && currentRent !== undefined) return <TinyWildcardLayout card={card} rent={currentRent} />;
             return <WildcardLayout card={card} small={small} />;
         case "Rent": return <RentLayout card={card} />;
         case "Action": return <ActionLayout card={card} small={small} compact={compact} />;
@@ -215,47 +219,6 @@ function WildcardLayout({ card, small }: { card: CardType; small?: boolean }) {
                     <div className="md-wild-dual__title">Wild Card</div>
                     <div className="md-wild-dual__subtitle">(Use card either way up.)</div>
                 </div>
-            </div>
-        </>
-    );
-}
-
-/* ── Tiny property layouts (mobile compact view) ── */
-function TinyPropertyLayout({ card, rent }: { card: CardType; rent: number }) {
-    const color = card.color!;
-    const info = PropertyColorMap[color];
-    return (
-        <>
-            <div className="md-card__name-band md-card__name-band--tiny" style={{ color: info.textColor, textShadow: textShadowFor(info.textColor) }}>{card.name}</div>
-            <div className="md-card__body-center">
-                <div className="md-tiny__rent" style={{ color: info.textColor, textShadow: textShadowFor(info.textColor) }}>◆{rent}</div>
-            </div>
-        </>
-    );
-}
-
-function TinyWildcardLayout({ card, rent }: { card: CardType; rent: number }) {
-    if (card.isMulticolorWild) {
-        return (
-            <>
-                <RainbowBar />
-                <div className="md-wild__title-box md-wild__title-box--tiny">PROPERTY<br/>WILD CARD</div>
-                <div className="md-card__body-center">
-                    <div className="md-tiny__rent md-tiny__rent--overlay">◆{rent}</div>
-                </div>
-            </>
-        );
-    }
-    const isFlipped = card.activeColor === card.altColor;
-    const topColor = PropertyColorMap[isFlipped ? card.altColor! : card.color!];
-    const botColor = PropertyColorMap[isFlipped ? card.color! : card.altColor!];
-    return (
-        <>
-            <div className="md-card__header md-card__header--tiny">PROPERTY<br/>WILD CARD</div>
-            <div className="md-tiny__dual">
-                <div className="md-tiny__dual-top" style={{ backgroundColor: topColor.hex }} />
-                <div className="md-tiny__rent md-tiny__rent--overlay">◆{rent}</div>
-                <div className="md-tiny__dual-bot" style={{ backgroundColor: botColor.hex }} />
             </div>
         </>
     );

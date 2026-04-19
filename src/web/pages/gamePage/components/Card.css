@@ -286,17 +286,6 @@
     padding: 0 18px;
 }
 
-/* Tiny variant: smaller text, wraps to fit, below badge */
-.md-card__name-band--tiny {
-    height: 28px;
-    min-height: 28px;
-    max-height: 28px;
-    font-size: 10px;
-    padding: 14px 2px 1px;
-    word-break: break-word;
-    hyphens: auto;
-    overflow: hidden;
-}
 
 /* ── Rent table ───────────────────────────────── */
 .md-card__body--rent {
@@ -406,8 +395,8 @@
 }
 
 .md-card--xs .md-rent-tbl__rent-icon {
-    width: 12px;
-    height: 10px;
+    width: 10px;
+    height: 8px;
 }
 
 .md-rent-tbl__val {
@@ -474,12 +463,6 @@
     margin: 0 3px;
 }
 
-/* Tiny variant for XS compact view */
-.md-wild__title-box--tiny {
-    font-size: 7px;
-    padding: 2px 3px;
-    margin: 0 2px;
-}
 
 /* Placeholder icon for multi-color wild (replace with real image later) */
 .md-wild__placeholder {
@@ -601,8 +584,7 @@
 }
 
 .md-card--xs .md-wild-dual__rent-label {
-    font-size: 5px;
-    padding: 1px 0 0;
+    display: none;
 }
 
 .md-wild-dual__rent-area {
@@ -808,39 +790,22 @@
     height: 38px;
 }
 
-/* ── Tiny property rent display ───────────────── */
-.md-tiny__rent {
-    font-family: 'Inter', sans-serif;
-    font-weight: 900;
-    font-size: 18px;
-    color: #fff;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-    letter-spacing: -1px;
-    margin-top: -4px;
-}
-
-.md-tiny__dual {
-    position: relative;
-    width: 100%;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.md-tiny__dual-top,
-.md-tiny__dual-bot {
-    flex: 1;
-}
-
-.md-tiny__rent--overlay {
+/* ── Rent overlay for compact property cards ──── */
+.md-card__rent-overlay {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(0,0,0,0.45);
+    bottom: 4px;
+    right: 4px;
+    background: rgba(0,0,0,0.55);
     padding: 1px 4px;
     border-radius: 3px;
-    font-size: 18px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    font-size: 14px;
+    color: #fff;
+    letter-spacing: -0.5px;
+    pointer-events: none;
+    z-index: 10;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
 }
 
 /* ── Extra-small (--xs) for opponent boards ──── */
@@ -908,19 +873,26 @@
 
 .md-card--xs .md-card__name-band {
     font-size: 6px;
-    padding: 14px 2px 1px;
+    padding: 10px 2px 1px;
     line-height: 1.2;
     word-break: break-word;
     hyphens: auto;
-    height: auto;
+    height: 25px;
+    min-height: 25px;
+    max-height: 25px;
+    overflow: hidden;
 }
 
 .md-card--xs .md-card__body--rent {
     padding: 0 3px 1px;
 }
 
+.md-card--xs .md-rent-tbl {
+    width: 75%;
+}
+
 .md-card--xs .md-rent-tbl__hdr {
-    font-size: 5px;
+    display: none;
 }
 
 .md-card--xs .md-rent-tbl td {
@@ -936,12 +908,14 @@
 .md-card--xs .md-wild-dual__pretitle { font-size: 4px; }
 .md-card--xs .md-wild-dual__title { font-size: 6px; }
 .md-card--xs .md-wild-dual__subtitle { font-size: 4px; }
-.md-card--xs .md-wild-dual__rent-side .md-rent-tbl__hdr { font-size: 4px; }
+.md-card--xs .md-wild-dual__rent-side .md-rent-tbl__hdr { display: none; }
 .md-card--xs .md-wild-dual__rent-side .md-rent-tbl td { font-size: 3px; padding: 0; }
-.md-card--xs .md-wild-dual__rent-side .md-rent-tbl__rent-icon { width: 8px; height: 7px; }
-.md-card--xs .md-wild-dual__rent-side .md-rent-tbl__icons { padding-right: 1px; }
+.md-card--xs .md-wild-dual__rent-side .md-rent-tbl__rent-icon { width: 7px; height: 6px; }
+.md-card--xs .md-wild-dual__rent-side .md-rent-tbl__icons { padding-right: 1px; width: 10px; }
 .md-card--xs .md-wild-dual__rent-side .md-rent-tbl__val { padding-left: 1px; }
-.md-card--xs .md-wild-dual__header { padding: 1px 2px; }
+.md-card--xs .md-wild-dual__rent-row { padding: 0 4px; }
+.md-card--xs .md-wild-dual__header { padding: 1px 2px; height: 14px; }
+.md-card--xs .md-wild-dual__subtitle { display: none; }
 
 .md-card--xs .md-rent-ring {
     width: 34px;
