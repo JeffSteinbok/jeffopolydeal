@@ -23,7 +23,7 @@
     max-width: none;
     overflow: visible;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 12px;
 }
 
@@ -66,6 +66,7 @@
 .fyiToast-name {
     color: #fff;
     font-weight: 700;
+    font-size: 1.05rem;
 }
 
 .fyiToast-text {
@@ -89,6 +90,23 @@
     gap: 4px;
 }
 
+.fyiToast-cardGroup--labeled {
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.fyiToast-pill {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #fff;
+    background: rgba(100, 180, 255, 0.3);
+    padding: 1px 8px;
+    border-radius: 8px;
+    letter-spacing: 0.5px;
+}
+
 .fyiToast-label {
     font-size: 0.75rem;
     color: #aaa;
@@ -97,9 +115,17 @@
     margin-right: 2px;
 }
 
+.fyiToast-swap {
+    font-size: 1.2rem;
+    color: #aaa;
+    font-weight: 700;
+    align-self: center;
+}
+
 .fyiToast-cardRow {
     display: flex;
     gap: 3px;
+    flex-wrap: wrap;
 }
 
 @keyframes fyiToastIn {
@@ -126,12 +152,12 @@
 
 @media (max-width: 680px) {
     .fyiToast-container {
-        top: 50px;
+        top: 53px;
         max-width: none;
     }
 
     .fyiToast {
         font-size: 0.8rem;
-        padding: 8px 12px;
+        padding: 8px 16px;
     }
 }

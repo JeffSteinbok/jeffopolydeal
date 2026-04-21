@@ -116,6 +116,52 @@ All flags are defined in [`src/web/utilities/Debug.ts`](src/web/utilities/Debug.
 | `0x1006` | SkipLobby + FixedGameCode + PlayVsAi | Fast fixed-code game vs AI |
 | `0x1FFF` | All flags | Everything enabled |
 
+### Debug Console
+
+When any debug flag is active, a debug console input appears in the game header (next to the Jeffopoly logo). Type a command and press Enter to execute it. The game state refreshes automatically after each command.
+
+#### Commands
+
+| Command | Description | Example |
+|---|---|---|
+| `give money <value>` | Add a money card to your hand | `give money 5` |
+| `give rent <color>` | Add a rent card for that color pair | `give rent pink` |
+| `give wildrent` | Add a wild rent card (any color) | `give wildrent` |
+| `give house` | Add a House card | `give house` |
+| `give hotel` | Add a Hotel card | `give hotel` |
+| `give dealbreaker` / `give db` | Add a Deal Breaker card | `give db` |
+| `give slydeal` / `give sly` | Add a Sly Deal card | `give sly` |
+| `give forcedeal` / `give force` | Add a Forced Deal card | `give force` |
+| `give jsn` / `give justsayno` | Add a Just Say No card | `give jsn` |
+| `give passgo` / `give go` | Add a Pass Go card | `give go` |
+| `give debt` / `give debtcollector` | Add a Debt Collector card | `give debt` |
+| `give birthday` | Add an It's My Birthday card | `give birthday` |
+| `give double` / `give doublerent` | Add a Double The Rent card | `give double` |
+| `give wild` | Add a multicolor property wildcard | `give wild` |
+| `give <color>` | Add a property card of that color | `give brown` |
+| `bank <value>` | Add money directly to your bank | `bank 10` |
+| `clear hand` | Remove all cards from your hand | `clear hand` |
+| `clear bank` | Remove all cards from your bank | `clear bank` |
+| `myturn` / `skip` | Skip to your turn immediately | `myturn` |
+| `giveto <name> <card>` | Give a card to another player | `giveto Bot1 rent pink` |
+
+#### Color Shortcuts
+
+Colors can be specified as full names or abbreviations:
+
+| Color | Accepted Values |
+|---|---|
+| Brown | `brown`, `brn` |
+| Light Blue | `lightblue`, `lb`, `light` |
+| Pink | `pink`, `pnk` |
+| Orange | `orange`, `org` |
+| Red | `red` |
+| Yellow | `yellow`, `yel` |
+| Green | `green`, `grn` |
+| Dark Blue | `darkblue`, `db`, `dark` |
+| Railroad | `railroad`, `rr`, `rail` |
+| Utility | `utility`, `util` |
+
 ### Special Routes
 
 | URL | Description |

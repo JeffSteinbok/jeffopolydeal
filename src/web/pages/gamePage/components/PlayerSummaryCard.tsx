@@ -2,6 +2,8 @@ import React from "react";
 import { PlayerState } from "../../../Types";
 import { PropertyColorMap } from "../../../utilities/PropertyColors";
 import IndicatorSvg from "../../../assets/Indicator.svg";
+import HousePng from "../../../assets/HouseSmall.png";
+import HotelPng from "../../../assets/HotelSmall.png";
 import "./PlayerSummaryCard.css";
 
 interface PlayerSummaryCardProps {
@@ -35,6 +37,9 @@ export function PlayerSummaryCard({ player, isCurrentTurn, onClick }: PlayerSumm
                         <span className="playerSummary-turn-dot" aria-label="Current turn" role="img" />
                     )}
                     {player.name}
+                    {isCurrentTurn && (
+                        <span className="typing-dots"><span>.</span><span>.</span><span>.</span></span>
+                    )}
                 </div>
                 <div className="playerSummary-stats">
                     <span className="playerSummary-stat playerSummary-money"><span className="money-diamond">◆</span>{bankTotal}</span>
@@ -51,12 +56,12 @@ export function PlayerSummaryCard({ player, isCurrentTurn, onClick }: PlayerSumm
                             backgroundColor: PropertyColorMap[set.color].hex,
                             color: PropertyColorMap[set.color].textColor,
                         }}
-                        title={`${PropertyColorMap[set.color].name} ${set.cards.length}/${set.requiredSize}${set.hasHouse ? " 🏠" : ""}${set.hasHotel ? " 🏨" : ""}`}
+                        title={`${PropertyColorMap[set.color].name} ${set.cards.length}/${set.requiredSize}${set.hasHouse ? " House" : ""}${set.hasHotel ? " Hotel" : ""}`}
                     >
                         {set.cards.length}/{set.requiredSize}
                         {set.isComplete && <span className="playerSummary-setpill-check">✓</span>}
-                        {set.hasHotel ? <span className="playerSummary-setpill-icon">🏨</span>
-                            : set.hasHouse ? <span className="playerSummary-setpill-icon">🏠</span>
+                        {set.hasHotel ? <img src={HotelPng} alt="Hotel" className="playerSummary-setpill-building" />
+                            : set.hasHouse ? <img src={HousePng} alt="House" className="playerSummary-setpill-building" />
                             : null}
                     </span>
                 ))}

@@ -3,6 +3,8 @@ import { PlayerState, Card, PropertySetState } from "../../../Types";
 import { CardComponent } from "./Card";
 import { PropertyColorMap } from "../../../utilities/PropertyColors";
 import IndicatorSvg from "../../../assets/Indicator.svg";
+import HousePng from "../../../assets/HouseSmall.png";
+import HotelPng from "../../../assets/HotelSmall.png";
 import "./PlayerBoard.css";
 
 // Color for each money denomination
@@ -238,7 +240,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, isCurrentTurn, compact, in
     return (
         <div className={`playerBoard ${isMe ? "playerBoard-me" : "playerBoard--opponent"}${isCurrentTurn ? " playerBoard--currentTurn" : ""}`}>
             <div className="playerBoard-header">
-                <span className="playerBoard-name">{player.name}{isCurrentTurn && " 🎲"}</span>
+                <span className="playerBoard-name">{isCurrentTurn && <span className="pulsing-dot" />}{player.name}{isCurrentTurn && <span className="typing-dots"><span>.</span><span>.</span><span>.</span></span>}</span>
                 <span className="playerBoard-bank-total"><span className="money-diamond">◆</span>{player.bank.reduce((s, c) => s + c.moneyValue, 0)}</span>
                 <span className="playerBoard-cards"><img src={IndicatorSvg} alt="cards" className="playerBoard-cardIcon" /> {isMe ? (player.hand?.length ?? 0) : player.handCount}</span>
             </div>
@@ -271,7 +273,8 @@ export function PlayerBoard({ player, isMe, isMyTurn, isCurrentTurn, compact, in
                                     className="propertySet-label"
                                     style={{ backgroundColor: PropertyColorMap[set.color].hex, color: PropertyColorMap[set.color].textColor }}
                                 >
-                                    {`${set.cards.length}/${set.requiredSize}${set.isComplete ? "✓" : ""}${set.hasHotel ? "🏨" : set.hasHouse ? "🏠" : ""}`}
+                                    {`${set.cards.length}/${set.requiredSize}${set.isComplete ? "✓" : ""}`}
+                                    {set.hasHotel ? <img src={HotelPng} alt="Hotel" className="building-icon" /> : set.hasHouse ? <img src={HousePng} alt="House" className="building-icon" /> : null}
                                 </div>
                                 <div className="propertySet-stack">
                                     {set.cards.map((card, idx) => {
@@ -292,7 +295,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, isCurrentTurn, compact, in
                                                 card={card}
                                                 small={!compact}
                                                 compact={compact}
-                                                currentRent={compact ? set.rent : undefined}
+                                                currentRent={set.rent}
                                                 onDoubleClick={canFlipCard ? () => onFlipCard!(card.id) : undefined}
                                             />
                                         </div>
@@ -359,7 +362,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, isCurrentTurn, compact, in
                         >
                             {`${expandedSet.cards.length}/${expandedSet.requiredSize}`}
                             {expandedSet.isComplete && " ✓"}
-                            {expandedSet.hasHotel ? " 🏨" : expandedSet.hasHouse ? " 🏠" : ""}
+                            {expandedSet.hasHotel ? <img src={HotelPng} alt="Hotel" className="building-icon" /> : expandedSet.hasHouse ? <img src={HousePng} alt="House" className="building-icon" /> : null}
                         </div>
                         <div className="cardExpand-set-cards">
                             {expandedSet.cards.map((card) => (

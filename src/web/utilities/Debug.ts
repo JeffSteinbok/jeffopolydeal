@@ -13,6 +13,7 @@ export enum DebugFlags {
     ShowDeck          = 1 << 10,
     PopulatedBoards   = 1 << 11,  // Start with 3 AI players, boards randomly populated
     PlayVsAi          = 1 << 12,  // Start with 3 AI players (normal game flow)
+    SkipToGameOver    = 1 << 13,  // Show game over screen immediately for testing
 }
 
 // Helpful combos:

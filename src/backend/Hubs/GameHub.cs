@@ -211,5 +211,18 @@ namespace JeffopolyDeal.Hubs
                 _logger.LogError(ex, "Error in EndGame");
             }
         }
+
+        public async Task<string> DebugCommand(string command)
+        {
+            try
+            {
+                return await _gameCache.DebugCommandAsync(Context.ConnectionId, command);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in DebugCommand: {Command}", command);
+                return $"Error: {ex.Message}";
+            }
+        }
     }
 }

@@ -80,6 +80,7 @@ export interface GameAction {
     targetPlayerName?: string;
     sourceCards?: Card[];
     targetCards?: Card[];
+    persistent?: boolean;
 }
 
 export interface GameState {

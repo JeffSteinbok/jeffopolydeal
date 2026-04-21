@@ -1,0 +1,92 @@
+.debugConsole {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    width: 320px;
+    background: #111;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #333;
+}
+
+.debugConsole-inputWrap {
+    position: relative;
+}
+
+.debugConsole-input {
+    width: 180px;
+    padding: 1px 4px;
+    font-size: 11px !important;
+    font-family: monospace;
+    background: #000 !important;
+    color: #fff !important;
+    border: 1px solid #333;
+    border-radius: 3px;
+    outline: none;
+}
+
+.debugConsole-input::placeholder {
+    color: #555;
+}
+
+.debugConsole-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 100%;
+    background: #1a1a3a;
+    border: 1px solid #444;
+    border-radius: 4px;
+    margin-top: 2px;
+    z-index: 1000;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.debugConsole-suggestion {
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    font-family: monospace;
+    color: #0f0;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.debugConsole-suggestion:hover,
+.debugConsole-suggestion--active {
+    background: #2a2a6a;
+}
+
+.debugConsole-btn {
+    padding: 1px 5px;
+    font-size: 0.65rem;
+    background: #1a1a4a;
+    color: #0f0;
+    border: 1px solid #333;
+    border-radius: 3px;
+    cursor: pointer;
+    min-width: 0;
+}
+
+.debugConsole-btn:hover {
+    background: #2a2a6a;
+}
+
+.debugConsole-result {
+    font-size: 0.6rem;
+    font-family: monospace;
+    color: #ccc;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+@media (max-width: 680px) {
+    .debugConsole {
+        display: none;
+    }
+}

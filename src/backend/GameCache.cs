@@ -238,6 +238,15 @@ namespace JeffopolyDeal
             await game.MovePropertyAsync(connectionId, cardId, targetSetId, targetColor);
         }
 
+        public async Task<string> DebugCommandAsync(string connectionId, string command)
+        {
+            var game = GetGameForConnection(connectionId);
+            if (game == null) return "Error: no game found";
+            var result = await game.DebugCommandAsync(connectionId, command);
+            await game.BroadcastGameStateAsync();
+            return result;
+        }
+
         private Game? GetGameForConnection(string connectionId)
         {
             if (!_connectionToGame.TryGetValue(connectionId, out var gameCode))

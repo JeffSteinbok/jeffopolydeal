@@ -48,6 +48,11 @@
     z-index: 11;
 }
 
+.md-card--dimmed {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
 /* Inner decorative frame */
 .md-card__inner {
     position: absolute;

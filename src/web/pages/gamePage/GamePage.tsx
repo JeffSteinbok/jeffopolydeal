@@ -13,6 +13,7 @@ import { ActionModal } from "./components/ActionModal";
 import { DiscardModal } from "./components/DiscardModal";
 import { FyiToast } from "./components/FyiToast";
 import { DebugDeckViewer } from "./components/DebugDeckViewer";
+import { DebugConsole } from "./components/DebugConsole";
 import titleImage from "../../assets/JeffopolyDeal.png";
 import ShareIcon from "../../assets/Share.svg";
 import "./styles/game.css";
@@ -144,7 +145,9 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
 
         const myName = state.players.find(p => p.playerId === playerId)?.name;
         const newActions = state.recentActions.filter(
-            (a) => !seenActionIdsRef.current.has(a.id) && a.playerName !== myName
+            (a) => !seenActionIdsRef.current.has(a.id)
+                && a.playerName !== myName
+                && a.targetPlayerName !== myName
         );
 
         console.log("[Toast] myName:", myName, "new actions:", newActions.length,
@@ -288,15 +291,45 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         );
     }
 
-    // Game Over
-    if (state.phase === "GameOver") {
-        const winner = state.players.find(p => p.playerId === state.winnerId);
-        const completeSets = winner?.propertySets.filter(s => s.isComplete) ?? [];
+    // Game Over (or debug skip-to-game-over)
+    const showGameOver = state.phase === "GameOver" || Debug.isFlagSet(DebugFlags.SkipToGameOver);
+    if (showGameOver) {
+        const winner = state.phase === "GameOver"
+            ? state.players.find(p => p.playerId === state.winnerId)
+            : state.players[0];
+        const winnerName = state.phase === "GameOver" ? state.winnerName : (winner?.name ?? playerName);
+        const realSets = winner?.propertySets.filter(s => s.isComplete) ?? [];
+
+        // Debug mock sets when no real complete sets exist
+        const completeSets = realSets.length > 0 ? realSets : (Debug.isFlagSet(DebugFlags.SkipToGameOver) ? [
+            {
+                setId: 901, color: "Brown" as PropertyColor, isComplete: true, hasHouse: false, hasHotel: false, rent: 2, requiredSize: 2,
+                cards: [
+                    { id: 901, cardType: "Property" as CardType, moneyValue: 1, name: "Chan's Market", color: "Brown" as PropertyColor, isMulticolorWild: false, isWildRent: false },
+                    { id: 902, cardType: "Property" as CardType, moneyValue: 1, name: "Wendy's", color: "Brown" as PropertyColor, isMulticolorWild: false, isWildRent: false },
+                ],
+            },
+            {
+                setId: 902, color: "Red" as PropertyColor, isComplete: true, hasHouse: false, hasHotel: false, rent: 4, requiredSize: 3,
+                cards: [
+                    { id: 903, cardType: "Property" as CardType, moneyValue: 3, name: "Sushi Me", color: "Red" as PropertyColor, isMulticolorWild: false, isWildRent: false },
+                    { id: 904, cardType: "Property" as CardType, moneyValue: 3, name: "Din Tai Fung", color: "Red" as PropertyColor, isMulticolorWild: false, isWildRent: false },
+                    { id: 905, cardType: "Property" as CardType, moneyValue: 3, name: "Prime Steakhouse", color: "Red" as PropertyColor, isMulticolorWild: false, isWildRent: false },
+                ],
+            },
+            {
+                setId: 903, color: "DarkBlue" as PropertyColor, isComplete: true, hasHouse: false, hasHotel: false, rent: 8, requiredSize: 2,
+                cards: [
+                    { id: 906, cardType: "Property" as CardType, moneyValue: 4, name: "False Creek", color: "DarkBlue" as PropertyColor, isMulticolorWild: false, isWildRent: false },
+                    { id: 907, cardType: "Property" as CardType, moneyValue: 4, name: "Lake Sammamish", color: "DarkBlue" as PropertyColor, isMulticolorWild: false, isWildRent: false },
+                ],
+            },
+        ] : []);
         return (
             <div className="gamePage">
                 <div className="gameOver">
                     <img src={titleImage} alt="Jeffopoly Deal" className="gameOver-logo" />
-                    <p className="winnerName">🎉 {state.winnerName} Wins! 🎉</p>
+                    <p className="winnerName">🎉 {winnerName} Wins! 🎉</p>
                     {completeSets.length > 0 && (
                         <div className="gameOver-sets">
                             {completeSets.map((set) => (
@@ -325,6 +358,16 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         <div className={`gamePage${isLandscape ? " gamePage--landscape" : ""}${isMobile ? " gamePage--mobile" : ""}`}>
             <div className="gameHeader">
                 <img src={titleImage} alt="Jeffopoly Deal" className="gameHeaderTitleImage" />
+                {Debug.flags !== DebugFlags.None && (
+                    <DebugConsole
+                        client={clientRef.current}
+                        playerNames={state?.players.map(p => p.name) ?? []}
+                        onShowToast={(action) => {
+                            action.persistent = true;
+                            setToasts((prev) => [...prev, action]);
+                        }}
+                    />
+                )}
                 <div className="gameHeader-right">
                     <span className="deckInfo">
                         Draw: {state.drawPileCount} | Discard: {state.discardPileCount} |

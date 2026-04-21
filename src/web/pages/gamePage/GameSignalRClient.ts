@@ -121,6 +121,10 @@ export class GameSignalRClient {
         await this.connection.invoke("EndGame");
     }
 
+    async debugCommand(command: string): Promise<string> {
+        return await this.connection.invoke<string>("DebugCommand", command);
+    }
+
     get connectionId(): string | null {
         return this.connection.connectionId ?? null;
     }

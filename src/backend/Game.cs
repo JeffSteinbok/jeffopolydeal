@@ -1228,8 +1228,9 @@ namespace JeffopolyDeal
                     return $"Placed {card.Name}";
                 case CardType.Rent:
                 {
-                    var color = request.RentColor?.ToString() ?? "?";
-                    return $"Charged {color} Rent";
+                    var color = request.RentColor?.DisplayName(ThemeName) ?? "?";
+                    var amount = _pendingAction?.Amount ?? 0;
+                    return $"Charged rent of ◆{amount} on {color} properties";
                 }
                 case CardType.Action:
                     return DescribeAction(card, request);
@@ -1759,6 +1760,231 @@ namespace JeffopolyDeal
 
                 return info;
             }
+        }
+
+        /// <summary>
+        /// Executes a debug command to inject cards or manipulate game state.
+        /// Returns a status message describing what happened.
+        /// </summary>
+        public async Task<string> DebugCommandAsync(string connectionId, string command)
+        {
+            lock (_lock)
+            {
+                var player = _players.FirstOrDefault(p => p.ConnectionId == connectionId);
+                if (player == null) return "Error: player not found";
+
+                var parts = command.Trim().ToLowerInvariant().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length == 0) return "Error: empty command";
+
+                switch (parts[0])
+                {
+                    case "give":
+                        return DebugGive(player, parts);
+                    case "bank":
+                        return DebugBank(player, parts);
+                    case "clear":
+                        return DebugClear(player, parts);
+                    case "myturn":
+                    case "skip":
+                        return DebugSkipToMyTurn(player);
+                    case "giveto":
+                        return DebugGiveTo(parts);
+                    case "clearto":
+                        return DebugClearTo(parts);
+                    default:
+                        return $"Unknown command: {parts[0]}. Try: give, bank, clear, myturn, giveto, clearto";
+                }
+            }
+        }
+
+        private string DebugGive(Player player, string[] parts)
+        {
+            if (parts.Length < 2) return "Usage: give <cardtype> [args]";
+            Card card;
+            switch (parts[1])
+            {
+                case "money":
+                    int val = parts.Length > 2 && int.TryParse(parts[2], out var v) ? v : 1;
+                    card = _deck.CreateCard(CardType.Money, moneyValue: val, name: $"◆{val}M", cardId: $"debug_money{val}");
+                    break;
+                case "rent":
+                    var rentColor = parts.Length > 2 ? ParseColor(parts[2]) : PropertyColor.DarkBlue;
+                    var rentColor2 = GetPairedRentColor(rentColor);
+                    card = _deck.CreateCard(CardType.Rent, moneyValue: 1, name: "Rent",
+                        rentColors: new List<PropertyColor> { rentColor, rentColor2 }, cardId: "debug_rent");
+                    break;
+                case "wildrent":
+                    card = _deck.CreateCard(CardType.Rent, moneyValue: 3, name: "Wild Rent",
+                        isWildRent: true, cardId: "debug_wildrent");
+                    break;
+                case "house":
+                    card = _deck.CreateCard(CardType.Action, moneyValue: 3, name: "House",
+                        actionKind: ActionType.House, cardId: "debug_house");
+                    break;
+                case "hotel":
+                    card = _deck.CreateCard(CardType.Action, moneyValue: 4, name: "Hotel",
+                        actionKind: ActionType.Hotel, cardId: "debug_hotel");
+                    break;
+                case "dealbreaker":
+                case "db":
+                    card = _deck.CreateCard(CardType.Action, moneyValue: 5, name: "Deal Breaker",
+                        actionKind: ActionType.DealBreaker, cardId: "debug_dealbreaker");
+                    break;
+                case "slydeal":
+                case "sly":
+                    card = _deck.CreateCard(CardType.Action, moneyValue: 3, name: "Sly Deal",
+                        actionKind: ActionType.SlyDeal, cardId: "debug_slydeal");
+                    break;
+                case "forcedeal":
+                case "forceddeal":
+                case "force":
+                    card = _deck.CreateCard(CardType.Action, moneyValue: 3, name: "Forced Deal",
+                        actionKind: ActionType.ForceDeal, cardId: "debug_forcedeal");
+                    break;
+                case "jsn":
+                case "justsayno":
+                    card = _deck.CreateCard(CardType.Action, moneyValue: 4, name: "Just Say No",
+                        actionKind: ActionType.JustSayNo, cardId: "debug_jsn");
+                    break;
+                case "passgo":
+                case "go":
+                    card = _deck.CreateCard(CardType.Action, moneyValue: 1, name: "Pass Go",
+                        actionKind: ActionType.PassGo, cardId: "debug_passgo");
+                    break;
+                case "debt":
+                case "debtcollector":
+                    card = _deck.CreateCard(CardType.Action, moneyValue: 3, name: "Debt Collector",
+                        actionKind: ActionType.DebtCollector, cardId: "debug_debt");
+                    break;
+                case "birthday":
+                    card = _deck.CreateCard(CardType.Action, moneyValue: 2, name: "It's My Birthday",
+                        actionKind: ActionType.ItsMyBirthday, cardId: "debug_birthday");
+                    break;
+                case "double":
+                case "doublerent":
+                    card = _deck.CreateCard(CardType.Action, moneyValue: 1, name: "Double The Rent",
+                        actionKind: ActionType.DoubleTheRent, cardId: "debug_double");
+                    break;
+                case "wild":
+                    card = _deck.CreateCard(CardType.PropertyWildcard, moneyValue: 0, name: "Wild",
+                        isMulticolorWild: true, cardId: "debug_wild");
+                    break;
+                default:
+                    // Try to parse as a property color
+                    var color = ParseColor(parts[1]);
+                    var defs = ThemeLoader.BuildPropertyDefs(ThemeLoader.Load(ThemeName));
+                    if (defs.TryGetValue(color, out var propDefs) && propDefs.Length > 0)
+                    {
+                        var def = propDefs[0];
+                        card = _deck.CreateCard(CardType.Property, moneyValue: 1, name: def.DisplayName,
+                            color: color, cardId: $"debug_{parts[1]}");
+                    }
+                    else
+                    {
+                        return $"Unknown card type: {parts[1]}";
+                    }
+                    break;
+            }
+            player.Hand.Add(card);
+            return $"Gave {card.Name} to {player.Name}";
+        }
+
+        private string DebugBank(Player player, string[] parts)
+        {
+            int val = parts.Length > 1 && int.TryParse(parts[1], out var v) ? v : 1;
+            var card = _deck.CreateCard(CardType.Money, moneyValue: val, name: $"◆{val}M", cardId: $"debug_bankmoney{val}");
+            player.Bank.Add(card);
+            return $"Added ◆{val} to {player.Name}'s bank";
+        }
+
+        private string DebugClear(Player player, string[] parts)
+        {
+            if (parts.Length < 2) return "Usage: clear hand|bank|props";
+            switch (parts[1])
+            {
+                case "hand":
+                    int count = player.Hand.Count;
+                    player.Hand.Clear();
+                    return $"Cleared {count} cards from hand";
+                case "bank":
+                    int bankCount = player.Bank.Count;
+                    player.Bank.Clear();
+                    return $"Cleared {bankCount} cards from bank";
+                default:
+                    return $"Unknown clear target: {parts[1]}. Try: hand, bank";
+            }
+        }
+
+        private string DebugSkipToMyTurn(Player player)
+        {
+            var idx = _players.IndexOf(player);
+            if (idx < 0) return "Error: player not found";
+            _currentPlayerIndex = idx;
+            _playsUsed = 0;
+            _phase = GamePhase.Play;
+            _pendingAction = null;
+            return $"Skipped to {player.Name}'s turn";
+        }
+
+        private string DebugGiveTo(string[] parts)
+        {
+            // giveto <playerName> <cardtype> [args]
+            if (parts.Length < 3) return "Usage: giveto <playerName> <cardtype> [args]";
+            var targetName = parts[1];
+            var target = _players.FirstOrDefault(p => p.Name.Equals(targetName, StringComparison.OrdinalIgnoreCase));
+            if (target == null) return $"Player '{targetName}' not found. Players: {string.Join(", ", _players.Select(p => p.Name))}";
+            // Reuse DebugGive by shifting parts: ["giveto", "bob", "rent", "pink"] -> ["give", "rent", "pink"]
+            var giveParts = new string[parts.Length - 1];
+            giveParts[0] = "give";
+            Array.Copy(parts, 2, giveParts, 1, parts.Length - 2);
+            return DebugGive(target, giveParts);
+        }
+
+        private string DebugClearTo(string[] parts)
+        {
+            // clearto <playerName> hand|bank
+            if (parts.Length < 3) return "Usage: clearto <playerName> hand|bank";
+            var targetName = parts[1];
+            var target = _players.FirstOrDefault(p => p.Name.Equals(targetName, StringComparison.OrdinalIgnoreCase));
+            if (target == null) return $"Player '{targetName}' not found. Players: {string.Join(", ", _players.Select(p => p.Name))}";
+            var clearParts = new string[] { "clear", parts[2] };
+            return DebugClear(target, clearParts);
+        }
+
+        private static PropertyColor ParseColor(string s)
+        {
+            if (Enum.TryParse<PropertyColor>(s, ignoreCase: true, out var color)) return color;
+            return s.ToLower() switch
+            {
+                "db" or "darkblue" or "dark" => PropertyColor.DarkBlue,
+                "lb" or "lightblue" or "light" => PropertyColor.LightBlue,
+                "brn" => PropertyColor.Brown,
+                "org" => PropertyColor.Orange,
+                "pnk" => PropertyColor.Pink,
+                "yel" => PropertyColor.Yellow,
+                "grn" => PropertyColor.Green,
+                "rr" or "rail" => PropertyColor.Railroad,
+                "util" => PropertyColor.Utility,
+                _ => PropertyColor.Brown,
+            };
+        }
+
+        private static PropertyColor GetPairedRentColor(PropertyColor c)
+        {
+            return c switch
+            {
+                PropertyColor.Brown => PropertyColor.LightBlue,
+                PropertyColor.LightBlue => PropertyColor.Brown,
+                PropertyColor.Pink => PropertyColor.Orange,
+                PropertyColor.Orange => PropertyColor.Pink,
+                PropertyColor.Red => PropertyColor.Yellow,
+                PropertyColor.Yellow => PropertyColor.Red,
+                PropertyColor.Green => PropertyColor.DarkBlue,
+                PropertyColor.DarkBlue => PropertyColor.Green,
+                PropertyColor.Railroad => PropertyColor.Utility,
+                PropertyColor.Utility => PropertyColor.Railroad,
+                _ => PropertyColor.Brown,
+            };
         }
 
         #endregion

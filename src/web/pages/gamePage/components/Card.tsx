@@ -21,6 +21,7 @@ interface CardProps {
     onClick?: () => void;
     onDoubleClick?: () => void;
     selected?: boolean;
+    dimmed?: boolean;
     small?: boolean;
     compact?: boolean;
     currentRent?: number;
@@ -55,11 +56,12 @@ function borderColor(card: CardType): string {
     return "#888";
 }
 
-export function CardComponent({ card, onClick, onDoubleClick, selected, small, compact, currentRent }: CardProps) {
+export function CardComponent({ card, onClick, onDoubleClick, selected, dimmed, small, compact, currentRent }: CardProps) {
     const cls = [
         "md-card",
         compact ? "md-card--xs" : small ? "md-card--sm" : "",
         selected ? "md-card--selected" : "",
+        dimmed ? "md-card--dimmed" : "",
         onClick ? "md-card--clickable" : "",
     ].filter(Boolean).join(" ");
 
@@ -76,7 +78,7 @@ export function CardComponent({ card, onClick, onDoubleClick, selected, small, c
     const outerBg = isRegularProp ? "#fff" : bg;
     const innerBg = isRegularProp ? bg : undefined;
 
-    const showRentOverlay = compact && currentRent !== undefined &&
+    const showRentOverlay = currentRent !== undefined &&
         (card.cardType === "Property" || card.cardType === "PropertyWildcard");
 
     return (
@@ -123,6 +125,10 @@ function MoneyLayout({ card }: { card: CardType }) {
 function PropertyLayout({ card, small }: { card: CardType; small?: boolean }) {
     const color = card.color!;
     const info = PropertyColorMap[color];
+    if (!info) {
+        // Fallback for placeholder cards without a color
+        return <div className="md-card__name-band">{card.name}</div>;
+    }
     const rents = GameConfig.rentTable[color];
     const setSize = GameConfig.setSize[color];
 

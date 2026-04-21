@@ -22,8 +22,6 @@
 }
 
 .playerSummary--active {
-    border-color: #e94560;
-    box-shadow: 0 0 0 2px rgba(233, 69, 96, 0.3);
 }
 
 .playerSummary-header {
@@ -59,12 +57,31 @@
     border-radius: 50%;
     background: #e94560;
     flex-shrink: 0;
-    animation: pulse 1s ease-in-out infinite;
+    animation: pulse 1.4s ease-in-out infinite;
 }
 
 @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+.playerSummary-name .typing-dots {
+    margin-left: 1px;
+    font-weight: 700;
+}
+
+.playerSummary-name .typing-dots span {
+    animation: typingDot 1.4s ease-in-out infinite;
+    opacity: 0;
+}
+
+.playerSummary-name .typing-dots span:nth-child(1) { animation-delay: 0s; }
+.playerSummary-name .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.playerSummary-name .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingDot {
+    0%, 60%, 100% { opacity: 0; }
+    30% { opacity: 1; }
 }
 
 .playerSummary-stat {
@@ -128,9 +145,12 @@
     opacity: 0.9;
 }
 
-.playerSummary-setpill-icon {
-    font-size: 0.56rem;
-    line-height: 1;
+.playerSummary-setpill-building {
+    width: 10px;
+    height: 10px;
+    object-fit: contain;
+    vertical-align: middle;
+    margin-left: 1px;
 }
 
 .playerSummary-no-props {

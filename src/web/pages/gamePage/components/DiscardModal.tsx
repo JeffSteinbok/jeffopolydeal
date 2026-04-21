@@ -34,25 +34,24 @@ export function DiscardModal({ hand, maxHandSize, onDiscard, onCancel }: Discard
             <div className="modal discardModal">
                 <h3>Discard Cards</h3>
                 <p className="modalDescription">
-                    You have {hand.length} cards — max is {maxHandSize}.
-                    Select {excess} card{excess > 1 ? "s" : ""} to discard.
+                    You have {hand.length} cards — max is {maxHandSize}. Select {excess} to discard.
                 </p>
                 <div className="paymentCards discardCards">
-                    {hand.map((card) => (
-                        <CardComponent
-                            key={card.id}
-                            card={card}
-                            small
-                            selected={selectedCardIds.includes(card.id)}
-                            onClick={() => toggleCard(card.id)}
-                        />
-                    ))}
+                    {hand.map((card) => {
+                        const isSelected = selectedCardIds.includes(card.id);
+                        const isDimmed = remaining <= 0 && !isSelected;
+                        return (
+                            <CardComponent
+                                key={card.id}
+                                card={card}
+                                small
+                                selected={isSelected}
+                                dimmed={isDimmed}
+                                onClick={() => toggleCard(card.id)}
+                            />
+                        );
+                    })}
                 </div>
-                <p className="modalHint">
-                    {remaining > 0
-                        ? `Select ${remaining} more card${remaining > 1 ? "s" : ""}`
-                        : "Ready to discard!"}
-                </p>
                 <div className="modalButtons">
                     {onCancel && (
                         <button className="secondary" onClick={onCancel}>
@@ -64,7 +63,7 @@ export function DiscardModal({ hand, maxHandSize, onDiscard, onCancel }: Discard
                         onClick={handleConfirm}
                         disabled={remaining > 0}
                     >
-                        Discard {selectedCardIds.length} card{selectedCardIds.length !== 1 ? "s" : ""}
+                        Discard {excess} card{excess !== 1 ? "s" : ""}
                     </button>
                 </div>
             </div>

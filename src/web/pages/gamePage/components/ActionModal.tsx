@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { PendingAction, PlayerState, ActionResponse, Card } from "../../../Types";
 import { CardComponent } from "./Card";
+import { PropertyColorMap, PropertyColorOrder } from "../../../utilities/PropertyColors";
 import IndicatorSvg from "../../../assets/Indicator.svg";
+import HousePng from "../../../assets/HouseSmall.png";
+import HotelPng from "../../../assets/HotelSmall.png";
 import "./ActionModal.css";
 
 interface ActionModalProps {
@@ -22,8 +25,18 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
     const isStealResponse = ["RespondToSlyDeal", "RespondToForceDeal", "RespondToDealBreaker"].includes(pendingAction.type);
     const who = pendingAction.sourcePlayerName || "Someone";
 
-    const payableCards = [...myState.bank];
-    myState.propertySets.forEach((set) => payableCards.push(...set.cards));
+    const bankCards = [...myState.bank].sort((a, b) => a.moneyValue - b.moneyValue);
+    // Group property cards by set, sorted by value within each set
+    const propertySetsWithCards = myState.propertySets
+        .filter(set => set.cards.length > 0)
+        .map(set => ({
+            ...set,
+            cards: [...set.cards].sort((a, b) => a.moneyValue - b.moneyValue),
+        }))
+        .sort((a, b) => PropertyColorOrder.indexOf(a.color) - PropertyColorOrder.indexOf(b.color));
+    const allPropertyCards: Card[] = propertySetsWithCards.flatMap(s => s.cards);
+    const selectablePropertyCards = allPropertyCards.filter(c => !c.isMulticolorWild);
+    const payableCards = [...bankCards, ...selectablePropertyCards];
 
     // Clear stale selections when payable cards change
     const payableIds = new Set(payableCards.map(c => c.id));
@@ -42,9 +55,12 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
     const canAfford = totalAssets >= pendingAction.amount;
     const needsMore = isPayment && canAfford && payableCards.length > 0 &&
         selectedTotal < pendingAction.amount;
+    const amountMet = canAfford && selectedTotal >= pendingAction.amount;
 
     const toggleCard = (id: number) => {
         if (!canAfford) return;
+        // Allow deselecting, but block selecting more once amount is covered
+        if (!selectedCardIds.includes(id) && selectedTotal >= pendingAction.amount) return;
         setSelectedCardIds((prev) =>
             prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
         );
@@ -78,7 +94,7 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
         }
     };
 
-    const getDescription = (): string | null => {
+    const getDescription = (): React.ReactNode | null => {
         switch (pendingAction.type) {
             case "PayRent":
                 return `Pay ◆${pendingAction.amount} in rent.`;
@@ -87,18 +103,65 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
             case "PayBirthday":
                 return `Pay ◆${pendingAction.amount} as a birthday gift.`;
             case "RespondToSlyDeal":
-                return `${who} is stealing your "${pendingAction.targetCardName}" with a Sly Deal.`;
+                return <>{who} stole your <strong>{pendingAction.targetCardName}</strong>.</>;
             case "RespondToForceDeal":
-                return `${who} wants to swap your "${pendingAction.targetCardName}" for their "${pendingAction.offeredCardName}".`;
+                return <>{who} swapped your <strong>{pendingAction.targetCardName}</strong> for their <strong>{pendingAction.offeredCardName}</strong>.</>;
             case "RespondToDealBreaker":
-                return `${who} is taking your complete ${pendingAction.targetSetColor} property set!`;
+                return <>{who} took your complete <strong>{pendingAction.targetSetColor}</strong> property set!</>;
             default:
                 return null;
         }
     };
 
+    // Find card objects for visual display in steal/swap modals
+    const findCardById = (id?: number): Card | undefined => {
+        if (id == null) return undefined;
+        for (const set of myState.propertySets) {
+            const found = set.cards.find(c => c.id === id);
+            if (found) return found;
+        }
+        return myState.unboundWilds?.find(c => c.id === id);
+    };
+
+    const targetCard = findCardById(pendingAction.targetCardId);
+    // For ForceDeal, the offered card belongs to the source player — find it from their board
+    const findOfferedCard = (): Card | undefined => {
+        if (pendingAction.offeredCardId == null) return undefined;
+        const sourcePlayer = otherPlayers?.find(p => p.name === pendingAction.sourcePlayerName);
+        if (sourcePlayer) {
+            for (const set of sourcePlayer.propertySets) {
+                const found = set.cards.find(c => c.id === pendingAction.offeredCardId);
+                if (found) return found;
+            }
+            const wild = sourcePlayer.unboundWilds?.find(c => c.id === pendingAction.offeredCardId);
+            if (wild) return wild;
+        }
+        // Fallback to a placeholder
+        if (pendingAction.offeredCardName) {
+            return {
+                id: pendingAction.offeredCardId ?? -1,
+                cardType: "Property",
+                moneyValue: 0,
+                name: pendingAction.offeredCardName,
+                isMulticolorWild: false,
+                isWildRent: false,
+            };
+        }
+        return undefined;
+    };
+    const offeredCard = findOfferedCard();
+
+    // Determine the primary action for Enter key
+    const handleEnterAction = () => {
+        if (isPayment) {
+            if (!needsMore) handlePay();
+        } else {
+            handleAccept();
+        }
+    };
+
     return (
-        <div className="modalOverlay">
+        <div className="modalOverlay" onKeyDown={(e) => { if (e.key === "Enter") handleEnterAction(); }} tabIndex={-1} ref={(el) => el?.focus()}>
             <div className="modal">
                 <h3>{getTitle()}</h3>
 
@@ -114,17 +177,60 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                             </p>
                         )}
                         {paymentError && <p className="modalError">{paymentError}</p>}
-                        <div className="paymentCards">
-                            {payableCards.map((card) => (
-                                <CardComponent
-                                    key={card.id}
-                                    card={card}
-                                    small
-                                    selected={canAfford ? selectedCardIds.includes(card.id) : true}
-                                    onClick={() => toggleCard(card.id)}
-                                />
-                            ))}
-                            {payableCards.length === 0 && <p>You have nothing to pay with!</p>}
+                        <div className="paymentSections">
+                            {bankCards.length > 0 && (
+                                <div className="paymentSection">
+                                    <div className="paymentSection-header">Bank</div>
+                                    <div className="paymentCards">
+                                        {bankCards.map((card) => (
+                                            <CardComponent
+                                                key={card.id}
+                                                card={card}
+                                                compact
+                                                selected={canAfford ? selectedCardIds.includes(card.id) : true}
+                                                dimmed={amountMet && !selectedCardIds.includes(card.id)}
+                                                onClick={() => toggleCard(card.id)}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {propertySetsWithCards.length > 0 && (
+                                <div className="paymentSection">
+                                    <div className="paymentSection-header">Properties</div>
+                                    <div className="paymentSetsRow">
+                                        {propertySetsWithCards.map((set) => (
+                                            <div key={set.setId} className="paymentSetGroup">
+                                                <div
+                                                    className={`paymentSetGroup-header${amountMet && !set.cards.some(c => selectedCardIds.includes(c.id)) ? " paymentSetGroup-header--dimmed" : ""}`}
+                                                    style={{ backgroundColor: PropertyColorMap[set.color].hex, color: PropertyColorMap[set.color].textColor }}
+                                                >
+                                                    {`${set.cards.length}/${set.requiredSize}`}
+                                                    {set.isComplete && "✓"}
+                                                    {set.hasHouse && <img src={HousePng} alt="House" className="paymentSetGroup-building" />}
+                                                    {set.hasHotel && <img src={HotelPng} alt="Hotel" className="paymentSetGroup-building" />}
+                                                </div>
+                                                <div className="paymentCards">
+                                                    {set.cards.map((card) => {
+                                                        const isFullWild = card.isMulticolorWild;
+                                                        return (
+                                                            <CardComponent
+                                                                key={card.id}
+                                                                card={card}
+                                                                small
+                                                                selected={!isFullWild && (canAfford ? selectedCardIds.includes(card.id) : true)}
+                                                                dimmed={isFullWild || (amountMet && !selectedCardIds.includes(card.id))}
+                                                                onClick={isFullWild ? undefined : () => toggleCard(card.id)}
+                                                            />
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {bankCards.length === 0 && allPropertyCards.length === 0 && <p>You have nothing to pay with!</p>}
                         </div>
                         <div className="modalButtonBar">
                             <div className="payButtonWrapper">
@@ -146,33 +252,58 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                         </div>
                     </>
                 ) : (
-                    getDescription() && <p className="modalDescription">{getDescription()}</p>
+                    <>
+                        {getDescription() && <p className="modalDescription">{getDescription()}</p>}
+                        {/* Card visuals for steal/swap */}
+                        {pendingAction.type === "RespondToForceDeal" && targetCard && offeredCard && (
+                            <div className="modalSwapCards">
+                                <div className="modalSwapCards-side">
+                                    <span className="modalSwapCards-label">Yours</span>
+                                    <CardComponent card={targetCard} small />
+                                </div>
+                                <span className="modalSwapCards-arrow">⇄</span>
+                                <div className="modalSwapCards-side">
+                                    <span className="modalSwapCards-label">Theirs</span>
+                                    <CardComponent card={offeredCard} small />
+                                </div>
+                            </div>
+                        )}
+                        {pendingAction.type === "RespondToSlyDeal" && targetCard && (
+                            <div className="modalSwapCards" style={{ justifyContent: "flex-start" }}>
+                                <CardComponent card={targetCard} small />
+                            </div>
+                        )}
+                    </>
                 )}
 
                 {isStealResponse && (
-                    <div className="modalButtonBar">
-                        <button className="secondary" onClick={handleAccept}>Accept</button>
-                        <div className="modalButtonBar-right">
-                            {hasJustSayNo && (
+                    <div className="modalButtonBar" style={!hasJustSayNo ? { justifyContent: "flex-end" } : undefined}>
+                        <button className={hasJustSayNo ? "secondary" : "primary"} onClick={handleAccept}>
+                            {hasJustSayNo ? "Accept" : "Ok"}
+                        </button>
+                        {hasJustSayNo && (
+                            <div className="modalButtonBar-right">
                                 <button className="primary justSayNoBtn" onClick={handleJustSayNo}>Just Say No!</button>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 )}
 
                 {pendingAction.type === "JustSayNoChain" && (
                     <div className="modalButtonBar">
-                        <button className="secondary" onClick={handleAccept}>Let it go</button>
-                        <div className="modalButtonBar-right">
-                            {hasJustSayNo && (
+                        <button className={hasJustSayNo ? "secondary" : "primary"} onClick={handleAccept}>
+                            {hasJustSayNo ? "Let it go" : "Ok"}
+                        </button>
+                        {hasJustSayNo && (
+                            <div className="modalButtonBar-right">
                                 <button className="primary justSayNoBtn" onClick={handleJustSayNo}>Counter with Just Say No!</button>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 )}
 
-                {/* Inspect other players' boards during the action */}
-                {onInspect && (otherPlayers?.length ?? 0) > 0 && (
+                {/* Inspect other players' boards during the action — only when JSN is available */}
+                {hasJustSayNo && onInspect && (otherPlayers?.length ?? 0) > 0 && (
                     <div className="modalInspect">
                         <div className="modalInspect-label">Inspect players:</div>
                         <div className="modalInspect-buttons">

@@ -59,9 +59,9 @@ export function FyiToast({ toasts, smallCards, onBusyChange }: FyiToastProps) {
         setLeaving(false);
     }, [current, queue]);
 
-    // Auto-dismiss after delay
+    // Auto-dismiss after delay (skip for persistent toasts)
     useEffect(() => {
-        if (!current || leaving) return;
+        if (!current || leaving || current.persistent) return;
         const timer = setTimeout(() => setLeaving(true), 3000);
         return () => clearTimeout(timer);
     }, [current, leaving]);
@@ -85,34 +85,75 @@ export function FyiToast({ toasts, smallCards, onBusyChange }: FyiToastProps) {
                 <button className="fyiToast-close" onClick={() => { setCurrent(null); setLeaving(false); }}>✕</button>
                 {current.cardPlayed && (
                     <div className="fyiToast-cardGroup">
-                        <CardComponent card={current.cardPlayed} small={!smallCards} compact={smallCards} />
+                        <CardComponent card={current.cardPlayed} small />
                     </div>
                 )}
                 <div className="fyiToast-body">
                     <div className="fyiToast-header">
                         <div className="fyiToast-name">{current.playerName}</div>
-                        <div className="fyiToast-text">{current.text}</div>
+                        <div className="fyiToast-text">{(() => {
+                            let text = current.text;
+                            const cardName = current.cardPlayed?.name;
+                            const parts: React.ReactNode[] = [];
+
+                            // Bold the card name in the text
+                            if (cardName && text.includes(cardName)) {
+                                const idx = text.indexOf(cardName);
+                                parts.push(text.slice(0, idx));
+                                parts.push(<strong key="card">{cardName}</strong>);
+                                text = text.slice(idx + cardName.length);
+                            }
+
+                            // Bold ◆{amount} values
+                            const moneyMatch = text.match(/◆\d+/);
+                            if (moneyMatch) {
+                                const idx = text.indexOf(moneyMatch[0]);
+                                parts.push(text.slice(0, idx));
+                                parts.push(<strong key="money">{moneyMatch[0]}</strong>);
+                                text = text.slice(idx + moneyMatch[0].length);
+                            }
+
+                            // Bold target player name
+                            if (current.targetPlayerName && text.includes(current.targetPlayerName)) {
+                                const idx = text.indexOf(current.targetPlayerName);
+                                parts.push(text.slice(0, idx));
+                                parts.push(<strong key="target">{current.targetPlayerName}</strong>);
+                                text = text.slice(idx + current.targetPlayerName.length);
+                            } else if (current.targetPlayerName) {
+                                parts.push(text);
+                                text = "";
+                                parts.push(<> against <strong key="target">{current.targetPlayerName}</strong></>);
+                            }
+
+                            parts.push(text);
+                            return parts;
+                        })()}</div>
                     </div>
                     {(current.sourceCards?.length || current.targetCards?.length) ? (
                         <div className="fyiToast-cards">
                             {current.sourceCards && current.sourceCards.length > 0 && (
-                                <div className="fyiToast-cardGroup">
-                                    <span className="fyiToast-label">Gave:</span>
+                                <div className="fyiToast-cardGroup fyiToast-cardGroup--labeled">
+                                    {current.targetCards && current.targetCards.length > 0 && (
+                                        <span className="fyiToast-pill">Gave</span>
+                                    )}
                                     <div className="fyiToast-cardRow">
                                         {current.sourceCards.map((c) => (
-                                            <CardComponent key={c.id} card={c} small={!smallCards} compact={smallCards} />
+                                            <CardComponent key={c.id} card={c} compact />
                                         ))}
                                     </div>
                                 </div>
                             )}
+                            {current.sourceCards && current.sourceCards.length > 0 && current.targetCards && current.targetCards.length > 0 && (
+                                <span className="fyiToast-swap">⇄</span>
+                            )}
                             {current.targetCards && current.targetCards.length > 0 && (
-                                <div className="fyiToast-cardGroup">
+                                <div className="fyiToast-cardGroup fyiToast-cardGroup--labeled">
                                     {current.sourceCards && current.sourceCards.length > 0 && (
-                                        <span className="fyiToast-label">Got:</span>
+                                        <span className="fyiToast-pill">Got</span>
                                     )}
                                     <div className="fyiToast-cardRow">
                                         {current.targetCards.map((c) => (
-                                            <CardComponent key={c.id} card={c} small={!smallCards} compact={smallCards} />
+                                            <CardComponent key={c.id} card={c} compact />
                                         ))}
                                     </div>
                                 </div>

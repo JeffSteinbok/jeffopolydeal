@@ -13,3 +13,8 @@ export const PropertyColorMap: Record<PropertyColor, { name: string; short: stri
     Railroad:  { name: "Railroad",   short: "Rail",   hex: "#1a1a1a", textColor: "#fff" },
     Utility:   { name: "Utility",    short: "Util",   hex: "#b5d99c", textColor: "#000" },
 };
+
+/// Standard Monopoly board order for property colors.
+export const PropertyColorOrder: PropertyColor[] = [
+    "Brown", "LightBlue", "Pink", "Orange", "Red", "Yellow", "Green", "DarkBlue", "Railroad", "Utility",
+];

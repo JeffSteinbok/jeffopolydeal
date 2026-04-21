@@ -9,6 +9,7 @@
     align-items: center;
     justify-content: center;
     z-index: 100;
+    outline: none;
 }
 
 .modal {
@@ -42,14 +43,64 @@
     line-height: 1.4;
 }
 
-.paymentCards {
+/* Payment section layout */
+.paymentSections {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+    flex-direction: column;
+    gap: 12px;
     margin-bottom: 16px;
     overflow-y: auto;
     flex-shrink: 1;
     min-height: 0;
+}
+
+.paymentSection-header {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+}
+
+.paymentSetsRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.paymentSetGroup {
+    display: inline-flex;
+    flex-direction: column;
+}
+
+.paymentSetGroup-header {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.paymentSetGroup-header--dimmed {
+    opacity: 0.35;
+}
+
+.paymentSetGroup-building {
+    width: 10px;
+    height: 10px;
+    object-fit: contain;
+    vertical-align: middle;
+}
+
+.paymentCards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
     padding: 4px;
 }
 
@@ -94,6 +145,34 @@
     padding: 8px 12px;
     margin-bottom: 12px;
     font-size: 0.9rem;
+}
+
+/* Swap/steal card visual */
+.modalSwapCards {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 12px 0;
+}
+
+.modalSwapCards-side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.modalSwapCards-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #aaa;
+    text-transform: uppercase;
+}
+
+.modalSwapCards-arrow {
+    font-size: 1.8rem;
+    color: #fff;
 }
 
 /* Inspect players section */
@@ -205,7 +284,7 @@ button.payButton:disabled {
     .modal {
         width: 96%;
         padding: 16px;
-        max-height: 85vh;
+        max-height: 92vh;
         border-radius: 12px 12px 0 0;
     }
 
@@ -237,8 +316,8 @@ button.payButton:disabled {
         font-size: 0.82rem;
     }
 
-    .paymentCards {
-        max-height: 200px;
+    .paymentSections {
+        max-height: 55vh;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
     }

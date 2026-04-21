@@ -3,6 +3,8 @@ import { Card, PlayCardRequest, GameState, PlayerState, PropertyColor } from "..
 import { CardComponent } from "./Card";
 import { PropertyColorMap } from "../../../utilities/PropertyColors";
 import IndicatorSvg from "../../../assets/Indicator.svg";
+import HousePng from "../../../assets/HouseSmall.png";
+import HotelPng from "../../../assets/HotelSmall.png";
 import "./PlayCardModal.css";
 
 interface PlayCardModalProps {
@@ -185,12 +187,20 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
 
     // Step: pick rent color
     if (step === "pickRentColor") {
-        const myColors = myState.propertySets
-            .filter(s => s.cards.length > 0)
-            .map(s => s.color);
-        const validColors = card.isWildRent
-            ? myColors
-            : myColors.filter(c => card.rentColors?.includes(c));
+        const myColors = card.isWildRent
+            ? myState.propertySets.filter(s => s.cards.length > 0).map(s => s.color)
+            : myState.propertySets.filter(s => s.cards.length > 0 && card.rentColors?.includes(s.color)).map(s => s.color);
+        // Deduplicate colors, keeping the highest rent for each
+        const bestSetByColor = new Map<string, typeof myState.propertySets[0]>();
+        for (const set of myState.propertySets) {
+            if (set.cards.length === 0) continue;
+            if (!card.isWildRent && !card.rentColors?.includes(set.color)) continue;
+            const existing = bestSetByColor.get(set.color);
+            if (!existing || set.rent > existing.rent) {
+                bestSetByColor.set(set.color, set);
+            }
+        }
+        const validColors = [...bestSetByColor.keys()];
 
         return (
             <div className="modalOverlay" onClick={onCancel}>
@@ -198,7 +208,7 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                     <h3>Choose color to charge rent for</h3>
                     <div className="colorChoices">
                         {validColors.map(color => {
-                            const set = myState.propertySets.find(s => s.color === color);
+                            const set = bestSetByColor.get(color);
                             return (
                                 <button
                                     key={color}
@@ -224,7 +234,9 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                         })}
                     </div>
                     {validColors.length === 0 && <p className="modalHint">You have no matching properties!</p>}
-                    <button className="secondary" onClick={onCancel}>Cancel</button>
+                    <div style={{ alignSelf: "flex-start" }}>
+                        <button className="secondary" onClick={onCancel} style={{ padding: "10px 18px", fontSize: "0.9rem" }}>Cancel</button>
+                    </div>
                 </div>
             </div>
         );
@@ -398,7 +410,7 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                                 }}
                             >
                                 {PropertyColorMap[s.color].name} ({s.cards.length} cards)
-                                {s.hasHouse ? " 🏠" : ""}{s.hasHotel ? " 🏨" : ""}
+                                {s.hasHouse ? <img src={HousePng} alt="House" className="building-icon-inline" /> : ""}{s.hasHotel ? <img src={HotelPng} alt="Hotel" className="building-icon-inline" /> : ""}
                             </button>
                         ))}
                     </div>
@@ -422,24 +434,30 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
         return (
             <div className="modalOverlay" onClick={onCancel}>
                 <div className="playCardModal" onClick={e => e.stopPropagation()}>
-                    <h3>Pick a set to add {card.actionKind === "House" ? "House" : "Hotel"} to</h3>
+                    <h3>Pick a Set</h3>
+                    <p className="modalDescription">New rent values shown below</p>
                     <div className="targetChoices">
-                        {eligibleSets.map(s => (
-                            <button
-                                key={s.color}
-                                className="colorChoice"
-                                style={{ backgroundColor: PropertyColorMap[s.color].hex, color: PropertyColorMap[s.color].textColor }}
-                                onClick={() => {
-                                    onPlay(card.id, { playAsMoney: false, targetSetColor: s.color } as PlayCardRequest);
-                                }}
-                            >
-                                {PropertyColorMap[s.color].name}
-                                {s.hasHouse ? " 🏠" : ""}
-                            </button>
-                        ))}
+                        {eligibleSets.map(s => {
+                            const bonus = card.actionKind === "House" ? 3 : 4;
+                            const newRent = s.rent + bonus;
+                            return (
+                                <button
+                                    key={s.color}
+                                    className="colorChoice"
+                                    style={{ backgroundColor: PropertyColorMap[s.color].hex, color: PropertyColorMap[s.color].textColor }}
+                                    onClick={() => {
+                                        onPlay(card.id, { playAsMoney: false, targetSetColor: s.color } as PlayCardRequest);
+                                    }}
+                                >
+                                    {PropertyColorMap[s.color].name} (◆{newRent})
+                                </button>
+                            );
+                        })}
                     </div>
                     {eligibleSets.length === 0 && <p className="modalHint">No eligible sets!</p>}
-                    <button className="secondary" onClick={onCancel}>Cancel</button>
+                    <div style={{ alignSelf: "flex-start" }}>
+                        <button className="secondary" onClick={onCancel} style={{ padding: "10px 18px", fontSize: "0.9rem" }}>Cancel</button>
+                    </div>
                 </div>
             </div>
         );

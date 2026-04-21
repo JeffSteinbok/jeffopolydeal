@@ -165,7 +165,7 @@
 }
 
 .winnerName {
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: #222;
     animation: gameOverSlideDown 0.8s ease-out 0.3s both;

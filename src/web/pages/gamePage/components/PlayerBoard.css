@@ -135,18 +135,23 @@
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     padding-bottom: 6px;
-    scrollbar-width: thin;
-    scrollbar-color: #0f3460 transparent;
+    scrollbar-width: auto;
+    scrollbar-color: #0f3460 rgba(0, 0, 0, 0.1);
     align-items: flex-start;
 }
 
 .propertySets-row::-webkit-scrollbar {
-    height: 4px;
+    height: 10px;
+}
+
+.propertySets-row::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
 }
 
 .propertySets-row::-webkit-scrollbar-thumb {
     background: #0f3460;
-    border-radius: 2px;
+    border-radius: 5px;
 }
 
 /* Inspect mode: sets scroll horizontally, cards within each set shown side-by-side */
@@ -181,10 +186,22 @@
 .propertySet-label {
     font-size: 0.7rem;
     font-weight: 600;
-    padding: 3px 8px;
+    padding: 0 8px;
+    height: 20px;
+    line-height: 20px;
     border-radius: 4px;
     margin-bottom: 4px;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+}
+
+.building-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    vertical-align: middle;
+    margin-left: 2px;
 }
 
 .propertySet-stack {
@@ -288,7 +305,41 @@
 }
 
 .playerBoard--currentTurn {
-    box-shadow: 0 0 0 2px #e94560, 0 0 12px rgba(233, 69, 96, 0.3);
+}
+
+.pulsing-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: #e94560;
+    border-radius: 50%;
+    margin-right: 8px;
+    vertical-align: middle;
+    animation: pulsingDot 1.4s ease-in-out infinite;
+}
+
+@keyframes pulsingDot {
+    0%, 100% { opacity: 0.4; transform: scale(0.7); }
+    50% { opacity: 1; transform: scale(1); }
+}
+
+.typing-dots {
+    margin-left: 2px;
+    font-weight: 700;
+}
+
+.typing-dots span {
+    animation: typingDot 1.4s ease-in-out infinite;
+    opacity: 0;
+}
+
+.typing-dots span:nth-child(1) { animation-delay: 0s; }
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingDot {
+    0%, 60%, 100% { opacity: 0; }
+    30% { opacity: 1; }
 }
 
 .playerBoard--opponent .playerBoard-header {
@@ -326,8 +377,15 @@
 
 .playerBoard--opponent .propertySet-label {
     font-size: 0.6rem;
-    padding: 2px 5px;
+    padding: 0 5px;
+    height: 16px;
+    line-height: 16px;
     margin-bottom: 2px;
+}
+
+.playerBoard--opponent .building-icon {
+    width: 11px;
+    height: 11px;
 }
 
 /* Card expand overlay */
@@ -382,5 +440,15 @@
 @media (max-width: 680px) {
     .playerBoard-me .playerBoard-sections {
         max-height: none;
+    }
+
+    .propertySet-label {
+        height: 16px;
+        line-height: 16px;
+    }
+
+    .building-icon {
+        width: 11px;
+        height: 11px;
     }
 }
