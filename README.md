@@ -10,6 +10,22 @@
 
 A real-time multiplayer **Monopoly Deal** card game built with React, ASP.NET Core, and SignalR. Play with friends in your browser — no installs needed.
 
+## Table of Contents
+
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Deployment](#deployment)
+- [Debug Mode](#debug-mode)
+  - [Debug Flags](#debug-flags)
+  - [Helpful Combinations](#helpful-combinations)
+  - [Debug Console](#debug-console)
+  - [Special Routes](#special-routes)
+  - [Themes](#themes)
+- [Game Configuration](#game-configuration)
+- [Contributing](#contributing)
+- [License](#license)
+
 
 ---
 
