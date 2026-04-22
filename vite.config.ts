@@ -8,6 +8,7 @@ export default defineConfig({
         globals: true,
         setupFiles: ['./src/web/test-setup.ts'],
         passWithNoTests: true,
+        css: false,
     },
     // Dev server with HMR — proxies SignalR to the .NET backend
     server: {
