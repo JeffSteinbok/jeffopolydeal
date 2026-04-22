@@ -504,7 +504,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 />
             )}
 
-            <FyiToast toasts={toasts} smallCards={isMobile} onBusyChange={setToastBusy} />
+            <FyiToast toasts={toasts} smallCards={isMobile} myName={me?.name} onBusyChange={setToastBusy} />
 
             {/* Player inspect bottom sheet — z-index above ActionModal */}
             {inspectedPlayer && (

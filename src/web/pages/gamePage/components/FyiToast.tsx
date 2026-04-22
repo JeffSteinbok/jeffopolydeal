@@ -6,10 +6,11 @@ import "./FyiToast.css";
 interface FyiToastProps {
     toasts: GameAction[];
     smallCards?: boolean;
+    myName?: string;
     onBusyChange?: (busy: boolean) => void;
 }
 
-export function FyiToast({ toasts, smallCards, onBusyChange }: FyiToastProps) {
+export function FyiToast({ toasts, smallCards, myName, onBusyChange }: FyiToastProps) {
     const [queue, setQueue] = useState<GameAction[]>([]);
     const [current, setCurrent] = useState<GameAction | null>(null);
     const [leaving, setLeaving] = useState(false);
@@ -95,6 +96,11 @@ export function FyiToast({ toasts, smallCards, onBusyChange }: FyiToastProps) {
                             let text = current.text;
                             const cardName = current.cardPlayed?.name;
                             const parts: React.ReactNode[] = [];
+
+                            // Replace my name with "you" in the text
+                            if (myName && text.includes(myName)) {
+                                text = text.replace(myName, "you");
+                            }
 
                             // Bold the card name in the text
                             if (cardName && text.includes(cardName)) {
