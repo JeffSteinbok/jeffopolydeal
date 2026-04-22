@@ -147,7 +147,7 @@ namespace JeffopolyDeal.Tests
 
             // P2 should still have their brown set
             var p2State = h.GetPlayerState(p1, p2);
-            Assert.True(p2State!.PropertySets.Any(s => s.Color == PropertyColor.Brown && s.IsComplete));
+            Assert.Contains(p2State!.PropertySets, s => s.Color == PropertyColor.Brown && s.IsComplete);
         }
 
         [Fact]
