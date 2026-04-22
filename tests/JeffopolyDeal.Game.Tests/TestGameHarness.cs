@@ -234,6 +234,29 @@ namespace JeffopolyDeal.Tests
                 "Multi-color Wildcard", isMulticolorWild: true);
 
         /// <summary>
+        /// Replace the draw pile with specific cards for deterministic testing.
+        /// Cards are drawn top-first (last in list = drawn first).
+        /// </summary>
+        public void StackDeck(params Card[] cards)
+        {
+            var deck = _game.GetDeck();
+            deck.ClearDrawPile();
+            foreach (var card in cards)
+                deck.PlaceOnTop(card);
+        }
+
+        /// <summary>
+        /// Stack the deck with only money cards so bot draws are non-disruptive.
+        /// </summary>
+        public void StackDeckWithMoney(int count = 10, int value = 1)
+        {
+            var deck = _game.GetDeck();
+            deck.ClearDrawPile();
+            for (int i = 0; i < count; i++)
+                deck.PlaceOnTop(deck.CreateCard(CardType.Money, value, $"{value}M"));
+        }
+
+        /// <summary>
         /// Place property cards directly on a player's board (bypasses hand/play flow).
         /// Returns the set they were added to.
         /// </summary>

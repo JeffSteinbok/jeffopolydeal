@@ -13,33 +13,33 @@ namespace JeffopolyDeal.Tests
         [Fact]
         public void IsBot_ReturnsTrueForBotConnectionId()
         {
-            Assert.True(BotAI.IsBot("bot-Alice"));
-            Assert.True(BotAI.IsBot("bot-123"));
+            Assert.True(SmartBotAI.IsBot("bot-Alice"));
+            Assert.True(SmartBotAI.IsBot("bot-123"));
         }
 
         [Fact]
         public void IsBot_ReturnsFalseForRegularConnectionId()
         {
-            Assert.False(BotAI.IsBot("conn-Alice"));
-            Assert.False(BotAI.IsBot("player-1"));
-            Assert.False(BotAI.IsBot(""));
+            Assert.False(SmartBotAI.IsBot("conn-Alice"));
+            Assert.False(SmartBotAI.IsBot("player-1"));
+            Assert.False(SmartBotAI.IsBot(""));
         }
 
         // ── PickCardToPlay (tested indirectly via PlayTurn) ──────────────
 
         [Fact]
-        public void PlayTurn_PrefersMoneyOverProperty()
+        public void PlayTurn_PrefersHighScoreCardFirst()
         {
             var bot = CreateBot("bot-test");
             var others = new List<Player> { CreateBot("bot-other") };
             var allPlayers = new List<Player> { bot, others[0] };
 
-            // Give bot a property then a money card (property injected first)
-            bot.Hand.Add(CreatePropertyCard(1, PropertyColor.Brown));
+            // Give bot a money card (score 20) and a property card (score 30+)
             bot.Hand.Add(CreateMoneyCard(2, 3));
+            bot.Hand.Add(CreatePropertyCard(1, PropertyColor.Brown));
 
             Card? firstPlayed = null;
-            BotAI.PlayTurn(bot, allPlayers, CreateDummyDeck(), (b, card, req) =>
+            SmartBotAI.PlayTurn(bot, allPlayers, CreateDummyDeck(), (b, card, req) =>
             {
                 firstPlayed ??= card;
                 b.Hand.Remove(card);
@@ -49,54 +49,55 @@ namespace JeffopolyDeal.Tests
             }, maxPlays: 1);
 
             Assert.NotNull(firstPlayed);
-            Assert.Equal(CardType.Money, firstPlayed!.CardType);
-        }
-
-        [Fact]
-        public void PlayTurn_PrefersPropertyOverAction()
-        {
-            var bot = CreateBot("bot-test");
-            var others = new List<Player> { CreateBot("bot-other") };
-            var allPlayers = new List<Player> { bot, others[0] };
-
-            bot.Hand.Add(CreateActionCard(1, ActionType.PassGo, 1));
-            bot.Hand.Add(CreatePropertyCard(2, PropertyColor.Green));
-
-            Card? firstPlayed = null;
-            BotAI.PlayTurn(bot, allPlayers, CreateDummyDeck(), (b, card, req) =>
-            {
-                firstPlayed ??= card;
-                b.Hand.Remove(card);
-                return false;
-            }, maxPlays: 1);
-
-            Assert.NotNull(firstPlayed);
+            // SmartBotAI prefers property (score 30) over money (score 20)
             Assert.Equal(CardType.Property, firstPlayed!.CardType);
         }
 
         [Fact]
-        public void PlayTurn_SkipsJustSayNoAndDoubleTheRent()
+        public void PlayTurn_PrefersPassGoEarlyInTurn()
         {
             var bot = CreateBot("bot-test");
             var others = new List<Player> { CreateBot("bot-other") };
             var allPlayers = new List<Player> { bot, others[0] };
 
-            // Hand contains only JSN and DTR — bot should bank one (not play as action)
+            // PassGo scores 80 with 3 remaining, property scores 30
+            bot.Hand.Add(CreatePropertyCard(2, PropertyColor.Green));
+            bot.Hand.Add(CreateActionCard(1, ActionType.PassGo, 1));
+
+            Card? firstPlayed = null;
+            SmartBotAI.PlayTurn(bot, allPlayers, CreateDummyDeck(), (b, card, req) =>
+            {
+                firstPlayed ??= card;
+                b.Hand.Remove(card);
+                return false;
+            }, maxPlays: 3);
+
+            Assert.NotNull(firstPlayed);
+            // SmartBotAI prefers PassGo early (score 80) over property (score 30)
+            Assert.Equal(ActionType.PassGo, firstPlayed!.ActionKind);
+        }
+
+        [Fact]
+        public void PlayTurn_NeverPlaysJustSayNoOrDoubleTheRent()
+        {
+            var bot = CreateBot("bot-test");
+            var others = new List<Player> { CreateBot("bot-other") };
+            var allPlayers = new List<Player> { bot, others[0] };
+
+            // Hand contains only JSN and DTR — SmartBotAI scores both as null (never play)
             bot.Hand.Add(CreateActionCard(1, ActionType.JustSayNo, 4));
             bot.Hand.Add(CreateActionCard(2, ActionType.DoubleTheRent, 1));
 
             var playedCards = new List<(Card card, PlayCardRequest req)>();
-            BotAI.PlayTurn(bot, allPlayers, CreateDummyDeck(), (b, card, req) =>
+            SmartBotAI.PlayTurn(bot, allPlayers, CreateDummyDeck(), (b, card, req) =>
             {
                 playedCards.Add((card, req));
                 b.Hand.Remove(card);
-                return true; // continue playing
+                return true;
             }, maxPlays: 3);
 
-            // DoubleTheRent should be banked (JSN is kept for defense)
-            Assert.Single(playedCards);
-            Assert.Equal(ActionType.DoubleTheRent, playedCards[0].card.ActionKind);
-            Assert.True(playedCards[0].req.PlayAsMoney);
+            // SmartBotAI never plays JSN or DTR proactively
+            Assert.Empty(playedCards);
         }
 
         [Fact]
@@ -107,7 +108,7 @@ namespace JeffopolyDeal.Tests
 
             // Hand is empty
             int playCount = 0;
-            BotAI.PlayTurn(bot, allPlayers, CreateDummyDeck(), (b, card, req) =>
+            SmartBotAI.PlayTurn(bot, allPlayers, CreateDummyDeck(), (b, card, req) =>
             {
                 playCount++;
                 return true;
@@ -129,7 +130,7 @@ namespace JeffopolyDeal.Tests
             bot.Hand.AddRange(new[] { lowMoney, jsn, anotherLow });
 
             // max hand size 2 → must discard 1
-            var discards = BotAI.PickDiscards(bot, maxHandSize: 2);
+            var discards = SmartBotAI.PickDiscards(bot, maxHandSize: 2);
 
             Assert.Single(discards);
             // Should discard a low-value money card, NOT the JSN
@@ -148,7 +149,7 @@ namespace JeffopolyDeal.Tests
             bot.Hand.AddRange(new[] { money1, money5, money3, money2 });
 
             // max hand size 2 → discard 2
-            var discards = BotAI.PickDiscards(bot, maxHandSize: 2);
+            var discards = SmartBotAI.PickDiscards(bot, maxHandSize: 2);
 
             Assert.Equal(2, discards.Count);
             // The two lowest value cards (1M and 2M) should be discarded
@@ -162,7 +163,7 @@ namespace JeffopolyDeal.Tests
             var bot = CreateBot("bot-test");
             bot.Hand.Add(CreateMoneyCard(1, 5));
 
-            var discards = BotAI.PickDiscards(bot, maxHandSize: 7);
+            var discards = SmartBotAI.PickDiscards(bot, maxHandSize: 7);
 
             Assert.Empty(discards);
         }
@@ -178,7 +179,7 @@ namespace JeffopolyDeal.Tests
             bot.Hand.AddRange(new[] { lowMoney, rent, anotherLow });
 
             // max hand size 2 → discard 1
-            var discards = BotAI.PickDiscards(bot, maxHandSize: 2);
+            var discards = SmartBotAI.PickDiscards(bot, maxHandSize: 2);
 
             Assert.Single(discards);
             Assert.DoesNotContain(rent.Id, discards);
@@ -202,7 +203,7 @@ namespace JeffopolyDeal.Tests
             bot.Hand.Add(CreateActionCard(1, ActionType.DebtCollector, 3));
 
             PlayCardRequest? capturedReq = null;
-            BotAI.PlayTurn(bot, allPlayers, CreateDummyDeck(), (b, card, req) =>
+            SmartBotAI.PlayTurn(bot, allPlayers, CreateDummyDeck(), (b, card, req) =>
             {
                 capturedReq = req;
                 b.Hand.Remove(card);
@@ -216,14 +217,23 @@ namespace JeffopolyDeal.Tests
         // ── BuildResponse ────────────────────────────────────────────────
 
         [Fact]
-        public void BuildResponse_PaysWithCheapestCardsWhenNoJSN()
+        public void BuildResponse_PaysWithOptimalCardsWhenNoJSN()
         {
             var bot = CreateBot("bot-test");
             // No JSN in hand, some money in bank
             bot.Bank.Add(CreateMoneyCard(1, 1));
             bot.Bank.Add(CreateMoneyCard(2, 5));
 
-            var response = BotAI.BuildResponse(bot);
+            var pending = new PendingAction
+            {
+                Type = PendingActionType.PayRent,
+                Amount = 3,
+                SourcePlayerId = "other",
+                TargetPlayerIds = new List<string> { bot.ConnectionId },
+            };
+            var allPlayers = new List<Player> { bot, CreateBot("other") };
+
+            var response = SmartBotAI.BuildResponse(bot, pending, allPlayers);
 
             // Without JSN, should always choose to pay
             Assert.False(response.PlayJustSayNo);
@@ -244,23 +254,24 @@ namespace JeffopolyDeal.Tests
             // Human draws and ends turn — bot should auto-play
             await h.DrawAsync(human);
 
-            // Record bot's hand size before the turn passes
+            // Make bot's state fully deterministic: clear hand, stack deck with money
             var botPlayer = h.Game.GetPlayer(bot)!;
+            botPlayer.Hand.Clear();
+            botPlayer.Hand.Add(CreateMoneyCard(900, 2));
+            botPlayer.Hand.Add(CreatePropertyCard(901, PropertyColor.Brown));
+            h.StackDeckWithMoney();
+
             int handBefore = botPlayer.Hand.Count;
 
             await h.EndTurnAsync(human);
 
-            // After bot auto-plays, it should be human's turn again (bot drew + played + ended).
-            // The bot's hand should have changed (drew cards, possibly played some).
+            // Bot drew 2 money cards + played its hand. Turn should be back to human.
             int handAfter = botPlayer.Hand.Count;
             bool handChanged = handAfter != handBefore;
 
-            // Bot turn should be over — it's now human's turn again
             var state = h.GetState(human);
             Assert.NotNull(state);
-            // Current player should be back to human (index 0)
             Assert.Equal(0, state!.CurrentPlayerIndex);
-            // Bot's hand should have changed (drew 2 cards, possibly played some)
             Assert.True(handChanged, "Bot's hand should change after auto-playing its turn");
         }
 
@@ -273,6 +284,9 @@ namespace JeffopolyDeal.Tests
             await h.Game.StartGameAsync(allowSinglePlayer: false, startingPlayerIndex: 0);
 
             await h.DrawAsync(human);
+
+            // Stack deck with money so bot draws are deterministic
+            h.StackDeckWithMoney();
 
             var botPlayer = h.Game.GetPlayer(bot)!;
             // Clear hand and give bot deterministic cards

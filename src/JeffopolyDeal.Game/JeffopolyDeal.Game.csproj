@@ -14,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\JeffopolyDeal.Shared\JeffopolyDeal.Shared.csproj" />
+    <ProjectReference Include="..\JeffopolyDeal.BotAI\JeffopolyDeal.BotAI.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\wwwroot\**" LinkBase="wwwroot" CopyToOutputDirectory="Never" CopyToPublishDirectory="PreserveNewest" />

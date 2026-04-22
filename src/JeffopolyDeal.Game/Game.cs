@@ -237,7 +237,7 @@ namespace JeffopolyDeal
 
                 // If the starting player is a bot, auto-play their turn
                 var firstPlayer = GetCurrentPlayer();
-                if (firstPlayer != null && BotAI.IsBot(firstPlayer.ConnectionId))
+                if (firstPlayer != null && SmartBotAI.IsBot(firstPlayer.ConnectionId))
                 {
                     PlayBotTurn(firstPlayer);
                 }
@@ -975,7 +975,7 @@ namespace JeffopolyDeal
                     _winnerId = currentPlayer.PlayerId;
                 }
                 // If current player is a bot, resume their turn
-                else if (currentPlayer != null && BotAI.IsBot(currentPlayer.ConnectionId))
+                else if (currentPlayer != null && SmartBotAI.IsBot(currentPlayer.ConnectionId))
                 {
                     ResumeBotTurn(currentPlayer);
                 }
@@ -1292,7 +1292,7 @@ namespace JeffopolyDeal
 
             // If next player is a bot, auto-play their entire turn
             var next = GetCurrentPlayer();
-            if (next != null && BotAI.IsBot(next.ConnectionId))
+            if (next != null && SmartBotAI.IsBot(next.ConnectionId))
             {
                 PlayBotTurn(next);
             }
@@ -1307,7 +1307,7 @@ namespace JeffopolyDeal
 
             // Play cards
             bool stoppedForPending = false;
-            BotAI.PlayTurn(bot, _players, _deck, (player, card, request) =>
+            SmartBotAI.PlayTurn(bot, _players, _deck, (player, card, request) =>
             {
                 player.Hand.Remove(card);
                 ProcessCardPlay(player, card, request);
@@ -1323,7 +1323,7 @@ namespace JeffopolyDeal
                 ResolveBotPendingActions();
 
                 // If there's still a pending action with human targets, stop the bot turn
-                if (_pendingAction != null && _pendingAction.TargetPlayerIds.Any(id => !BotAI.IsBot(id)))
+                if (_pendingAction != null && _pendingAction.TargetPlayerIds.Any(id => !SmartBotAI.IsBot(id)))
                 {
                     _phase = GamePhase.AwaitingResponse;
                     stoppedForPending = true;
@@ -1339,7 +1339,7 @@ namespace JeffopolyDeal
             // Discard if needed
             if (bot.Hand.Count > GameConfig.MaxHandSize)
             {
-                var discards = BotAI.PickDiscards(bot, GameConfig.MaxHandSize);
+                var discards = SmartBotAI.PickDiscards(bot, GameConfig.MaxHandSize);
                 foreach (var cardId in discards)
                 {
                     var card = bot.Hand.FirstOrDefault(c => c.Id == cardId);
@@ -1373,7 +1373,7 @@ namespace JeffopolyDeal
             if (remainingPlays > 0)
             {
                 bool stoppedForPending = false;
-                BotAI.PlayTurn(bot, _players, _deck, (player, card, request) =>
+                SmartBotAI.PlayTurn(bot, _players, _deck, (player, card, request) =>
                 {
                     player.Hand.Remove(card);
                     ProcessCardPlay(player, card, request);
@@ -1387,7 +1387,7 @@ namespace JeffopolyDeal
 
                     ResolveBotPendingActions();
 
-                    if (_pendingAction != null && _pendingAction.TargetPlayerIds.Any(id => !BotAI.IsBot(id)))
+                    if (_pendingAction != null && _pendingAction.TargetPlayerIds.Any(id => !SmartBotAI.IsBot(id)))
                     {
                         _phase = GamePhase.AwaitingResponse;
                         stoppedForPending = true;
@@ -1402,7 +1402,7 @@ namespace JeffopolyDeal
             // Discard if needed
             if (bot.Hand.Count > GameConfig.MaxHandSize)
             {
-                var discards = BotAI.PickDiscards(bot, GameConfig.MaxHandSize);
+                var discards = SmartBotAI.PickDiscards(bot, GameConfig.MaxHandSize);
                 foreach (var cardId in discards)
                 {
                     var card = bot.Hand.FirstOrDefault(c => c.Id == cardId);
@@ -1433,7 +1433,7 @@ namespace JeffopolyDeal
 
             // Process bot responses until only human targets remain (or none)
             var botTargets = _pendingAction.TargetPlayerIds
-                .Where(BotAI.IsBot)
+                .Where(SmartBotAI.IsBot)
                 .ToList();
 
             foreach (var botId in botTargets)
@@ -1442,7 +1442,7 @@ namespace JeffopolyDeal
                 var bot = _players.FirstOrDefault(p => p.ConnectionId == botId);
                 if (bot == null) continue;
 
-                var response = BotAI.BuildResponse(bot);
+                var response = SmartBotAI.BuildResponse(bot, _pendingAction!, _players);
                 ProcessResponse(botId, response);
             }
         }
@@ -2044,29 +2044,5 @@ namespace JeffopolyDeal
     {
         public string PlayerName { get; set; } = "";
         public List<Card> Cards { get; set; } = new();
-    }
-
-    /// <summary>
-    /// Request data for playing a card.
-    /// </summary>
-    public class PlayCardRequest
-    {
-        public bool PlayAsMoney { get; set; }
-        public PropertyColor? WildcardColor { get; set; }
-        public PropertyColor? RentColor { get; set; }
-        public string? TargetPlayerId { get; set; }
-        public int? TargetCardId { get; set; }
-        public int? OfferedCardId { get; set; }
-        public PropertyColor? TargetSetColor { get; set; }
-        public List<int>? DoubleRentCardIds { get; set; }
-    }
-
-    /// <summary>
-    /// Response data from a player being targeted by an action.
-    /// </summary>
-    public class ActionResponse
-    {
-        public bool PlayJustSayNo { get; set; }
-        public List<int>? PaymentCardIds { get; set; }
     }
 }

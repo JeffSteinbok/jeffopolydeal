@@ -36,6 +36,7 @@ A real-time multiplayer **Monopoly Deal** card game built with React, ASP.NET Co
 | **Frontend** | React 19, TypeScript 5.9, Vite 8 |
 | **Backend** | ASP.NET Core (.NET 10), SignalR |
 | **Testing** | Vitest + jsdom + React Testing Library (frontend), xUnit (backend) |
+| **Bot AI** | Custom SmartBotAI library ([how it works](src/JeffopolyDeal.BotAI/README.md)) |
 | **CI/CD** | GitHub Actions → Azure Web App |
 
 ---
@@ -51,15 +52,20 @@ A real-time multiplayer **Monopoly Deal** card game built with React, ASP.NET Co
 │   │   ├── Hubs/                # SignalR GameHub
 │   │   ├── Themes/              # Theme JSON files
 │   │   ├── Game.cs              # Core game logic
-│   │   ├── BotAI.cs             # AI player logic
 │   │   └── GameCache.cs         # In-memory game store
+│   ├── JeffopolyDeal.BotAI/     # Smart bot AI library (see README)
+│   │   ├── SmartBotAI.cs        # Strategic turn play & responses
+│   │   ├── BoardAnalyzer.cs     # Game state evaluation & threats
+│   │   ├── CardEvaluator.cs     # Card priority scoring
+│   │   └── PaymentSolver.cs     # Optimal payment selection
 │   └── web/                     # React frontend
 │       ├── pages/               # Game, lobby, home pages
 │       ├── components/          # Shared UI components
 │       ├── utilities/           # Debug, logging, helpers (+ unit tests)
 │       └── Types.ts             # TypeScript type definitions
 ├── tests/
-│   └── JeffopolyDeal.Game.Tests/ # xUnit backend tests
+│   ├── JeffopolyDeal.Game.Tests/  # xUnit game engine tests
+│   └── JeffopolyDeal.BotAI.Tests/ # xUnit bot AI tests
 ├── public/                      # Static assets
 ├── wwwroot/                     # Vite build output (served by backend)
 ├── .github/workflows/           # CI, deploy, health-check
@@ -77,7 +83,7 @@ See [**DEVELOPMENT.md**](DEVELOPMENT.md) for full build, run, debug, and testing
 
 ```bash
 # Terminal 1 — Backend
-dotnet run --project src/backend/JeffopolyDeal.csproj
+dotnet run --project src/JeffopolyDeal.Game/JeffopolyDeal.Game.csproj
 
 # Terminal 2 — Frontend (dev server with hot reload)
 npm install && npm run dev
