@@ -81,12 +81,16 @@ Then open `https://localhost:5011`.
 
 ## Testing
 
-### Frontend Tests (Vitest + jsdom)
+### Frontend Tests (Vitest + jsdom + React Testing Library)
 
 ```bash
 npm run test            # Single run
 npm run test:watch      # Watch mode
 ```
+
+Tests are co-located with source files (`*.test.ts` / `*.test.tsx`). Current coverage includes:
+- **Utility tests** — `Debug`, `Logger`, `PropertyColors`, `GameConfig`
+- **Component tests** — `CardComponent`, `PlayerSummaryCard`
 
 ### Backend Tests (xUnit)
 
@@ -258,3 +262,16 @@ All workflows live in `.github/workflows/`.
 | `dotnet watch run --project src/backend/JeffopolyDeal.csproj` | Run with hot reload |
 | `dotnet test src/backend.Tests` | Run backend tests |
 | `dotnet publish src/backend/JeffopolyDeal.csproj -c Release -o publish/` | Publish for deployment |
+
+---
+
+## Workflow
+
+All changes must go through pull requests — **never push directly to `main`**.
+
+1. Create a feature branch from `main`
+2. Make changes and verify both test suites pass
+3. Open a PR targeting `main`
+4. Wait for CI (frontend + backend) to go green
+5. Merge via the GitHub UI — do not use `--admin` to bypass checks
+6. If your branch is behind `main`, rebase first, then merge normally

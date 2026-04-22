@@ -19,7 +19,7 @@ A real-time multiplayer **Monopoly Deal** card game built with React, ASP.NET Co
 |---|---|
 | **Frontend** | React 19, TypeScript 5.9, Vite 8 |
 | **Backend** | ASP.NET Core (.NET 10), SignalR |
-| **Testing** | Vitest + jsdom (frontend), xUnit (backend) |
+| **Testing** | Vitest + jsdom + React Testing Library (frontend), xUnit (backend) |
 | **CI/CD** | GitHub Actions → Azure Web App |
 
 ---
@@ -38,8 +38,9 @@ A real-time multiplayer **Monopoly Deal** card game built with React, ASP.NET Co
 │   └── web/                  # React frontend
 │       ├── pages/            # Game, lobby, home pages
 │       ├── components/       # Shared UI components
-│       ├── utilities/        # Debug, logging, helpers
+│       ├── utilities/        # Debug, logging, helpers (+ unit tests)
 │       └── Types.ts          # TypeScript type definitions
+├── src/web/**/*.test.{ts,tsx} # Frontend tests (co-located with source)
 ├── public/                   # Static assets
 ├── wwwroot/                  # Vite build output (served by backend)
 ├── .github/workflows/        # CI, deploy, health-check
@@ -220,6 +221,22 @@ Core game constants are in [`src/backend/Models/GameConfig.cs`](src/backend/Mode
 | Birthday amount | 2M |
 | House rent bonus | +3M |
 | Hotel rent bonus | +4M |
+
+---
+
+## Contributing
+
+All changes go through pull requests — **never push directly to `main`**.
+
+1. Create a feature branch from `main`
+2. Make your changes and ensure tests pass (`npm run test` and `dotnet test src/backend.Tests`)
+3. Open a pull request targeting `main`
+4. Wait for CI to pass (both frontend and backend checks)
+5. Merge via the GitHub UI (squash or merge commit — no `--admin` bypass)
+
+If your branch is behind `main`, rebase first, then merge normally.
+
+> ⚠️ Direct pushes to `main` are not allowed. Always use the PR/merge workflow.
 
 ---
 
