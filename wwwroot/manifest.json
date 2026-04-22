@@ -3,8 +3,8 @@
     "short_name": "Jeffopoly Deal",
     "start_url": "/",
     "display": "standalone",
-    "background_color": "#0a1628",
-    "theme_color": "#16213e",
+    "background_color": "#c8e6c9",
+    "theme_color": "#c8e6c9",
     "icons": [
         {
             "src": "/icon-192.png",

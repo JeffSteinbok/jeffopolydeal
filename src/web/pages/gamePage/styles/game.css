@@ -4,6 +4,7 @@
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    padding-top: env(safe-area-inset-top, 0px);
     padding: 8px;
     padding-top: max(8px, env(safe-area-inset-top));
     padding-left: max(8px, env(safe-area-inset-left));

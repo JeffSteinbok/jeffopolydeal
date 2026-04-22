@@ -389,7 +389,7 @@ namespace JeffopolyDeal
                 if (player.UniqueCompletedSetCount >= GameConfig.SetsToWin)
                 {
                     _phase = GamePhase.GameOver;
-                    _winnerId = player.ConnectionId;
+                    _winnerId = player.PlayerId;
                 }
                 // If pending action, wait for response
                 else if (_pendingAction != null)
@@ -969,7 +969,7 @@ namespace JeffopolyDeal
                 if (currentPlayer != null && currentPlayer.UniqueCompletedSetCount >= GameConfig.SetsToWin)
                 {
                     _phase = GamePhase.GameOver;
-                    _winnerId = currentPlayer.ConnectionId;
+                    _winnerId = currentPlayer.PlayerId;
                 }
                 // If current player is a bot, resume their turn
                 else if (currentPlayer != null && BotAI.IsBot(currentPlayer.ConnectionId))
@@ -1351,7 +1351,7 @@ namespace JeffopolyDeal
             if (bot.UniqueCompletedSetCount >= GameConfig.SetsToWin)
             {
                 _phase = GamePhase.GameOver;
-                _winnerId = bot.ConnectionId;
+                _winnerId = bot.PlayerId;
                 return;
             }
 
@@ -1413,7 +1413,7 @@ namespace JeffopolyDeal
             if (bot.UniqueCompletedSetCount >= GameConfig.SetsToWin)
             {
                 _phase = GamePhase.GameOver;
-                _winnerId = bot.ConnectionId;
+                _winnerId = bot.PlayerId;
                 return;
             }
 
@@ -1463,7 +1463,7 @@ namespace JeffopolyDeal
                 TopDiscard = _deck.TopDiscard,
                 PendingAction = _pendingAction,
                 WinnerId = _winnerId,
-                WinnerName = _winnerId != null ? _players.FirstOrDefault(p => p.ConnectionId == _winnerId)?.Name : null,
+                WinnerName = _winnerId != null ? _players.FirstOrDefault(p => p.PlayerId == _winnerId)?.Name : null,
                 PaymentError = forConnectionId == _lastPaymentErrorConnectionId ? _lastPaymentError : null,
                 RecentActions = _recentActions.ToList(),
             };
@@ -1868,6 +1868,21 @@ namespace JeffopolyDeal
                 case "wild":
                     card = _deck.CreateCard(CardType.PropertyWildcard, moneyValue: 0, name: "Wild",
                         isMulticolorWild: true, cardId: "debug_wild");
+                    break;
+                case "property":
+                    // "give property <color>" – parse color from parts[2]
+                    var propColor = parts.Length > 2 ? ParseColor(parts[2]) : PropertyColor.DarkBlue;
+                    var propDefs2 = ThemeLoader.BuildPropertyDefs(ThemeLoader.Load(ThemeName));
+                    if (propDefs2.TryGetValue(propColor, out var pDefs2) && pDefs2.Length > 0)
+                    {
+                        var def2 = pDefs2[0];
+                        card = _deck.CreateCard(CardType.Property, moneyValue: 1, name: def2.DisplayName,
+                            color: propColor, cardId: $"debug_prop_{propColor}");
+                    }
+                    else
+                    {
+                        return $"Unknown color: {(parts.Length > 2 ? parts[2] : "(none)")}";
+                    }
                     break;
                 default:
                     // Try to parse as a property color
