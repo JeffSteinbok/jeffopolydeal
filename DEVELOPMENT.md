@@ -110,34 +110,29 @@ Both test suites run automatically on every push/PR to `main` via GitHub Actions
 
 Append `?debug=<hexFlags>` to any URL to enable debug features. Flags are combined via bitwise OR and parsed as hexadecimal.
 
-**Example:** `http://localhost:5173/?debug=1006` (SkipLobby + FixedGameCode + PlayVsAi)
+**Example:** `http://localhost:5173/?debug=26` (SkipLobby + FixedGameCode + PlayVsAi)
 
 | Flag | Hex | Description |
 |---|---:|---|
-| `VerboseLogging` | `0x001` | Extra console logging via `Logger.debug` |
-| `FixedGameCode` | `0x002` | Forces new game code to `TEST` |
-| `SkipLobby` | `0x004` | Auto-start game immediately after creation |
-| `ForcedHand` | `0x008` | *(reserved)* |
-| `ShowAllHands` | `0x010` | *(reserved)* |
-| `UnlimitedPlays` | `0x020` | *(reserved)* |
-| `NoHandLimit` | `0x040` | *(reserved)* |
-| `RichStart` | `0x080` | *(reserved)* |
-| `InstantWin` | `0x100` | *(reserved)* |
-| `SkipDraw` | `0x200` | *(reserved)* |
-| `ShowDeck` | `0x400` | Shows in-game debug deck viewer |
-| `PopulatedBoards` | `0x800` | Auto-starts with 3 AI bots and pre-populated boards |
-| `PlayVsAi` | `0x1000` | Adds 3 AI bots for a normal game |
+| `VerboseLogging` | `0x01` | Enables detailed `[DEBUG]` console logging via `Logger.debug()` — logs game state updates, SignalR messages, etc. |
+| `FixedGameCode` | `0x02` | Forces new game code to `TEST` instead of a random code — useful for consistent testing and rejoining |
+| `SkipLobby` | `0x04` | Bypasses the lobby waiting room and auto-starts the game immediately after creation |
+| `ShowDeck` | `0x08` | Shows the debug deck viewer panel — displays draw pile, discard pile, and all player hands |
+| `PopulatedBoards` | `0x10` | Auto-adds 3 AI bots with randomly pre-populated property boards — great for testing mid/late-game scenarios |
+| `PlayVsAi` | `0x20` | Adds 3 AI bots that play normally from the start — for testing full game flow against opponents |
+| `SkipToGameOver` | `0x40` | Jumps directly to the Game Over screen with mock completed sets — for testing end-game UI |
 
 #### Recommended Combos
 
 | Code | What it does |
 |---:|---|
-| `0x006` | Quick solo test (SkipLobby + FixedGameCode) |
-| `0x406` | Solo test with deck viewer |
-| `0x806` | Jump into pre-built boards with bots |
-| `0x1004` | Fast game vs AI (random game code) |
-| `0x1006` | Fast game vs AI (fixed code `TEST`) |
-| `0x1FFF` | Everything enabled |
+| `0x06` | Quick solo test (SkipLobby + FixedGameCode) |
+| `0x0E` | Solo test with deck viewer |
+| `0x16` | Jump into pre-built boards with bots |
+| `0x24` | Fast game vs AI (random game code) |
+| `0x26` | Fast game vs AI (fixed code `TEST`) |
+| `0x44` | Test Game Over screen |
+| `0x7F` | Everything enabled |
 
 All flags are defined in [`src/web/utilities/Debug.ts`](src/web/utilities/Debug.ts).
 

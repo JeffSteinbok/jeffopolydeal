@@ -1,28 +1,22 @@
 export enum DebugFlags {
     None              = 0,
-    VerboseLogging    = 1 << 0,
-    FixedGameCode     = 1 << 1,
-    SkipLobby         = 1 << 2,
-    ForcedHand        = 1 << 3,
-    ShowAllHands      = 1 << 4,
-    UnlimitedPlays    = 1 << 5,
-    NoHandLimit       = 1 << 6,
-    RichStart         = 1 << 7,
-    InstantWin        = 1 << 8,
-    SkipDraw          = 1 << 9,
-    ShowDeck          = 1 << 10,
-    PopulatedBoards   = 1 << 11,  // Start with 3 AI players, boards randomly populated
-    PlayVsAi          = 1 << 12,  // Start with 3 AI players (normal game flow)
-    SkipToGameOver    = 1 << 13,  // Show game over screen immediately for testing
+    VerboseLogging    = 1 << 0,  // 0x01 — Extra [DEBUG] console logging
+    FixedGameCode     = 1 << 1,  // 0x02 — Force game code to TEST
+    SkipLobby         = 1 << 2,  // 0x04 — Auto-start, bypass lobby
+    ShowDeck          = 1 << 3,  // 0x08 — Show debug deck viewer
+    PopulatedBoards   = 1 << 4,  // 0x10 — 3 AI bots with pre-populated boards
+    PlayVsAi          = 1 << 5,  // 0x20 — 3 AI bots, normal game flow
+    SkipToGameOver    = 1 << 6,  // 0x40 — Jump to Game Over screen
 }
 
-// Helpful combos:
-// SkipLobby + FixedGameCode: 6
-// FixedGameCode + SkipLobby + ShowDeck: 406
-// SkipLobby + PopulatedBoards: 804
-// FixedGameCode + SkipLobby + PopulatedBoards: 806
-// SkipLobby + PlayVsAi: 1004
-// All debug shortcuts: 0x1FFF
+// Helpful combos (hex):
+// SkipLobby + FixedGameCode: 0x06
+// FixedGameCode + SkipLobby + ShowDeck: 0x0E
+// SkipLobby + PopulatedBoards: 0x14
+// FixedGameCode + SkipLobby + PopulatedBoards: 0x16
+// SkipLobby + PlayVsAi: 0x24
+// FixedGameCode + SkipLobby + PlayVsAi: 0x26
+// All flags: 0x7F
 
 export class Debug {
     static flags = DebugFlags.None;

@@ -13,17 +13,10 @@ describe("DebugFlags enum", () => {
         expect(DebugFlags.VerboseLogging).toBe(1);
         expect(DebugFlags.FixedGameCode).toBe(2);
         expect(DebugFlags.SkipLobby).toBe(4);
-        expect(DebugFlags.ForcedHand).toBe(8);
-        expect(DebugFlags.ShowAllHands).toBe(16);
-        expect(DebugFlags.UnlimitedPlays).toBe(32);
-        expect(DebugFlags.NoHandLimit).toBe(64);
-        expect(DebugFlags.RichStart).toBe(128);
-        expect(DebugFlags.InstantWin).toBe(256);
-        expect(DebugFlags.SkipDraw).toBe(512);
-        expect(DebugFlags.ShowDeck).toBe(1024);
-        expect(DebugFlags.PopulatedBoards).toBe(2048);
-        expect(DebugFlags.PlayVsAi).toBe(4096);
-        expect(DebugFlags.SkipToGameOver).toBe(8192);
+        expect(DebugFlags.ShowDeck).toBe(8);
+        expect(DebugFlags.PopulatedBoards).toBe(16);
+        expect(DebugFlags.PlayVsAi).toBe(32);
+        expect(DebugFlags.SkipToGameOver).toBe(64);
     });
 });
 
@@ -52,7 +45,7 @@ describe("Debug.setFlags / isFlagSet", () => {
         expect(Debug.isFlagSet(DebugFlags.VerboseLogging)).toBe(true);
         expect(Debug.isFlagSet(DebugFlags.FixedGameCode)).toBe(true);
         expect(Debug.isFlagSet(DebugFlags.SkipLobby)).toBe(false);
-        expect(Debug.isFlagSet(DebugFlags.ForcedHand)).toBe(false);
+        expect(Debug.isFlagSet(DebugFlags.ShowDeck)).toBe(false);
     });
 });
 
