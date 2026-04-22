@@ -18,8 +18,6 @@ const moneyColors: Record<number, string> = {
 };
 
 function BankDisplay({ bank }: { bank: Card[] }) {
-    const bankTotal = bank.reduce((sum, c) => sum + c.moneyValue, 0);
-
     // Group by denomination
     const denomCounts: Record<number, number> = {};
     bank.forEach(c => {

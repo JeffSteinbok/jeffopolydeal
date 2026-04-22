@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Card, GameState, PlayCardRequest, PlayerState } from "../../../Types";
 import { CardComponent } from "./Card";
 import { PlayCardModal } from "./PlayCardModal";

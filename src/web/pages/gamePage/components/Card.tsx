@@ -1,5 +1,5 @@
 import React from "react";
-import { Card as CardType, PropertyColor } from "../../../Types";
+import { Card as CardType } from "../../../Types";
 import { PropertyColorMap } from "../../../utilities/PropertyColors";
 import { GameConfig } from "../../../utilities/GameConfig";
 import CurrencyBackground from "../../../assets/CurrencyBackground.png";
@@ -8,7 +8,6 @@ import HouseImg from "../../../assets/House.png";
 import HotelImg from "../../../assets/Hotel.png";
 import BirthdayImg from "../../../assets/Birthday.png";
 import { RentIcon } from "./RentIcon";
-import IndicatorSvg from "../../../assets/Indicator.svg";
 import "./Card.css";
 
 /** For dark text on light backgrounds, use a subtle white shadow instead of a dark one. */
@@ -67,7 +66,6 @@ export function CardComponent({ card, onClick, onDoubleClick, selected, dimmed, 
 
     const bg = cardBg(card);
     const bc = borderColor(card);
-    const isMoney = card.cardType === "Money";
     const isRegularProp = card.cardType === "Property";
     const isPropWild = card.cardType === "PropertyWildcard";
     const isProp = isRegularProp || isPropWild;
@@ -95,7 +93,7 @@ export function CardComponent({ card, onClick, onDoubleClick, selected, dimmed, 
     );
 }
 
-function renderCard(card: CardType, small?: boolean, compact?: boolean, currentRent?: number) {
+function renderCard(card: CardType, small?: boolean, compact?: boolean, _currentRent?: number) {
     switch (card.cardType) {
         case "Money": return <MoneyLayout card={card} />;
         case "Property":
@@ -168,7 +166,7 @@ function RainbowBar() {
     );
 }
 
-function WildcardLayout({ card, small }: { card: CardType; small?: boolean }) {
+function WildcardLayout({ card, small: _small }: { card: CardType; small?: boolean }) {
     if (card.isMulticolorWild) {
         return (
             <>
@@ -185,8 +183,6 @@ function WildcardLayout({ card, small }: { card: CardType; small?: boolean }) {
         );
     }
 
-    const c1 = PropertyColorMap[card.color!];
-    const c2 = PropertyColorMap[card.altColor!];
     const isFlipped = card.activeColor === card.altColor;
     const activeColor = isFlipped ? card.altColor! : card.color!;
     const inactiveColor = isFlipped ? card.color! : card.altColor!;
@@ -354,12 +350,12 @@ function ActionLayout({ card, small, compact }: { card: CardType; small?: boolea
 }
 
 /* ── Shared parts ──────────────────────────────── */
-function Badge({ value, bg, light, compact, borderColor }: { value: number; bg: string; light?: boolean; compact?: boolean; borderColor?: string }) {
+function Badge({ value, bg, light, compact: _compact, borderColor }: { value: number; bg: string; light?: boolean; compact?: boolean; borderColor?: string }) {
     const cls = `md-badge ${light ? "md-badge--light" : ""}`;
     return <div className={cls} style={{ backgroundColor: bg, borderColor }}><span className="md-badge__num">{value}</span></div>;
 }
 
-function RentTable({ rents, setSize, color, reversed, hideHeader, small, isWildcard }: { rents: number[]; setSize: number; color: string; reversed?: boolean; hideHeader?: boolean; small?: boolean; isWildcard?: boolean }) {
+function RentTable({ rents, setSize, color, reversed, hideHeader, small: _small, isWildcard: _isWildcard }: { rents: number[]; setSize: number; color: string; reversed?: boolean; hideHeader?: boolean; small?: boolean; isWildcard?: boolean }) {
     return (
         <table className="md-rent-tbl">
             {!hideHeader && (
@@ -371,7 +367,6 @@ function RentTable({ rents, setSize, color, reversed, hideHeader, small, isWildc
                 {rents.slice(1).map((rent, i) => {
                     const n = i + 1;
                     const full = n === setSize;
-                    const label = (small || isWildcard) ? "SET " : "FULL SET ";
                     const iconCell = (
                         <td className="md-rent-tbl__icons">
                             <RentIcon count={n} color={color} className="md-rent-tbl__rent-icon" />

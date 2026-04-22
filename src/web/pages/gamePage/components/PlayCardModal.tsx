@@ -20,7 +20,7 @@ interface PlayCardModalProps {
 
 type Step = "choice" | "pickColor" | "pickTarget" | "pickTargetProperty" | "pickMyProperty" | "pickMySet" | "pickTargetSet" | "pickRentColor" | "pickDoubleRent";
 
-export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay, onCancel, onInspect }: PlayCardModalProps) {
+export function PlayCardModal({ card, gameState, myState, canPlay, phase: _phase, onPlay, onCancel, onInspect: _onInspect }: PlayCardModalProps) {
     const [step, setStep] = useState<Step>("choice");
     const [request, setRequest] = useState<Partial<PlayCardRequest>>({});
     const otherPlayers = gameState.players.filter(p => p.connectionId !== myState.connectionId);
@@ -187,9 +187,6 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
 
     // Step: pick rent color
     if (step === "pickRentColor") {
-        const myColors = card.isWildRent
-            ? myState.propertySets.filter(s => s.cards.length > 0).map(s => s.color)
-            : myState.propertySets.filter(s => s.cards.length > 0 && card.rentColors?.includes(s.color)).map(s => s.color);
         // Deduplicate colors, keeping the highest rent for each
         const bestSetByColor = new Map<string, typeof myState.propertySets[0]>();
         for (const set of myState.propertySets) {

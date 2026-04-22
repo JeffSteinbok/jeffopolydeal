@@ -10,7 +10,7 @@ interface FyiToastProps {
     onBusyChange?: (busy: boolean) => void;
 }
 
-export function FyiToast({ toasts, smallCards, myName, onBusyChange }: FyiToastProps) {
+export function FyiToast({ toasts, smallCards: _smallCards, myName, onBusyChange }: FyiToastProps) {
     const [queue, setQueue] = useState<GameAction[]>([]);
     const [current, setCurrent] = useState<GameAction | null>(null);
     const [leaving, setLeaving] = useState(false);

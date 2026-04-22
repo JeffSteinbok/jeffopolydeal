@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import { GameSignalRClient } from "./GameSignalRClient";
-import { GameState, Card, PlayCardRequest, PlayerState, GameAction } from "../../Types";
+import { GameState, PlayerState, GameAction } from "../../Types";
 import { Logger } from "../../utilities/Logger";
 import { Debug, DebugFlags } from "../../utilities/Debug";
 import { CardComponent } from "./components/Card";
-import { PropertyColorMap } from "../../utilities/PropertyColors";
 import { PlayerBoard } from "./components/PlayerBoard";
 import { PlayerSummaryCard } from "./components/PlayerSummaryCard";
 import { PlayerInspectModal } from "./components/PlayerInspectModal";
@@ -196,15 +195,6 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
 
     const handleExitGame = () => {
         setShowLeaveConfirm(true);
-    };
-
-    const handleEndGame = async () => {
-        if (!window.confirm("End this game? All players will be disconnected and the game state will be cleared.")) return;
-        try {
-            await client?.endGame();
-        } finally {
-            onLeave();
-        }
     };
 
     // Enter to draw cards when it's your turn in Draw phase
