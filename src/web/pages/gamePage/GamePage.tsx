@@ -147,7 +147,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         const newActions = state.recentActions.filter(
             (a) => !seenActionIdsRef.current.has(a.id)
                 && a.playerName !== myName
-                && a.targetPlayerName !== myName
+                && !(a.targetPlayerName === myName && !a.text.startsWith("Paid"))
         );
 
         console.log("[Toast] myName:", myName, "new actions:", newActions.length,
