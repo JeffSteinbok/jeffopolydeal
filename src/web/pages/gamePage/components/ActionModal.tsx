@@ -21,7 +21,6 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
     const [showHand, setShowHand] = useState(false);
 
     const hasJustSayNo = myState.hand?.some((c) => c.actionKind === "JustSayNo") ?? false;
-    const justSayNoCard = myState.hand?.find((c) => c.actionKind === "JustSayNo");
     const isPayment = ["PayRent", "PayDebtCollector", "PayBirthday"].includes(pendingAction.type);
     const isStealResponse = ["RespondToSlyDeal", "RespondToForceDeal", "RespondToDealBreaker"].includes(pendingAction.type);
     const who = pendingAction.sourcePlayerName || "Someone";

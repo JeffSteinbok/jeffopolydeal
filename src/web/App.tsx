@@ -1,6 +1,6 @@
 import * as React from "react";
 import { createRoot } from "react-dom/client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { StartPage } from "./pages/startPage/StartPage";
 import { GamePage } from "./pages/gamePage/GamePage";
 import { DeckPage } from "./pages/deckPage/DeckPage";
@@ -52,13 +52,9 @@ function clearSession() {
     localStorage.removeItem(SESSION_KEY);
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 function App() {
-    // Route to deck test page via ?page=deck
     const params = new URLSearchParams(window.location.search);
-    if (params.get("page") === "deck") {
-        return <DeckPage />;
-    }
-
     const autoStart = Debug.isFlagSet(DebugFlags.SkipLobby);
     const savedSession = loadSession();
 
@@ -71,6 +67,11 @@ function App() {
     const [playerId] = useState<string>(getPlayerId());
     const [inGame, setInGame] = useState(autoStart || !!savedSession);
     const [isRejoin, setIsRejoin] = useState(!!savedSession && !autoStart);
+
+    // Route to deck test page via ?page=deck
+    if (params.get("page") === "deck") {
+        return <DeckPage />;
+    }
 
     const handleLeave = () => {
         clearSession();
