@@ -39,3 +39,6 @@ deploy.zip
 # Debug/design iteration files
 docs/debug/
 docs/properties.docx
+
+TestResults/
+coverage/
