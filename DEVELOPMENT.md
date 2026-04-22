@@ -81,6 +81,14 @@ Then open `https://localhost:5011`.
 
 ## Testing
 
+### Frontend Linting (ESLint)
+
+```bash
+npm run lint            # Check for lint errors
+```
+
+ESLint is configured with TypeScript and React rules (`eslint.config.js`). Linting runs automatically in CI before build and test.
+
 ### Frontend Tests (Vitest + jsdom + React Testing Library)
 
 ```bash
@@ -100,7 +108,7 @@ dotnet test tests/JeffopolyDeal.Game.Tests
 
 ### CI
 
-Both test suites run automatically on every push/PR to `main` via GitHub Actions (`.github/workflows/ci.yml`).
+Both test suites and frontend linting run automatically on every push/PR to `main` via GitHub Actions (`.github/workflows/ci.yml`).
 
 ---
 
@@ -249,6 +257,7 @@ All workflows live in `.github/workflows/`.
 | `npm run dev` | `vite` | Start Vite dev server with HMR |
 | `npm run build` | `vite build` | Production build → `wwwroot/` |
 | `npm run preview` | `vite preview` | Preview production build locally |
+| `npm run lint` | `eslint src/web/` | Lint frontend TypeScript/React code |
 | `npm run test` | `vitest run` | Run frontend tests once |
 | `npm run test:watch` | `vitest` | Run frontend tests in watch mode |
 
