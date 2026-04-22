@@ -35,8 +35,8 @@ You need **two terminals** — one for the backend, one for the frontend.
 ### 1. Backend
 
 ```bash
-dotnet restore src/backend/JeffopolyDeal.csproj
-dotnet run --project src/backend/JeffopolyDeal.csproj
+dotnet restore src/JeffopolyDeal.Game/JeffopolyDeal.Game.csproj
+dotnet run --project src/JeffopolyDeal.Game/JeffopolyDeal.Game.csproj
 ```
 
 The backend starts on:
@@ -65,7 +65,7 @@ Navigate to **`http://localhost:5173`** to play.
 npm run build
 
 # Build and publish backend (includes wwwroot/ static files)
-dotnet publish src/backend/JeffopolyDeal.csproj -c Release -o publish/
+dotnet publish src/JeffopolyDeal.Game/JeffopolyDeal.Game.csproj -c Release -o publish/
 ```
 
 To preview the production build locally:
@@ -91,7 +91,7 @@ npm run test:watch      # Watch mode
 ### Backend Tests (xUnit)
 
 ```bash
-dotnet test src/backend.Tests
+dotnet test tests/JeffopolyDeal.Game.Tests
 ```
 
 ### CI
@@ -146,10 +146,10 @@ All flags are defined in [`src/web/utilities/Debug.ts`](src/web/utilities/Debug.
 
 ### Backend Debugging
 
-- **Visual Studio / VS Code:** Open `JeffopolyDeal.sln` or the `src/backend/` folder. Launch profiles are in `src/backend/Properties/launchSettings.json`.
+- **Visual Studio / VS Code:** Open `JeffopolyDeal.sln` or the `src/JeffopolyDeal.Game/` folder. Launch profiles are in `src/JeffopolyDeal.Game/Properties/launchSettings.json`.
 - **Hot reload:** Use `dotnet watch` for automatic rebuild on changes:
   ```bash
-  dotnet watch run --project src/backend/JeffopolyDeal.csproj
+  dotnet watch run --project src/JeffopolyDeal.Game/JeffopolyDeal.Game.csproj
   ```
 - **SignalR debug endpoint:** The `GetDebugDeckInfo` hub method returns the draw pile, discard pile, and all player hands for the current game.
 
@@ -165,31 +165,36 @@ All flags are defined in [`src/web/utilities/Debug.ts`](src/web/utilities/Debug.
 
 ```
 ├── src/
-│   ├── backend/                  # ASP.NET Core game server
-│   │   ├── Hubs/GameHub.cs       # SignalR hub — client ↔ server messaging
+│   ├── JeffopolyDeal.Shared/         # Shared models & card definitions
 │   │   ├── Models/
-│   │   │   ├── Card.cs           # Card types, actions, properties
-│   │   │   ├── Deck.cs           # 106-card deck composition
-│   │   │   ├── GameConfig.cs     # Game constants (rent tables, set sizes, limits)
-│   │   │   ├── GameState.cs      # State DTOs sent to clients
-│   │   │   ├── Player.cs         # Player model (hand, bank, properties)
-│   │   │   └── PropertySet.cs    # Property set logic (completion, rent calc)
-│   │   ├── Game.cs               # Core game engine (turns, actions, payments)
-│   │   ├── GameCache.cs          # In-memory game store
-│   │   ├── BotAI.cs              # AI player decision logic
-│   │   └── Program.cs            # App startup, routing, middleware
+│   │   │   ├── Card.cs               # Card types, actions, properties
+│   │   │   ├── Deck.cs               # 106-card deck composition
+│   │   │   ├── GameConfig.cs         # Game constants (rent tables, set sizes, limits)
+│   │   │   ├── GameState.cs          # State DTOs sent to clients
+│   │   │   ├── Player.cs             # Player model (hand, bank, properties)
+│   │   │   └── PropertySet.cs        # Property set logic (completion, rent calc)
+│   │   └── Cards/                    # Card playability logic
 │   │
-│   ├── backend.Tests/            # xUnit backend tests
+│   ├── JeffopolyDeal.Game/           # ASP.NET Core game server
+│   │   ├── Hubs/GameHub.cs           # SignalR hub — client ↔ server messaging
+│   │   ├── Themes/                   # Theme JSON files
+│   │   ├── Game.cs                   # Core game engine (turns, actions, payments)
+│   │   ├── GameCache.cs              # In-memory game store
+│   │   ├── BotAI.cs                  # AI player decision logic
+│   │   └── Program.cs               # App startup, routing, middleware
 │   │
-│   └── web/                      # React frontend
+│   └── web/                          # React frontend
 │       ├── pages/
-│       │   ├── startPage/        # Home screen (Create/Join)
-│       │   └── gamePage/         # Lobby, game board, action modals
-│       ├── components/           # Shared UI (cards, buttons, toasts)
+│       │   ├── startPage/            # Home screen (Create/Join)
+│       │   └── gamePage/             # Lobby, game board, action modals
+│       ├── components/               # Shared UI (cards, buttons, toasts)
 │       ├── utilities/
-│       │   ├── Debug.ts          # Debug flag system
-│       │   └── Logger.ts         # Conditional logging
-│       └── Types.ts              # TypeScript type definitions
+│       │   ├── Debug.ts              # Debug flag system
+│       │   └── Logger.ts             # Conditional logging
+│       └── Types.ts                  # TypeScript type definitions
+│
+├── tests/
+│   └── JeffopolyDeal.Game.Tests/     # xUnit backend tests
 │
 ├── public/                       # Static assets (favicon, rent images)
 ├── wwwroot/                      # Vite build output (served by .NET)
@@ -254,7 +259,7 @@ All workflows live in `.github/workflows/`.
 |---|---|
 | `dotnet restore` | Restore NuGet packages |
 | `dotnet build` | Build the backend |
-| `dotnet run --project src/backend/JeffopolyDeal.csproj` | Run the backend |
-| `dotnet watch run --project src/backend/JeffopolyDeal.csproj` | Run with hot reload |
-| `dotnet test src/backend.Tests` | Run backend tests |
-| `dotnet publish src/backend/JeffopolyDeal.csproj -c Release -o publish/` | Publish for deployment |
+| `dotnet run --project src/JeffopolyDeal.Game/JeffopolyDeal.Game.csproj` | Run the backend |
+| `dotnet watch run --project src/JeffopolyDeal.Game/JeffopolyDeal.Game.csproj` | Run with hot reload |
+| `dotnet test tests/JeffopolyDeal.Game.Tests` | Run backend tests |
+| `dotnet publish src/JeffopolyDeal.Game/JeffopolyDeal.Game.csproj -c Release -o publish/` | Publish for deployment |
