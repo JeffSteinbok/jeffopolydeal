@@ -98,8 +98,10 @@ export function FyiToast({ toasts, smallCards, myName, onBusyChange }: FyiToastP
                             const parts: React.ReactNode[] = [];
 
                             // Replace my name with "you" in the text
+                            let targetName = current.targetPlayerName;
                             if (myName && text.includes(myName)) {
                                 text = text.replace(myName, "you");
+                                if (targetName === myName) targetName = "you";
                             }
 
                             // Bold the card name in the text
@@ -120,19 +122,19 @@ export function FyiToast({ toasts, smallCards, myName, onBusyChange }: FyiToastP
                             }
 
                             // Bold target player name
-                            if (current.targetPlayerName && text.includes(current.targetPlayerName)) {
-                                const idx = text.indexOf(current.targetPlayerName);
+                            if (targetName && text.includes(targetName)) {
+                                const idx = text.indexOf(targetName);
                                 parts.push(text.slice(0, idx));
-                                parts.push(<strong key="target">{current.targetPlayerName}</strong>);
-                                text = text.slice(idx + current.targetPlayerName.length);
-                            } else if (current.targetPlayerName) {
+                                parts.push(<strong key="target">{targetName}</strong>);
+                                text = text.slice(idx + targetName.length);
+                            } else if (targetName && targetName !== "you") {
                                 parts.push(text);
                                 text = "";
-                                parts.push(<> against <strong key="target">{current.targetPlayerName}</strong></>);
+                                parts.push(<> against <strong key="target">{targetName}</strong></>);
                             }
 
                             parts.push(text);
-                            return parts;
+                            return parts.map((node, i) => <React.Fragment key={i}>{node}</React.Fragment>);
                         })()}</div>
                     </div>
                     {(current.sourceCards?.length || current.targetCards?.length) ? (

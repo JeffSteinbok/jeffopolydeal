@@ -14,12 +14,12 @@ export default defineConfig({
         port: 5173,
         proxy: {
             '/hub': {
-                target: 'http://localhost:5011',
+                target: 'http://localhost:5010',
                 secure: false,
                 ws: true,  // WebSocket support for SignalR
             },
             '/api': {
-                target: 'http://localhost:5011',
+                target: 'http://localhost:5010',
                 secure: false,
             },
         },

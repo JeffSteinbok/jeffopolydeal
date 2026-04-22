@@ -217,9 +217,9 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
                                     onClick={() => {
                                         const newReq = { ...request, rentColor: color };
                                         setRequest(newReq);
-                                        // Check for Double the Rent cards
+                                        // Check for Double the Rent cards (need a spare play)
                                         const doubleCards = (myState.hand ?? []).filter(c => c.actionKind === "DoubleTheRent" && c.id !== card.id);
-                                        if (doubleCards.length > 0) {
+                                        if (doubleCards.length > 0 && gameState.playsUsed + 1 < 3) {
                                             setStep("pickDoubleRent");
                                         } else if (card.isWildRent) {
                                             setStep("pickTarget");
@@ -244,13 +244,16 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
 
     // Step: pick Double the Rent cards to stack
     if (step === "pickDoubleRent") {
-        const doubleCards = (myState.hand ?? []).filter(c => c.actionKind === "DoubleTheRent" && c.id !== card.id);
+        const selectedDoubles = (request.doubleRentCardIds ?? []) as number[];
+        const doubleCards = (myState.hand ?? []).filter(c => c.actionKind === "DoubleTheRent" && c.id !== card.id && !selectedDoubles.includes(c.id));
         const rentSet = myState.propertySets.find(s => s.color === request.rentColor);
-        let baseRent = rentSet?.rent ?? 0;
+        const baseRent = rentSet?.rent ?? 0;
+        const multiplier = Math.pow(2, selectedDoubles.length);
+        const currentRent = baseRent * multiplier;
+        const doubledRent = currentRent * 2;
 
-        const finishWithDouble = (useDouble: boolean) => {
-            const doubleId = useDouble ? doubleCards[0]?.id : undefined;
-            const finalReq = { ...request, doubleRentCardIds: doubleId ? [doubleId] : undefined };
+        const finishRent = (ids: number[]) => {
+            const finalReq = { ...request, doubleRentCardIds: ids.length > 0 ? ids : undefined };
             if (card.isWildRent) {
                 setRequest(finalReq);
                 setStep("pickTarget");
@@ -259,21 +262,36 @@ export function PlayCardModal({ card, gameState, myState, canPlay, phase, onPlay
             }
         };
 
+        const handleYes = () => {
+            const newDoubles = [...selectedDoubles, doubleCards[0].id];
+            const playsAfter = gameState.playsUsed + 1 + newDoubles.length;
+            const moreDoubles = doubleCards.length > 1 && playsAfter < 3;
+            if (moreDoubles) {
+                // Show dialog again for next double
+                setRequest({ ...request, doubleRentCardIds: newDoubles });
+            } else {
+                finishRent(newDoubles);
+            }
+        };
+
         return (
             <div className="modalOverlay" onClick={onCancel}>
                 <div className="playCardModal" onClick={e => e.stopPropagation()}>
-                    <h3>Double the Rent?</h3>
+                    <h3>{selectedDoubles.length > 0 ? "Double the Rent Again?" : "Double the Rent?"}</h3>
                     <p className="modalHint">
-                        Charge ◆{baseRent * 2} instead of ◆{baseRent}?
+                        Charge ◆{doubledRent} instead of ◆{currentRent}?
                         <br />Uses an extra card play.
                     </p>
-                    <div className="choiceButtons">
-                        <button className="choiceButton choiceButton--action" onClick={() => finishWithDouble(true)}>
-                            ⚡ Yes, Double It! (◆{baseRent * 2})
-                        </button>
-                        <button className="choiceButton choiceButton--secondary" onClick={() => finishWithDouble(false)}>
-                            No, Charge ◆{baseRent}
-                        </button>
+                    <div className="modalButtonBar">
+                        <button className="secondary" onClick={onCancel}>Cancel</button>
+                        <div className="modalButtonBar-right">
+                            <button className="choiceButton choiceButton--action" onClick={handleYes}>
+                                ⚡ Double It! (◆{doubledRent})
+                            </button>
+                            <button className="choiceButton choiceButton--money" onClick={() => finishRent(selectedDoubles)}>
+                                No, Charge ◆{currentRent}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

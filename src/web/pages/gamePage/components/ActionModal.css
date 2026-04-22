@@ -182,10 +182,16 @@
     border-top: 1px solid #0f3460;
 }
 
+.modalInspect-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
 .modalInspect-label {
     font-size: 0.8rem;
     color: #888;
-    margin-bottom: 8px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -200,6 +206,60 @@
 
 .modalInspect-showHand {
     margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.modalInspect-showHand .modalInspect-btn {
+    position: relative;
+}
+
+.modalInspect-tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #222;
+    color: #eee;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.modalInspect-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: #222;
+}
+
+.modalInspect-showHand .modalInspect-btn:hover .modalInspect-tooltip {
+    opacity: 1;
+}
+
+.inspectDrawer--hand {
+    background: #c8e6c9;
+    border-color: #a5d6a7;
+}
+
+.inspectDrawer--hand .inspectDrawer-header {
+    border-bottom-color: #a5d6a7;
+}
+
+.inspectDrawer--hand .inspectDrawer-title {
+    color: #222;
+}
+
+.inspectDrawer--hand .inspectDrawer-close {
+    color: #555;
 }
 
 .modalInspect-btn {
@@ -251,6 +311,20 @@
     border-radius: 8px;
 }
 
+.discardModal {
+    overflow-y: hidden;
+}
+
+.discardCards-scroll {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+.discardModal .modalButtonBar {
+    flex-shrink: 0;
+}
+
 .payButtonWrapper {
     position: relative;
     display: flex;
@@ -277,6 +351,15 @@ button.payButton:disabled {
 
 .justSayNoBtn {
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.justSayNoBtn .md-card--xs {
+    display: inline-block;
+    transform: scale(0.7);
+    margin: -8px -4px;
 }
 
 /* Mobile adjustments */

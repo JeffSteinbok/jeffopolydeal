@@ -5,14 +5,14 @@ import { PropertyColorMap } from "../../../utilities/PropertyColors";
 import "./DebugConsole.css";
 
 const COMMANDS: Record<string, string[]> = {
-    give: ["rent", "money", "property", "house", "hotel", "passgo", "dealbreaker", "forcedeal", "slydeal", "debtcollector", "birthday", "justsayno", "wild"],
-    giveto: [],
-    bank: ["money", "rent", "property", "house", "hotel", "passgo", "dealbreaker", "forcedeal", "slydeal", "debtcollector", "birthday", "justsayno", "wild"],
-    clear: ["hand", "bank"],
-    clearto: [],
-    myturn: [],
-    skip: [],
-    toast: ["banked", "placed", "rent", "rentwild", "rentpaid", "slydeal", "forcedeal", "dealbreaker", "birthday", "passgo"],
+    "/give": ["rent", "money", "property", "house", "hotel", "passgo", "dealbreaker", "forcedeal", "slydeal", "debtcollector", "birthday", "justsayno", "doublerent", "wild"],
+    "/giveto": [],
+    "/bank": ["money", "rent", "property", "house", "hotel", "passgo", "dealbreaker", "forcedeal", "slydeal", "debtcollector", "birthday", "justsayno", "doublerent", "wild"],
+    "/clear": ["hand", "bank"],
+    "/clearto": [],
+    "/myturn": [],
+    "/skip": [],
+    "/toast": ["banked", "placed", "rent", "rentwild", "rentpaid", "slydeal", "forcedeal", "dealbreaker", "birthday", "passgo"],
 };
 
 const TOAST_ARGS: Record<string, string[]> = {
@@ -40,8 +40,8 @@ function getSuggestions(input: string, playerNames: string[]): string[] {
     if (!(cmd in COMMANDS)) return [];
 
     // giveto/clearto: part[1] is player name, part[2] is card type, part[3] is color
-    if (cmd === "giveto" || cmd === "clearto") {
-        const opts = cmd === "giveto" ? COMMANDS["give"] : COMMANDS["clear"];
+    if (cmd === "/giveto" || cmd === "/clearto") {
+        const opts = cmd === "/giveto" ? COMMANDS["/give"] : COMMANDS["/clear"];
         if (parts.length === 2) {
             const namePart = parts[1];
             return playerNames.filter(n => n.toLowerCase().startsWith(namePart) && n.toLowerCase() !== namePart);
@@ -50,7 +50,7 @@ function getSuggestions(input: string, playerNames: string[]): string[] {
             const sub = parts[2];
             return opts.filter(s => s.toLowerCase().startsWith(sub) && s.toLowerCase() !== sub).map(s => s.toLowerCase());
         }
-        if (cmd === "giveto" && parts.length === 4 && ["rent", "property", "wild"].includes(parts[2])) {
+        if (cmd === "/giveto" && parts.length === 4 && ["rent", "property", "wild"].includes(parts[2])) {
             const colorPart = parts[3];
             return COLORS.filter(c => c.startsWith(colorPart) && c !== colorPart);
         }
@@ -64,19 +64,19 @@ function getSuggestions(input: string, playerNames: string[]): string[] {
     }
 
     // Color arg for give/bank rent/property/wild
-    if ((cmd === "give" || cmd === "bank") && parts.length === 3 && ["rent", "property", "wild"].includes(parts[1])) {
+    if ((cmd === "/give" || cmd === "/bank") && parts.length === 3 && ["rent", "property", "wild"].includes(parts[1])) {
         const colorPart = parts[2];
         return COLORS.filter(c => c.startsWith(colorPart) && c !== colorPart);
     }
 
     // Toast args: toast [type] [arg] [extra]
-    if (cmd === "toast" && parts.length === 3) {
+    if (cmd === "/toast" && parts.length === 3) {
         const toastType = parts[1];
         const argPart = parts[2];
         const args = TOAST_ARGS[toastType] || [];
         return args.filter(a => a.startsWith(argPart) && a !== argPart);
     }
-    if (cmd === "toast" && parts.length === 4 && parts[1] === "rent") {
+    if (cmd === "/toast" && parts.length === 4 && parts[1] === "rent") {
         const countPart = parts[3];
         return ["1", "2", "3", "4", "5"].filter(c => c.startsWith(countPart) && c !== countPart);
     }
@@ -283,7 +283,7 @@ export function DebugConsole({ client, playerNames, onShowToast }: DebugConsoleP
         const trimmed = command.trim();
 
         // Client-side commands
-        if (trimmed.toLowerCase().startsWith("toast")) {
+        if (trimmed.toLowerCase().startsWith("/toast")) {
             const parts = trimmed.toLowerCase().split(/\s+/);
             const type = parts[1] || "banked";
             const args = parts.slice(2);
@@ -297,7 +297,9 @@ export function DebugConsole({ client, playerNames, onShowToast }: DebugConsoleP
 
         if (!client) return;
         try {
-            const res = await client.debugCommand(trimmed);
+            // Strip leading "/" before sending to backend
+            const backendCmd = trimmed.startsWith("/") ? trimmed.slice(1) : trimmed;
+            const res = await client.debugCommand(backendCmd);
             setResult(res);
             setCommand("");
         } catch (err: unknown) {

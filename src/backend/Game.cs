@@ -36,6 +36,7 @@ namespace JeffopolyDeal
         private readonly List<GameAction> _recentActions = new();
         private const int MaxRecentActions = 20;
         private int _nextActionId = 1;
+        private List<Card> _discardedThisTurn = new();
 
         public Game(IHubContext<GameHub> hubContext, string gameCode, string? themeName = null)
         {
@@ -466,10 +467,12 @@ namespace JeffopolyDeal
 
                 player.Hand.Remove(card);
                 _deck.Discard(card);
-                LogAction(player.Name, $"Discarded {card.Name}", cardPlayed: card);
+                _discardedThisTurn.Add(card);
 
                 if (player.Hand.Count <= GameConfig.MaxHandSize)
                 {
+                    LogAction(player.Name, "Discarded cards", sourceCards: new List<Card>(_discardedThisTurn));
+                    _discardedThisTurn.Clear();
                     AdvanceTurn();
                 }
             }
@@ -1284,6 +1287,7 @@ namespace JeffopolyDeal
             _currentPlayerIndex = (_currentPlayerIndex + 1) % _players.Count;
             _playsUsed = 0;
             _pendingAction = null;
+            _discardedThisTurn.Clear();
             _phase = GamePhase.Draw;
 
             // If next player is a bot, auto-play their entire turn
@@ -1919,12 +1923,14 @@ namespace JeffopolyDeal
             {
                 case "hand":
                     int count = player.Hand.Count;
+                    foreach (var c in player.Hand) _deck.Discard(c);
                     player.Hand.Clear();
-                    return $"Cleared {count} cards from hand";
+                    return $"Discarded {count} cards from hand";
                 case "bank":
                     int bankCount = player.Bank.Count;
+                    foreach (var c in player.Bank) _deck.Discard(c);
                     player.Bank.Clear();
-                    return $"Cleared {bankCount} cards from bank";
+                    return $"Discarded {bankCount} cards from bank";
                 default:
                     return $"Unknown clear target: {parts[1]}. Try: hand, bank";
             }

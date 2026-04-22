@@ -21,6 +21,7 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
     const [showHand, setShowHand] = useState(false);
 
     const hasJustSayNo = myState.hand?.some((c) => c.actionKind === "JustSayNo") ?? false;
+    const justSayNoCard = myState.hand?.find((c) => c.actionKind === "JustSayNo");
     const isPayment = ["PayRent", "PayDebtCollector", "PayBirthday"].includes(pendingAction.type);
     const isStealResponse = ["RespondToSlyDeal", "RespondToForceDeal", "RespondToDealBreaker"].includes(pendingAction.type);
     const who = pendingAction.sourcePlayerName || "Someone";
@@ -83,13 +84,13 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
 
     const getTitle = (): string => {
         switch (pendingAction.type) {
-            case "PayRent": return `${who} charges you rent!`;
+            case "PayRent": return `${who} charges you rent of ◆${pendingAction.amount}!`;
             case "PayDebtCollector": return `${who} plays Debt Collector!`;
             case "PayBirthday": return `It's ${who}'s Birthday!`;
             case "RespondToSlyDeal": return `${who} plays Sly Deal!`;
             case "RespondToForceDeal": return `${who} plays Forced Deal!`;
             case "RespondToDealBreaker": return `${who} plays Deal Breaker!`;
-            case "JustSayNoChain": return "Just Say No was played! Counter it?";
+            case "JustSayNoChain": return hasJustSayNo ? `${who} played Just Say No! Counter it?` : `${who} played Just Say No!`;
             default: return "Respond";
         }
     };
@@ -103,7 +104,7 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
             case "PayBirthday":
                 return `Pay ◆${pendingAction.amount} as a birthday gift.`;
             case "RespondToSlyDeal":
-                return <>{who} stole your <strong>{pendingAction.targetCardName}</strong>.</>;
+                return <>{who} stole <strong>{pendingAction.targetCardName}</strong>.</>;
             case "RespondToForceDeal":
                 return <>{who} swapped your <strong>{pendingAction.targetCardName}</strong> for their <strong>{pendingAction.offeredCardName}</strong>.</>;
             case "RespondToDealBreaker":
@@ -173,14 +174,14 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                             </p>
                         ) : (
                             <p className="modalDescription">
-                                <span className="modalWarning">You can't afford ◆{pendingAction.amount} — the game will take everything you have (◆{totalAssets}).</span>
+                                <span className="modalWarning">You can't afford ◆{pendingAction.amount}.</span>
                             </p>
                         )}
                         {paymentError && <p className="modalError">{paymentError}</p>}
                         <div className="paymentSections">
                             {bankCards.length > 0 && (
                                 <div className="paymentSection">
-                                    <div className="paymentSection-header">Bank</div>
+
                                     <div className="paymentCards">
                                         {bankCards.map((card) => (
                                             <CardComponent
@@ -197,7 +198,7 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                             )}
                             {propertySetsWithCards.length > 0 && (
                                 <div className="paymentSection">
-                                    <div className="paymentSection-header">Properties</div>
+
                                     <div className="paymentSetsRow">
                                         {propertySetsWithCards.map((set) => (
                                             <div key={set.setId} className="paymentSetGroup">
@@ -290,22 +291,25 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                 )}
 
                 {pendingAction.type === "JustSayNoChain" && (
-                    <div className="modalButtonBar">
-                        <button className={hasJustSayNo ? "secondary" : "primary"} onClick={handleAccept}>
-                            {hasJustSayNo ? "Let it go" : "Ok"}
-                        </button>
+                    <div className="modalButtonBar" style={!hasJustSayNo ? { justifyContent: "flex-end" } : undefined}>
                         {hasJustSayNo && (
-                            <div className="modalButtonBar-right">
-                                <button className="primary justSayNoBtn" onClick={handleJustSayNo}>Counter with Just Say No!</button>
-                            </div>
+                            <button className="secondary" onClick={handleAccept}>Let it go</button>
                         )}
+                        <div className="modalButtonBar-right">
+                            {hasJustSayNo && (
+                                <button className="primary justSayNoBtn" onClick={handleJustSayNo}>Counter with Just Say No!</button>
+                            )}
+                            {!hasJustSayNo && (
+                                <button className="choiceButton choiceButton--money" style={{ width: "auto", padding: "8px 24px", fontSize: "0.9rem" }} onClick={handleAccept}>Ok</button>
+                            )}
+                        </div>
                     </div>
                 )}
 
-                {/* Inspect other players' boards during the action — only when JSN is available */}
+                {/* Inspect other players' boards and view own hand — only when player has choices (JSN) */}
                 {hasJustSayNo && onInspect && (otherPlayers?.length ?? 0) > 0 && (
                     <div className="modalInspect">
-                        <div className="modalInspect-label">Inspect players:</div>
+
                         <div className="modalInspect-buttons">
                             {otherPlayers.map(p => (
                                 <button
@@ -316,24 +320,40 @@ export function ActionModal({ pendingAction, myState, paymentError, onRespond, o
                                     🔍 {p.name}
                                 </button>
                             ))}
-                            <button
-                                className="modalInspect-btn modalInspect-showHand"
-                                onClick={() => setShowHand(prev => !prev)}
-                            >
-                                <img src={IndicatorSvg} alt="cards" style={{ width: 14, height: "auto", verticalAlign: "middle", marginRight: 4 }} />
-                                {showHand ? "Hide Hand" : "Show Hand"}
-                            </button>
+                            <div className="modalInspect-showHand">
+                                <button
+                                    className="modalInspect-btn"
+                                    onClick={() => setShowHand(prev => !prev)}
+                                >
+                                    <img src={IndicatorSvg} alt="Hand" style={{ width: 14, height: "auto", verticalAlign: "middle" }} />
+                                    <span className="modalInspect-tooltip">Inspect your hand.</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
 
                 {showHand && myState.hand && myState.hand.length > 0 && (
-                    <div className="modalHand">
-                        <div className="modalHand-label">Your Hand</div>
-                        <div className="modalHand-cards">
-                            {myState.hand.map(c => (
-                                <CardComponent key={c.id} card={c} small />
-                            ))}
+                    <div
+                        className="inspectOverlay inspectOverlay--hand"
+                        onClick={() => setShowHand(false)}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Your hand"
+                    >
+                        <div className="inspectDrawer inspectDrawer--hand" onClick={e => e.stopPropagation()}>
+                            <div className="inspectDrawer-handle" />
+                            <div className="inspectDrawer-header">
+                                <h3 className="inspectDrawer-title">Your Hand</h3>
+                                <button className="inspectDrawer-close" onClick={() => setShowHand(false)} aria-label="Close">✕</button>
+                            </div>
+                            <div className="inspectDrawer-body">
+                                <div className="modalHand-cards">
+                                    {myState.hand.map(c => (
+                                        <CardComponent key={c.id} card={c} small />
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}

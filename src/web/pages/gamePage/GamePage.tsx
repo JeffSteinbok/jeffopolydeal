@@ -486,7 +486,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 <div className="modalOverlay" style={{ alignItems: "center" }}>
                     <div className="drawTurnPopup">
                         <h2 className="drawTurnPopup-title">It's Your Turn!</h2>
-                        <button className="primary drawTurnPopup-btn" onClick={() => client?.drawCards()}>
+                        <button className="drawTurnPopup-btn" onClick={() => client?.drawCards()}>
                             Draw Cards
                         </button>
                     </div>

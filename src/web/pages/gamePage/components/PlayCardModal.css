@@ -13,6 +13,10 @@
     gap: 12px;
 }
 
+.playCardModal .secondary {
+    align-self: flex-start;
+}
+
 .playCardModal h3 {
     color: #fff;
     text-align: center;
