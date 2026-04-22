@@ -28,7 +28,7 @@ jobs:
         run: dotnet build --no-restore
 
       - name: Test
-        run: dotnet test src/backend.Tests --no-build --verbosity normal
+        run: dotnet test tests/JeffopolyDeal.Game.Tests --no-build --verbosity normal
 
   frontend:
     name: Frontend Build & Test

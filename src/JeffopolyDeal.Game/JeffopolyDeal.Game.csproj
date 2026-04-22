@@ -13,7 +13,7 @@
     <InternalsVisibleTo Include="JeffopolyDeal.Tests" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <ProjectReference Include="..\JeffopolyDeal.Shared\JeffopolyDeal.Shared.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\..\wwwroot\**" LinkBase="wwwroot" CopyToOutputDirectory="Never" CopyToPublishDirectory="PreserveNewest" />

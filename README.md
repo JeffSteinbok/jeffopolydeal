@@ -44,23 +44,26 @@ A real-time multiplayer **Monopoly Deal** card game built with React, ASP.NET Co
 
 ```
 ├── src/
-│   ├── backend/              # ASP.NET Core game engine & SignalR hub
-│   │   ├── Hubs/             # SignalR GameHub
-│   │   ├── Models/           # Game state, cards, deck, config
-│   │   ├── Game.cs           # Core game logic
-│   │   ├── BotAI.cs          # AI player logic
-│   │   └── GameCache.cs      # In-memory game store
-│   ├── backend.Tests/        # xUnit tests
-│   └── web/                  # React frontend
-│       ├── pages/            # Game, lobby, home pages
-│       ├── components/       # Shared UI components
-│       ├── utilities/        # Debug, logging, helpers (+ unit tests)
-│       └── Types.ts          # TypeScript type definitions
-├── src/web/**/*.test.{ts,tsx} # Frontend tests (co-located with source)
-├── public/                   # Static assets
-├── wwwroot/                  # Vite build output (served by backend)
-├── .github/workflows/        # CI, deploy, health-check
-├── vite.config.ts            # Vite config (proxies /hub, /api to backend)
+│   ├── JeffopolyDeal.Shared/    # Shared models & card definitions
+│   │   ├── Models/              # Card, Player, PropertySet, Deck, GameConfig
+│   │   └── Cards/               # Card playability logic
+│   ├── JeffopolyDeal.Game/      # ASP.NET Core game engine & SignalR hub
+│   │   ├── Hubs/                # SignalR GameHub
+│   │   ├── Themes/              # Theme JSON files
+│   │   ├── Game.cs              # Core game logic
+│   │   ├── BotAI.cs             # AI player logic
+│   │   └── GameCache.cs         # In-memory game store
+│   └── web/                     # React frontend
+│       ├── pages/               # Game, lobby, home pages
+│       ├── components/          # Shared UI components
+│       ├── utilities/           # Debug, logging, helpers (+ unit tests)
+│       └── Types.ts             # TypeScript type definitions
+├── tests/
+│   └── JeffopolyDeal.Game.Tests/ # xUnit backend tests
+├── public/                      # Static assets
+├── wwwroot/                     # Vite build output (served by backend)
+├── .github/workflows/           # CI, deploy, health-check
+├── vite.config.ts               # Vite config (proxies /hub, /api to backend)
 └── package.json
 ```
 
