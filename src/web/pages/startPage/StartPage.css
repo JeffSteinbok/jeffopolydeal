@@ -11,6 +11,10 @@
     padding-bottom: env(safe-area-inset-bottom);
 }
 
+html.pwa-standalone .startPage {
+    padding-top: max(env(safe-area-inset-top, 47px), 47px);
+}
+
 .startPageContent {
     text-align: center;
     padding: 40px;

@@ -13,6 +13,10 @@
     overflow: hidden;
 }
 
+html.pwa-standalone .gamePage {
+    padding-top: max(env(safe-area-inset-top, 47px), 47px);
+}
+
 /* Lobby */
 .lobby {
     display: flex;

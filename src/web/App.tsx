@@ -12,6 +12,11 @@ import "./themes/dark.css";
 
 Debug.initFromUrl();
 
+// Detect iOS standalone (PWA) mode and set a class on <html> for safe-area styling
+if ((navigator as any).standalone || window.matchMedia("(display-mode: standalone)").matches) {
+    document.documentElement.classList.add("pwa-standalone");
+}
+
 const SESSION_KEY = "jeffopolydeal_session";
 
 interface SessionInfo {
