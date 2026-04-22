@@ -254,23 +254,24 @@ namespace JeffopolyDeal.Tests
             // Human draws and ends turn — bot should auto-play
             await h.DrawAsync(human);
 
-            // Record bot's hand size before the turn passes
+            // Make bot's state fully deterministic: clear hand, stack deck with money
             var botPlayer = h.Game.GetPlayer(bot)!;
+            botPlayer.Hand.Clear();
+            botPlayer.Hand.Add(CreateMoneyCard(900, 2));
+            botPlayer.Hand.Add(CreatePropertyCard(901, PropertyColor.Brown));
+            h.StackDeckWithMoney();
+
             int handBefore = botPlayer.Hand.Count;
 
             await h.EndTurnAsync(human);
 
-            // After bot auto-plays, it should be human's turn again (bot drew + played + ended).
-            // The bot's hand should have changed (drew cards, possibly played some).
+            // Bot drew 2 money cards + played its hand. Turn should be back to human.
             int handAfter = botPlayer.Hand.Count;
             bool handChanged = handAfter != handBefore;
 
-            // Bot turn should be over — it's now human's turn again
             var state = h.GetState(human);
             Assert.NotNull(state);
-            // Current player should be back to human (index 0)
             Assert.Equal(0, state!.CurrentPlayerIndex);
-            // Bot's hand should have changed (drew 2 cards, possibly played some)
             Assert.True(handChanged, "Bot's hand should change after auto-playing its turn");
         }
 
@@ -283,6 +284,9 @@ namespace JeffopolyDeal.Tests
             await h.Game.StartGameAsync(allowSinglePlayer: false, startingPlayerIndex: 0);
 
             await h.DrawAsync(human);
+
+            // Stack deck with money so bot draws are deterministic
+            h.StackDeckWithMoney();
 
             var botPlayer = h.Game.GetPlayer(bot)!;
             // Clear hand and give bot deterministic cards

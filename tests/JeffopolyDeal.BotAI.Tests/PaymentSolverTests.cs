@@ -35,7 +35,7 @@ namespace JeffopolyDeal.BotAI.Tests
             var payment = PaymentSolver.FindOptimalPayment(bot, 3);
 
             // Should pay with bank $3, not the property
-            Assert.All(payment, c => Assert.True(bot.Bank.Contains(c)));
+            Assert.All(payment, c => Assert.Contains(c, bot.Bank));
         }
 
         [Fact]

@@ -52,6 +52,9 @@ namespace JeffopolyDeal.Models
         /// <summary>Place a card on top of the draw pile. Internal for testing.</summary>
         internal void PlaceOnTop(Card card) => _drawPile.Add(card);
 
+        /// <summary>Clear the draw pile. Internal for testing.</summary>
+        internal void ClearDrawPile() => _drawPile.Clear();
+
         // Counters for generating stable CardIds per type
         private readonly Dictionary<string, int> _cardIdCounters = new();
 
