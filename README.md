@@ -10,6 +10,22 @@
 
 A real-time multiplayer **Monopoly Deal** card game built with React, ASP.NET Core, and SignalR. Play with friends in your browser — no installs needed.
 
+## Table of Contents
+
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Deployment](#deployment)
+- [Debug Mode](#debug-mode)
+  - [Debug Flags](#debug-flags)
+  - [Helpful Combinations](#helpful-combinations)
+  - [Debug Console](#debug-console)
+  - [Special Routes](#special-routes)
+  - [Themes](#themes)
+- [Game Configuration](#game-configuration)
+- [Contributing](#contributing)
+- [License](#license)
+
 
 ---
 
@@ -19,7 +35,7 @@ A real-time multiplayer **Monopoly Deal** card game built with React, ASP.NET Co
 |---|---|
 | **Frontend** | React 19, TypeScript 5.9, Vite 8 |
 | **Backend** | ASP.NET Core (.NET 10), SignalR |
-| **Testing** | Vitest + jsdom (frontend), xUnit (backend) |
+| **Testing** | Vitest + jsdom + React Testing Library (frontend), xUnit (backend) |
 | **CI/CD** | GitHub Actions → Azure Web App |
 
 ---
@@ -40,7 +56,7 @@ A real-time multiplayer **Monopoly Deal** card game built with React, ASP.NET Co
 │   └── web/                     # React frontend
 │       ├── pages/               # Game, lobby, home pages
 │       ├── components/          # Shared UI components
-│       ├── utilities/           # Debug, logging, helpers
+│       ├── utilities/           # Debug, logging, helpers (+ unit tests)
 │       └── Types.ts             # TypeScript type definitions
 ├── tests/
 │   └── JeffopolyDeal.Game.Tests/ # xUnit backend tests
@@ -87,7 +103,7 @@ Deployment is fully automated via GitHub Actions:
 
 Append `?debug=<hexFlags>` to the URL to enable debug features. Flags are combined via bitwise OR.
 
-**Example:** `http://localhost:5173/?debug=1006`
+**Example:** `http://localhost:5173/?debug=26`
 
 ### Debug Flags
 
@@ -95,30 +111,25 @@ All flags are defined in [`src/web/utilities/Debug.ts`](src/web/utilities/Debug.
 
 | Flag | Hex | Description |
 |---|---:|---|
-| `VerboseLogging` | `0x001` | Extra console logging |
-| `FixedGameCode` | `0x002` | Forces new game code to `TEST` |
-| `SkipLobby` | `0x004` | Auto-start game immediately after creation |
-| `ForcedHand` | `0x008` | *(reserved)* |
-| `ShowAllHands` | `0x010` | *(reserved)* |
-| `UnlimitedPlays` | `0x020` | *(reserved)* |
-| `NoHandLimit` | `0x040` | *(reserved)* |
-| `RichStart` | `0x080` | *(reserved)* |
-| `InstantWin` | `0x100` | *(reserved)* |
-| `SkipDraw` | `0x200` | *(reserved)* |
-| `ShowDeck` | `0x400` | Shows in-game debug deck viewer |
-| `PopulatedBoards` | `0x800` | Auto-starts with 3 AI bots and pre-populated boards |
-| `PlayVsAi` | `0x1000` | Adds 3 AI bots for a normal game |
+| `VerboseLogging` | `0x01` | Enables detailed `[DEBUG]` console logging via `Logger.debug()` — logs game state updates, SignalR messages, etc. |
+| `FixedGameCode` | `0x02` | Forces new game code to `TEST` instead of a random code — useful for consistent testing and rejoining |
+| `SkipLobby` | `0x04` | Bypasses the lobby waiting room and auto-starts the game immediately after creation |
+| `ShowDeck` | `0x08` | Shows the debug deck viewer panel — displays draw pile, discard pile, and all player hands |
+| `PopulatedBoards` | `0x10` | Auto-adds 3 AI bots with randomly pre-populated property boards — great for testing mid/late-game scenarios |
+| `PlayVsAi` | `0x20` | Adds 3 AI bots that play normally from the start — for testing full game flow against opponents |
+| `SkipToGameOver` | `0x40` | Jumps directly to the Game Over screen with mock completed sets — for testing end-game UI |
 
 ### Helpful Combinations
 
 | Code | Flags | Use Case |
 |---:|---|---|
-| `0x006` | SkipLobby + FixedGameCode | Quick solo test |
-| `0x406` | SkipLobby + FixedGameCode + ShowDeck | Test with deck viewer |
-| `0x806` | SkipLobby + FixedGameCode + PopulatedBoards | Jump into pre-built boards |
-| `0x1004` | SkipLobby + PlayVsAi | Fast game vs AI bots |
-| `0x1006` | SkipLobby + FixedGameCode + PlayVsAi | Fast fixed-code game vs AI |
-| `0x1FFF` | All flags | Everything enabled |
+| `0x06` | SkipLobby + FixedGameCode | Quick solo test — jump straight into a game with code `TEST` |
+| `0x0E` | SkipLobby + FixedGameCode + ShowDeck | Solo test with full deck viewer for inspecting draw/discard piles |
+| `0x16` | SkipLobby + FixedGameCode + PopulatedBoards | Jump into a game where all bots already have properties on board |
+| `0x24` | SkipLobby + PlayVsAi | Fast game vs 3 AI bots (random game code) |
+| `0x26` | SkipLobby + FixedGameCode + PlayVsAi | Fast game vs 3 AI bots with fixed code `TEST` |
+| `0x44` | SkipLobby + SkipToGameOver | Test the Game Over screen UI immediately |
+| `0x7F` | All flags | Everything enabled |
 
 ### Debug Console
 
@@ -224,6 +235,22 @@ Core game constants are in [`src/backend/Models/GameConfig.cs`](src/backend/Mode
 | Birthday amount | 2M |
 | House rent bonus | +3M |
 | Hotel rent bonus | +4M |
+
+---
+
+## Contributing
+
+All changes go through pull requests — **never push directly to `main`**.
+
+1. Create a feature branch from `main`
+2. Make your changes and ensure tests pass (`npm run test` and `dotnet test src/backend.Tests`)
+3. Open a pull request targeting `main`
+4. Wait for CI to pass (both frontend and backend checks)
+5. Merge via the GitHub UI (squash or merge commit — no `--admin` bypass)
+
+If your branch is behind `main`, rebase first, then merge normally.
+
+> ⚠️ Direct pushes to `main` are not allowed. Always use the PR/merge workflow.
 
 ---
 

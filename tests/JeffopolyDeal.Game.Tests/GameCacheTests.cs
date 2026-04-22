@@ -80,7 +80,8 @@ namespace JeffopolyDeal.Tests
 
             Assert.True(states.TryGetValue("conn-1", out var state));
             Assert.NotNull(state);
-            Assert.Equal(GamePhase.Draw, state!.Phase);
+            // Game started — phase depends on whether a bot or human goes first
+            Assert.NotEqual(GamePhase.Lobby, state!.Phase);
             Assert.True(state.Players.Count >= 4);
         }
     }
