@@ -32,7 +32,7 @@ namespace JeffopolyDeal.Models
         {
             { PropertyColor.Brown,     new[] { 0, 1, 2 } },
             { PropertyColor.LightBlue, new[] { 0, 1, 2, 3 } },
-            { PropertyColor.Pink,      new[] { 0, 2, 4, 6 } },
+            { PropertyColor.Pink,      new[] { 0, 1, 2, 4 } },
             { PropertyColor.Orange,    new[] { 0, 1, 3, 5 } },
             { PropertyColor.Red,       new[] { 0, 2, 3, 6 } },
             { PropertyColor.Yellow,    new[] { 0, 2, 4, 6 } },

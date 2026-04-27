@@ -10,7 +10,7 @@ export const GameConfig = {
     rentTable: {
         Brown:     [0, 1, 2],
         LightBlue: [0, 1, 2, 3],
-        Pink:      [0, 2, 4, 6],
+        Pink:      [0, 1, 2, 4],
         Orange:    [0, 1, 3, 5],
         Red:       [0, 2, 3, 6],
         Yellow:    [0, 2, 4, 6],
