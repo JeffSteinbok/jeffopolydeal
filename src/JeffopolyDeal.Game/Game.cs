@@ -1470,6 +1470,7 @@ namespace JeffopolyDeal
                 WinnerName = _winnerId != null ? _players.FirstOrDefault(p => p.PlayerId == _winnerId)?.Name : null,
                 PaymentError = forConnectionId == _lastPaymentErrorConnectionId ? _lastPaymentError : null,
                 RecentActions = _recentActions.ToList(),
+                GameConfig = GameConfigData.FromStatic(),
             };
 
             foreach (var player in _players)

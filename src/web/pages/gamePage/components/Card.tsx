@@ -1,7 +1,7 @@
 import React from "react";
 import { Card as CardType } from "../../../Types";
 import { PropertyColorMap } from "../../../utilities/PropertyColors";
-import { GameConfig } from "../../../utilities/GameConfig";
+import { useGameConfig } from "../../../utilities/GameConfigContext";
 import CurrencyBackground from "../../../assets/CurrencyBackground.png";
 import PassGoArrow from "../../../assets/PassGo.png";
 import HouseImg from "../../../assets/House.png";
@@ -121,14 +121,15 @@ function MoneyLayout({ card }: { card: CardType }) {
 
 /* ── Property ──────────────────────────────────── */
 function PropertyLayout({ card, small }: { card: CardType; small?: boolean }) {
+    const config = useGameConfig();
     const color = card.color!;
     const info = PropertyColorMap[color];
     if (!info) {
         // Fallback for placeholder cards without a color
         return <div className="md-card__name-band">{card.name}</div>;
     }
-    const rents = GameConfig.rentTable[color];
-    const setSize = GameConfig.setSize[color];
+    const rents = config.rentTable[color];
+    const setSize = config.setSize[color];
 
     return (
         <>
@@ -167,6 +168,7 @@ function RainbowBar() {
 }
 
 function WildcardLayout({ card, small: _small }: { card: CardType; small?: boolean }) {
+    const config = useGameConfig();
     if (card.isMulticolorWild) {
         return (
             <>
@@ -188,10 +190,10 @@ function WildcardLayout({ card, small: _small }: { card: CardType; small?: boole
     const inactiveColor = isFlipped ? card.color! : card.altColor!;
     const activeInfo = PropertyColorMap[activeColor];
     const inactiveInfo = PropertyColorMap[inactiveColor];
-    const activeRents = GameConfig.rentTable[activeColor];
-    const activeSetSize = GameConfig.setSize[activeColor];
-    const inactiveRents = GameConfig.rentTable[inactiveColor];
-    const inactiveSetSize = GameConfig.setSize[inactiveColor];
+    const activeRents = config.rentTable[activeColor];
+    const activeSetSize = config.setSize[activeColor];
+    const inactiveRents = config.rentTable[inactiveColor];
+    const inactiveSetSize = config.setSize[inactiveColor];
 
     return (
         <>

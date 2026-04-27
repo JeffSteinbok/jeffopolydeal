@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Card } from "../../Types";
+import { Card, GameConfigData } from "../../Types";
 import { CardComponent } from "../gamePage/components/Card";
-import { GameConfig } from "../../utilities/GameConfig";
+import { GameConfigProvider, useGameConfig } from "../../utilities/GameConfigContext";
 import "./DeckPage.css";
 
 type ViewMode = "tiny" | "small" | "full";
@@ -36,15 +36,16 @@ function groupCards(cards: Card[]): CardGroup[] {
     return groups;
 }
 
-function getRent(card: Card): number | undefined {
+function getRent(card: Card, config: GameConfigData): number | undefined {
     const color = card.activeColor ?? card.color;
     if (!color) return undefined;
-    const rents = GameConfig.rentTable[color];
+    const rents = config.rentTable[color];
     return rents ? rents[1] ?? 0 : undefined;
 }
 
 export function DeckPage() {
     const [cards, setCards] = useState<Card[]>([]);
+    const [config, setConfig] = useState<GameConfigData | null>(null);
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState<ViewMode>(getViewFromHash());
 
@@ -55,22 +56,26 @@ export function DeckPage() {
 
     useEffect(() => {
         const themeParam = new URLSearchParams(window.location.search).get("theme");
-        const url = themeParam ? `/api/deck?theme=${encodeURIComponent(themeParam)}` : "/api/deck";
-        fetch(url)
-            .then((r) => r.json())
-            .then((data: Card[]) => {
-                setCards(data);
+        const deckUrl = themeParam ? `/api/deck?theme=${encodeURIComponent(themeParam)}` : "/api/deck";
+        Promise.all([
+            fetch(deckUrl).then((r) => r.json()),
+            fetch("/api/gameconfig").then((r) => r.json()),
+        ])
+            .then(([deckData, configData]: [Card[], GameConfigData]) => {
+                setCards(deckData);
+                setConfig(configData);
                 setLoading(false);
             })
             .catch(() => setLoading(false));
     }, []);
 
-    if (loading) return <div className="deckPage">Loading deck...</div>;
+    if (loading || !config) return <div className="deckPage">Loading deck...</div>;
 
     const groups = groupCards(cards);
     const isTiny = viewMode === "tiny";
 
     return (
+        <GameConfigProvider config={config}>
         <div className="deckPage">
             <div className="deckPage-header">
                 <h1>Jeffopoly Deal — Full Deck ({cards.length} cards)</h1>
@@ -98,7 +103,7 @@ export function DeckPage() {
                                     card={card}
                                     compact={isTiny}
                                     small={viewMode === "small"}
-                                    currentRent={isTiny ? getRent(card) : undefined}
+                                    currentRent={isTiny ? getRent(card, config) : undefined}
                                 />
                                 <span className="deckPage-cardId">#{card.id}</span>
                             </div>
@@ -107,5 +112,6 @@ export function DeckPage() {
                 </div>
             ))}
         </div>
+        </GameConfigProvider>
     );
 }

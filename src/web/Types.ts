@@ -83,6 +83,11 @@ export interface GameAction {
     persistent?: boolean;
 }
 
+export interface GameConfigData {
+    setSize: Record<PropertyColor, number>;
+    rentTable: Record<PropertyColor, number[]>;
+}
+
 export interface GameState {
     phase: GamePhase;
     gameCode: string;
@@ -97,6 +102,7 @@ export interface GameState {
     winnerName?: string;
     paymentError?: string;
     recentActions: GameAction[];
+    gameConfig?: GameConfigData;
 }
 
 export interface PlayCardRequest {

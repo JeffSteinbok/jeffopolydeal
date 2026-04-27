@@ -1,7 +1,8 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { screen, fireEvent } from "@testing-library/react";
 import { DiscardModal } from "./DiscardModal";
 import { Card } from "../../../Types";
+import { renderWithConfig as render } from "../../../utilities/test-helpers";
 
 function makeCard(id: number, name = `Card ${id}`): Card {
     return { id, cardType: "Money", moneyValue: 1, name, isMulticolorWild: false, isWildRent: false };

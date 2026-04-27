@@ -134,6 +134,9 @@ namespace JeffopolyDeal.Models
 
         /// <summary>Recent player actions (newest last), up to 5 entries.</summary>
         public List<GameAction> RecentActions { get; set; } = new();
+
+        /// <summary>Rent tables and set sizes so the client doesn't duplicate them.</summary>
+        public GameConfigData? GameConfig { get; set; }
     }
 
     /// <summary>

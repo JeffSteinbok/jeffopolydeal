@@ -3,6 +3,7 @@ import { GameSignalRClient } from "./GameSignalRClient";
 import { GameState, PlayerState, GameAction } from "../../Types";
 import { Logger } from "../../utilities/Logger";
 import { Debug, DebugFlags } from "../../utilities/Debug";
+import { GameConfigProvider } from "../../utilities/GameConfigContext";
 import { CardComponent } from "./components/Card";
 import { PlayerBoard } from "./components/PlayerBoard";
 import { PlayerSummaryCard } from "./components/PlayerSummaryCard";
@@ -283,6 +284,12 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
 
     // Game Over (or debug skip-to-game-over)
     const showGameOver = state.phase === "GameOver" || Debug.isFlagSet(DebugFlags.SkipToGameOver);
+
+    // Wrap all card-rendering views in the config provider (game over + active game)
+    if (!state.gameConfig) {
+        return <div className="gamePage"><div className="loading">Loading...</div></div>;
+    }
+
     if (showGameOver) {
         const winner = state.phase === "GameOver"
             ? state.players.find(p => p.playerId === state.winnerId)
@@ -316,6 +323,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
             },
         ] : []);
         return (
+            <GameConfigProvider config={state.gameConfig}>
             <div className="gamePage">
                 <div className="gameOver">
                     <img src={titleImage} alt="Jeffopoly Deal" className="gameOver-logo" />
@@ -336,6 +344,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     <button className="primary" onClick={onLeave}>Play Again</button>
                 </div>
             </div>
+            </GameConfigProvider>
         );
     }
 
@@ -345,6 +354,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         state.pendingAction?.targetPlayerIds.includes(myConnectionId ?? "");
 
     return (
+        <GameConfigProvider config={state.gameConfig}>
         <div className={`gamePage${isLandscape ? " gamePage--landscape" : ""}${isMobile ? " gamePage--mobile" : ""}`}>
             <div className="gameHeader">
                 <img src={titleImage} alt="Jeffopoly Deal" className="gameHeaderTitleImage" />
@@ -526,5 +536,6 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                 <DebugDeckViewer client={client} />
             )}
         </div>
+        </GameConfigProvider>
     );
 }

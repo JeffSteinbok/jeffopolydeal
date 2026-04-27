@@ -1,7 +1,24 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace JeffopolyDeal.Models
 {
+    /// <summary>
+    /// Serializable subset of game configuration sent to clients.
+    /// </summary>
+    public class GameConfigData
+    {
+        public Dictionary<string, int> SetSize { get; set; } = new();
+        public Dictionary<string, int[]> RentTable { get; set; } = new();
+
+        /// <summary>Build from the static GameConfig dictionaries.</summary>
+        public static GameConfigData FromStatic() => new()
+        {
+            SetSize = GameConfig.SetSize.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value),
+            RentTable = GameConfig.RentTable.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value),
+        };
+    }
+
     /// <summary>
     /// Static game configuration: rent tables, set sizes, card values.
     /// </summary>
@@ -32,7 +49,7 @@ namespace JeffopolyDeal.Models
         {
             { PropertyColor.Brown,     new[] { 0, 1, 2 } },
             { PropertyColor.LightBlue, new[] { 0, 1, 2, 3 } },
-            { PropertyColor.Pink,      new[] { 0, 2, 4, 6 } },
+            { PropertyColor.Pink,      new[] { 0, 1, 2, 4 } },
             { PropertyColor.Orange,    new[] { 0, 1, 3, 5 } },
             { PropertyColor.Red,       new[] { 0, 2, 3, 6 } },
             { PropertyColor.Yellow,    new[] { 0, 2, 4, 6 } },

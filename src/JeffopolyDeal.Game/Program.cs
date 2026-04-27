@@ -38,6 +38,17 @@ else
 app.UseRouting();
 app.MapHub<GameHub>("/hub/game");
 
+// API endpoint: returns game configuration (rent tables, set sizes) — single source of truth
+app.MapGet("/api/gameconfig", () =>
+{
+    var config = JeffopolyDeal.Models.GameConfigData.FromStatic();
+    return Microsoft.AspNetCore.Http.Results.Json(config, new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Converters = { new JsonStringEnumConverter() }
+    });
+});
+
 // API endpoint: returns the full unshuffled deck for the test/debug page
 app.MapGet("/api/deck", (HttpRequest request) =>
 {

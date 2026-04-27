@@ -1,7 +1,8 @@
 import React from "react";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { screen, fireEvent, act } from "@testing-library/react";
 import { FyiToast } from "./FyiToast";
 import { GameAction } from "../../../Types";
+import { renderWithConfig as render } from "../../../utilities/test-helpers";
 
 function makeToast(id: number, text = `Action ${id}`, playerName = "Alice"): GameAction {
     return { id, playerName, text };
