@@ -1,7 +1,8 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { screen, fireEvent } from "@testing-library/react";
 import { PlayCardModal } from "./PlayCardModal";
 import { Card, GameState, PlayerState, PropertySetState } from "../../../Types";
+import { renderWithConfig as render } from "../../../utilities/test-helpers";
 
 function makeMoneyCard(id = 1, value = 5): Card {
     return { id, cardType: "Money", moneyValue: value, name: `${value}M`, isMulticolorWild: false, isWildRent: false };

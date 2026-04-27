@@ -1,7 +1,8 @@
 import React from "react";
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { PlayerBoard } from "./PlayerBoard";
 import { PlayerState, Card, PropertySetState } from "../../../Types";
+import { renderWithConfig as render } from "../../../utilities/test-helpers";
 
 function makeMoneyCard(id: number, value: number): Card {
     return { id, cardType: "Money", moneyValue: value, name: `${value}M`, isMulticolorWild: false, isWildRent: false };

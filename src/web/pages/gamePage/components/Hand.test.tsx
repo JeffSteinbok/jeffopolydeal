@@ -1,7 +1,8 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { screen, fireEvent } from "@testing-library/react";
 import { Hand } from "./Hand";
 import { Card, GameState, PlayerState } from "../../../Types";
+import { renderWithConfig as render } from "../../../utilities/test-helpers";
 
 // Mock ResizeObserver for jsdom
 globalThis.ResizeObserver = class {
