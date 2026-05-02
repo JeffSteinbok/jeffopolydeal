@@ -1,3 +1,4 @@
+using JeffopolyDeal.ISMCTS;
 using JeffopolyDeal;
 using JeffopolyDeal.Models;
 
@@ -37,7 +38,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 if (card.Id == 100) capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.False(capturedRequest!.PlayAsMoney);
@@ -72,7 +73,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 if (card.ActionKind == ActionType.DealBreaker) capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.False(capturedRequest!.PlayAsMoney);
@@ -152,7 +153,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 if (card.CardType == CardType.Rent) capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.NotNull(capturedRequest!.DoubleRentCardIds);
@@ -188,7 +189,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 }
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.True(passGoPlayed);
         }
@@ -235,7 +236,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 if (card.ActionKind == ActionType.SlyDeal) capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.False(capturedRequest!.PlayAsMoney);
@@ -308,7 +309,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 if (card.ActionKind == ActionType.ForceDeal) capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.False(capturedRequest!.PlayAsMoney);
@@ -343,7 +344,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 if (card.ActionKind == ActionType.House) capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.False(capturedRequest!.PlayAsMoney);
@@ -379,7 +380,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 if (card.ActionKind == ActionType.DebtCollector) capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.Equal("p2", capturedRequest!.TargetPlayerId);
@@ -417,7 +418,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 if (card.IsWildRent) capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.False(capturedRequest!.PlayAsMoney);
@@ -454,7 +455,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 if (card.ActionKind == ActionType.Hotel) capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.False(capturedRequest!.PlayAsMoney);
@@ -489,7 +490,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 if (card.ActionKind == ActionType.House) capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             // House scored 10 (no valid set), should still play (as money per BuildActionRequest)
             Assert.NotNull(capturedRequest);
@@ -603,7 +604,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 if (card.ActionKind == ActionType.ItsMyBirthday) capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.False(capturedRequest!.PlayAsMoney);
@@ -625,7 +626,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.True(capturedRequest!.PlayAsMoney);
@@ -660,7 +661,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 if (card.CardType == CardType.PropertyWildcard) capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.Equal(PropertyColor.Red, capturedRequest!.WildcardColor);
@@ -695,7 +696,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 if (card.IsMulticolorWild) capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.Equal(PropertyColor.Green, capturedRequest!.WildcardColor);
@@ -719,7 +720,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 playCount++;
                 b.Hand.Remove(card);
                 return false; // stop after first play
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.Equal(1, playCount);
         }
@@ -737,7 +738,7 @@ namespace JeffopolyDeal.BotAI.Tests
             {
                 playCount++;
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.Equal(0, playCount);
         }
@@ -814,7 +815,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             // Card is still played (score 10 > nothing)
             Assert.NotNull(capturedRequest);
@@ -920,7 +921,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 if (card.ActionKind == ActionType.DealBreaker) capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.True(capturedRequest!.PlayAsMoney);
@@ -954,7 +955,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 if (card.ActionKind == ActionType.SlyDeal) capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.True(capturedRequest!.PlayAsMoney);
@@ -987,7 +988,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 if (card.ActionKind == ActionType.ForceDeal) capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.True(capturedRequest!.PlayAsMoney);
@@ -1039,7 +1040,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 if (card.CardType == CardType.Rent) capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.NotNull(capturedRequest!.DoubleRentCardIds);
@@ -1124,7 +1125,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.True(capturedRequest!.PlayAsMoney);
@@ -1158,7 +1159,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 if (card.ActionKind == ActionType.Hotel) capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.True(capturedRequest!.PlayAsMoney);
@@ -1188,7 +1189,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 capturedRequest = req;
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedRequest);
             Assert.False(capturedRequest!.PlayAsMoney);

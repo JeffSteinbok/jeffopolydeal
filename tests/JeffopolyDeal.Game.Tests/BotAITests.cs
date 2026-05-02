@@ -1,3 +1,4 @@
+using JeffopolyDeal.ISMCTS;
 using JeffopolyDeal.Models;
 using Xunit;
 
@@ -46,7 +47,7 @@ namespace JeffopolyDeal.Tests
                 if (req.PlayAsMoney == true)
                     b.Bank.Add(card);
                 return false; // stop after one play
-            }, maxPlays: 1);
+            }, maxPlays: 1, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(firstPlayed);
             // SmartBotAI prefers property (score 30) over money (score 20)
@@ -70,7 +71,7 @@ namespace JeffopolyDeal.Tests
                 firstPlayed ??= card;
                 b.Hand.Remove(card);
                 return false;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(firstPlayed);
             // SmartBotAI prefers PassGo early (score 80) over property (score 30)
@@ -94,7 +95,7 @@ namespace JeffopolyDeal.Tests
                 playedCards.Add((card, req));
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             // SmartBotAI never plays JSN or DTR proactively
             Assert.Empty(playedCards);
@@ -112,7 +113,7 @@ namespace JeffopolyDeal.Tests
             {
                 playCount++;
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.Equal(0, playCount);
         }
@@ -208,7 +209,7 @@ namespace JeffopolyDeal.Tests
                 capturedReq = req;
                 b.Hand.Remove(card);
                 return false;
-            }, maxPlays: 1);
+            }, maxPlays: 1, config: ISMCTSConfig.Heuristic);
 
             Assert.NotNull(capturedReq);
             Assert.Equal(rich.ConnectionId, capturedReq!.TargetPlayerId);
