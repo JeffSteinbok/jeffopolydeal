@@ -296,6 +296,7 @@ namespace JeffopolyDeal
             var available = BotNames.Where(n => !usedNames.Contains(n)).ToArray();
             if (available.Length > 0)
                 return available[_botRng.Next(available.Length)];
+            // Fallback if all names taken
             return $"Bot-{_botRng.Next(1000):D3}";
         }
 
