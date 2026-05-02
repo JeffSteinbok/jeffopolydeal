@@ -73,6 +73,10 @@ export class GameSignalRClient {
         return await this.connection.invoke<boolean>("RejoinGame", gameCode, playerName, playerId);
     }
 
+    async addBotPlayer(gameCode: string): Promise<void> {
+        await this.connection.invoke("AddBotPlayer", gameCode);
+    }
+
     async startGame(
         gameCode: string,
         allowSinglePlayer: boolean = false,

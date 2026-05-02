@@ -245,6 +245,15 @@ namespace JeffopolyDeal
             await BroadcastGameStateAsync();
         }
 
+        private static readonly string[] BotNames = new[]
+        {
+            "Alice", "Bob", "Charlie", "Diana", "Eve",
+            "Frank", "Grace", "Hank", "Iris", "Jake",
+            "Karen", "Leo", "Mona", "Nate", "Olive"
+        };
+
+        private static readonly Random _botRng = new();
+
         /// <summary>
         /// Adds bot players to the lobby for debug purposes.
         /// </summary>
@@ -253,15 +262,42 @@ namespace JeffopolyDeal
             lock (_lock)
             {
                 if (_phase != GamePhase.Lobby) return;
-                var botNames = new[] { "Alice", "Bob", "Charlie", "Diana", "Eve" };
                 for (int i = 0; i < count && _players.Count < 5; i++)
                 {
-                    var name = botNames[i % botNames.Length];
+                    var name = PickUnusedBotName();
                     var botId = $"bot-{Guid.NewGuid():N}";
                     _players.Add(new Player { PlayerId = botId, ConnectionId = botId, Name = name });
                     _connections[botId] = true;
                 }
             }
+        }
+
+        /// <summary>
+        /// Adds a single bot player to the lobby. Returns true if a bot was added.
+        /// </summary>
+        public bool AddBotPlayer()
+        {
+            lock (_lock)
+            {
+                if (_phase != GamePhase.Lobby) return false;
+                if (_players.Count >= 5) return false;
+
+                var name = PickUnusedBotName();
+                var botId = $"bot-{Guid.NewGuid():N}";
+                _players.Add(new Player { PlayerId = botId, ConnectionId = botId, Name = name });
+                _connections[botId] = true;
+                return true;
+            }
+        }
+
+        private string PickUnusedBotName()
+        {
+            var usedNames = _players.Select(p => p.Name).ToHashSet();
+            var available = BotNames.Where(n => !usedNames.Contains(n)).ToArray();
+            if (available.Length > 0)
+                return available[_botRng.Next(available.Length)];
+            // Fallback if all names taken
+            return $"Bot-{_botRng.Next(1000):D3}";
         }
 
         /// <summary>

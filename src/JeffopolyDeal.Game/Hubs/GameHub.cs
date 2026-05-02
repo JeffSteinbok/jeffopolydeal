@@ -71,6 +71,19 @@ namespace JeffopolyDeal.Hubs
             }
         }
 
+        public async Task AddBotPlayer(string gameCode)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(gameCode)) throw new ArgumentNullException(nameof(gameCode));
+                await _gameCache.AddBotPlayerAsync(gameCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in AddBotPlayer for {GameCode}", gameCode);
+            }
+        }
+
         public async Task StartGame(
             string gameCode,
             bool allowSinglePlayer = false,
