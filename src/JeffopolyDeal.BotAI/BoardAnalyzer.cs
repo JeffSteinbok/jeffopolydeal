@@ -7,6 +7,9 @@ namespace JeffopolyDeal
     /// </summary>
     public static class BoardAnalyzer
     {
+        // Total number of Just Say No cards in the full deck.
+        private const int TotalJsnCards = 3;
+
         /// <summary>
         /// Threat score for a player (higher = more dangerous).
         /// </summary>
@@ -115,6 +118,70 @@ namespace JeffopolyDeal
                 .SelectMany(s => s.Cards)
                 .Sum(c => c.MoneyValue);
             return bankValue + propertyValue;
+        }
+
+        // =====================================================================
+        // Discard-pile awareness (issue #97)
+        // =====================================================================
+
+        /// <summary>
+        /// Count how many cards of a given action type are in the discard pile.
+        /// This tells the bot how many such cards have already been played and
+        /// are no longer available to any player.
+        /// </summary>
+        public static int CountDiscarded(List<Card> discardPile, ActionType actionType)
+        {
+            return discardPile.Count(c => c.ActionKind == actionType);
+        }
+
+        /// <summary>
+        /// Returns the number of Just Say No cards that are NOT in the discard pile
+        /// and NOT in the bot's own hand.  These cards are somewhere in the unknown
+        /// pool (opponent hands or the draw pile) and could therefore be played against
+        /// the bot or used by an opponent to counter the bot's JSN.
+        ///
+        /// A return value of 0 means the bot knows for certain that no opponent holds
+        /// a JSN — e.g. all three have been discarded or the bot holds them all.
+        /// </summary>
+        public static int JsnRemainingInUnknown(Player bot, List<Player> allPlayers, List<Card> discardPile)
+        {
+            int discarded = CountDiscarded(discardPile, ActionType.JustSayNo);
+            int inBotHand = bot.Hand.Count(c => c.ActionKind == ActionType.JustSayNo);
+            int remaining = TotalJsnCards - discarded - inBotHand;
+            return System.Math.Max(0, remaining);
+        }
+
+        /// <summary>
+        /// Estimates the probability that a specific opponent (with <paramref name="opponentHandSize"/>
+        /// unknown cards) holds at least one Just Say No card, given how many JSN are left
+        /// in the unknown card pool (<paramref name="jsnInUnknown"/>) out of
+        /// <paramref name="unknownCards"/> total unseen cards.
+        ///
+        /// Uses the hypergeometric probability model:
+        ///   P(≥1 JSN in hand) = 1 − P(0 JSN in hand)
+        ///   P(0) = C(unknownCards − jsnInUnknown, opponentHandSize) / C(unknownCards, opponentHandSize)
+        ///
+        /// Returns 0 when <paramref name="jsnInUnknown"/> is 0 (certain: no JSN possible).
+        /// Returns 1 when the opponent's hand is as large as the unknown pool (certain: must have one).
+        /// </summary>
+        public static double EstimateJsnHeldProbability(int opponentHandSize, int jsnInUnknown, int unknownCards)
+        {
+            if (jsnInUnknown <= 0 || unknownCards <= 0 || opponentHandSize <= 0)
+                return 0.0;
+            if (opponentHandSize >= unknownCards)
+                return jsnInUnknown > 0 ? 1.0 : 0.0;
+
+            // P(0 JSN in hand of size k, drawn from pool of N with J JSN)
+            // = product_{i=0}^{k-1} (N - J - i) / (N - i)
+            double probNone = 1.0;
+            for (int i = 0; i < opponentHandSize; i++)
+            {
+                double denom = unknownCards - i;
+                if (denom <= 0) break;
+                double numerator = System.Math.Max(0.0, unknownCards - jsnInUnknown - i);
+                probNone *= numerator / denom;
+            }
+            return System.Math.Max(0.0, System.Math.Min(1.0, 1.0 - probNone));
         }
     }
 }

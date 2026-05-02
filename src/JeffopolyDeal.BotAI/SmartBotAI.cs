@@ -115,8 +115,9 @@ namespace JeffopolyDeal
                     // Used when the game state is too minimal for ISMCTS (e.g., tests)
                     // or when ISMCTS is explicitly disabled (Iterations = 0).
 
+                    var discardSnapshot = deck.GetDiscardPileSnapshot();
                     var candidates = bot.Hand
-                        .Select(c => new { Card = c, Score = CardEvaluator.PlayScore(bot, c, allPlayers, playsRemaining) })
+                        .Select(c => new { Card = c, Score = CardEvaluator.PlayScore(bot, c, allPlayers, playsRemaining, discardSnapshot) })
                         .Where(x => x.Score.HasValue)
                         .OrderByDescending(x => x.Score)
                         .ToList();
@@ -187,13 +188,14 @@ namespace JeffopolyDeal
         /// <summary>
         /// Respond to a pending action (pay, JSN, etc).
         /// </summary>
-        public static ActionResponse BuildResponse(Player bot, PendingAction pending, List<Player> allPlayers)
+        public static ActionResponse BuildResponse(Player bot, PendingAction pending, List<Player> allPlayers,
+            List<Card>? discardPile = null)
         {
             var effectiveType = pending.OriginalActionType ?? pending.Type;
 
             // JSN decision
             var jsn = bot.Hand.FirstOrDefault(c => c.ActionKind == ActionType.JustSayNo);
-            if (jsn != null && ShouldPlayJSN(bot, pending, effectiveType))
+            if (jsn != null && ShouldPlayJSN(bot, pending, effectiveType, allPlayers, discardPile))
             {
                 return new ActionResponse { PlayJustSayNo = true };
             }
@@ -206,8 +208,9 @@ namespace JeffopolyDeal
                 return new ActionResponse { PlayJustSayNo = false, PaymentCardIds = new List<int>() };
             }
 
-            // Payment actions — use PaymentSolver
-            var optimalPayment = PaymentSolver.FindOptimalPayment(bot, pending.Amount);
+            // Payment actions — use PaymentSolver, passing the receiver so it avoids helping them win
+            var receiver = allPlayers.FirstOrDefault(p => p.ConnectionId == pending.SourcePlayerId);
+            var optimalPayment = PaymentSolver.FindOptimalPayment(bot, pending.Amount, receiver);
             return new ActionResponse
             {
                 PlayJustSayNo = false,
@@ -215,13 +218,20 @@ namespace JeffopolyDeal
             };
         }
 
-        private static bool ShouldPlayJSN(Player bot, PendingAction pending, PendingActionType effectiveType)
+        private static bool ShouldPlayJSN(Player bot, PendingAction pending, PendingActionType effectiveType,
+            List<Player> allPlayers, List<Card>? discardPile)
         {
             // In a JSN chain where bot is the ATTACKER
             if (pending.Type == PendingActionType.JustSayNoChain)
             {
                 if (pending.OriginalSourcePlayerId == bot.ConnectionId)
+                {
+                    // If the discard pile shows no JSN remain in unknown hands, our counter
+                    // will be final — no risk of another JSN in reply. Always counter.
+                    // If JSN remain in play (opponent might have one), still counter to protect
+                    // our original action investment — the chain is worth fighting over.
                     return true;
+                }
             }
 
             // Always JSN DealBreaker
@@ -244,7 +254,9 @@ namespace JeffopolyDeal
                 return false;
             }
 
-            // Payment actions: JSN based on value at risk
+            // Payment actions: JSN based on value at risk.
+            // With discard-pile awareness: if there are few/no JSN remaining in unknown
+            // hands our counter won't be blocked, making it safer to play.
             if (effectiveType == PendingActionType.PayRent ||
                 effectiveType == PendingActionType.PayDebtCollector)
             {
@@ -254,7 +266,16 @@ namespace JeffopolyDeal
                 if (bankTotal >= amount)
                     return false;
 
-                if (amount >= 5)
+                // Count JSN cards that might be in the attacker's hand.
+                // If none remain in the unknown pool, our JSN is guaranteed to succeed.
+                int jsnInUnknown = discardPile != null
+                    ? BoardAnalyzer.JsnRemainingInUnknown(bot, allPlayers, discardPile)
+                    : int.MaxValue;
+
+                // Play JSN when the charge is expensive AND bank can't cover it.
+                // Lower the threshold when we know the opponent can't counter our JSN.
+                int threshold = jsnInUnknown == 0 ? 4 : 5;
+                if (amount >= threshold)
                     return true;
 
                 return false;

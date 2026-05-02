@@ -10,6 +10,11 @@ namespace JeffopolyDeal
     /// deciding between properties and money. A thin bank means rent charges
     /// will strip properties off the board, so banking money becomes more
     /// valuable and playing non-completing properties becomes less attractive.
+    ///
+    /// Discard-pile awareness: When a discard pile snapshot is provided, the
+    /// scorer factors in how many action cards (e.g. Just Say No) remain in
+    /// play when scoring attack cards — boosting steal/rent plays when
+    /// opponents are less likely to be holding counters.
     /// </summary>
     public static class CardEvaluator
     {
@@ -19,7 +24,8 @@ namespace JeffopolyDeal
         /// </summary>
         private const int RentBufferTarget = 5;
 
-        public static int? PlayScore(Player bot, Card card, List<Player> allPlayers, int playsRemaining)
+        public static int? PlayScore(Player bot, Card card, List<Player> allPlayers, int playsRemaining,
+            List<Card>? discardPile = null)
         {
             // Cards that should never be proactively played
             if (card.ActionKind == ActionType.JustSayNo) return null;
@@ -87,7 +93,7 @@ namespace JeffopolyDeal
                 }
 
                 case CardType.Action:
-                    return ScoreAction(bot, card, allPlayers, playsRemaining);
+                    return ScoreAction(bot, card, allPlayers, playsRemaining, discardPile);
             }
 
             return 10;
@@ -116,9 +122,14 @@ namespace JeffopolyDeal
                 .Max();
         }
 
-        private static int ScoreAction(Player bot, Card card, List<Player> allPlayers, int playsRemaining)
+        private static int ScoreAction(Player bot, Card card, List<Player> allPlayers, int playsRemaining,
+            List<Card>? discardPile)
         {
             var others = allPlayers.Where(p => p.ConnectionId != bot.ConnectionId).ToList();
+
+            // Compute JSN risk: how likely is a target to hold a Just Say No?
+            // When risk is near zero (all/most JSN discarded) we can attack more freely.
+            bool lowJsnRisk = IsLowJsnRisk(bot, allPlayers, discardPile);
 
             switch (card.ActionKind)
             {
@@ -130,7 +141,8 @@ namespace JeffopolyDeal
                     {
                         if (BoardAnalyzer.OpponentNearWin(bot, allPlayers))
                             return 200;
-                        return 90;
+                        // With low JSN risk the steal is safer; boost score slightly.
+                        return lowJsnRisk ? 100 : 90;
                     }
                     return 10;
 
@@ -142,13 +154,14 @@ namespace JeffopolyDeal
 
                 case ActionType.SlyDeal:
                     if (others.Any(p => p.GetStealableProperties().Count > 0))
-                        return 60;
+                        // Without JSN risk the steal is more likely to succeed.
+                        return lowJsnRisk ? 70 : 60;
                     return 10;
 
                 case ActionType.ForceDeal:
                     if (bot.GetStealableProperties().Count > 0 &&
                         others.Any(p => p.GetStealableProperties().Count > 0))
-                        return 55;
+                        return lowJsnRisk ? 65 : 55;
                     return 10;
 
                 case ActionType.House:
@@ -170,6 +183,38 @@ namespace JeffopolyDeal
                 default:
                     return 10;
             }
+        }
+
+        /// <summary>
+        /// Returns true when the estimated probability that ANY opponent holds a Just Say No
+        /// is low enough that it is safe to treat attack cards as essentially unblockable.
+        ///
+        /// Uses the discard pile to compute how many JSN remain in the unknown pool.
+        /// If no discard information is provided the risk is assumed to be normal.
+        /// </summary>
+        private static bool IsLowJsnRisk(Player bot, List<Player> allPlayers, List<Card>? discardPile)
+        {
+            if (discardPile == null || allPlayers.Count <= 1)
+                return false;
+
+            int jsnInUnknown = BoardAnalyzer.JsnRemainingInUnknown(bot, allPlayers, discardPile);
+            if (jsnInUnknown == 0) return true;
+
+            // Total unknown cards = all cards minus bot hand, banks, property sets, discard pile
+            int totalVisible = bot.Hand.Count
+                + allPlayers.SelectMany(p => p.Bank).Count()
+                + allPlayers.SelectMany(p => p.PropertySets).SelectMany(s => s.Cards).Count()
+                + allPlayers.SelectMany(p => p.UnboundWilds).Count()
+                + discardPile.Count;
+            int unknownCards = Math.Max(1, 106 - totalVisible);
+
+            // Average hand size of non-bot players
+            var opponents = allPlayers.Where(p => p.ConnectionId != bot.ConnectionId).ToList();
+            if (opponents.Count == 0) return false;
+            int avgHandSize = opponents.Sum(p => p.Hand.Count) / opponents.Count;
+
+            double prob = BoardAnalyzer.EstimateJsnHeldProbability(avgHandSize, jsnInUnknown, unknownCards);
+            return prob < 0.10; // < 10% chance any opponent holds a JSN
         }
 
         /// <summary>

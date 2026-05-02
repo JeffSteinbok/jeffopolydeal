@@ -84,9 +84,14 @@ Each card in hand gets a priority score. Used by the RolloutPolicy during ISMCTS
 When the bot owes money, it finds the optimal combination of cards to pay:
 
 1. **Bank money first** — lowest strategic value
-2. **Protect complete sets** — never break these if avoidable
-3. **Minimize overpayment** — subset-sum algorithm finds the exact best combo
-4. **Fallback greedy** — for large hands (>15 payable cards), uses fast greedy approach
+2. **Never help the receiver win** — if a property card would complete a game-winning set for the player being paid (considering possible wildcard flips), that card is treated as a last resort and only included when there is no other way to cover the debt
+3. **Protect complete sets** — never break these if avoidable
+4. **Minimize overpayment** — a two-pass subset-sum algorithm first finds the best combination from "safe" cards; only if that fails does it consider game-winning cards
+5. **Fallback greedy** — for large hands (>15 payable cards), uses fast greedy approach with the same two-tier preference
+
+#### Wildcard rearrangement awareness
+
+When deciding whether a property card would give the receiver a win, the solver accounts for the fact that the receiver can **flip dual-color wildcards** to either side. A Red/Yellow wildcard currently placed in a Yellow set is counted as a potential Red card too, because the receiver can move it during their next turn.
 
 ### Defensive Decisions — Just Say No
 
@@ -95,9 +100,18 @@ When the bot owes money, it finds the optimal combination of cards to pay:
 | **Deal Breaker** | ✅ Always blocks | Losing a complete set is devastating |
 | **Sly/Force Deal** threatening near-complete set | 🤔 Blocks | Only if the stolen card was critical |
 | **High rent ($5+)** requiring property sacrifice | ✅ Blocks | Protecting properties > saving a JSN |
+| **$4 rent** when all JSN are discarded | ✅ Blocks | Threshold lowers to $4 — opponent can't counter |
 | **Low rent** payable from bank | ❌ Doesn't block | Cheap to just pay |
 | **Birthday** ($2) | ❌ Never blocks | Too cheap to waste JSN |
 | **JSN chain** (bot was original attacker) | ✅ Counters | Protect the original action investment |
+
+### Discard Pile Awareness
+
+The bot considers what cards have already been played when making decisions (issue #97):
+
+- **Just Say No probability**: By counting discarded JSN cards and comparing to the 3 in the deck, the bot estimates whether opponents are likely to be holding a JSN. When all 3 are discarded (or in the bot's hand), the bot knows no opponent can counter — it can attack more freely and defend at a lower cost threshold.
+- **Attack card scoring** (heuristic path): Sly Deal, Force Deal, and Deal Breaker receive a small score boost when JSN probability is below 10%, making the bot more aggressive when counters are impossible.
+- **ISMCTS** already handles the discard pile implicitly — the `Determinizer` excludes discarded cards from the unknown pool when sampling possible opponent hands.
 
 ### Discarding Smartly
 
@@ -124,6 +138,11 @@ src/JeffopolyDeal.BotAI/
 **Heuristic classes** (`BoardAnalyzer`, `CardEvaluator`, `PaymentSolver`) remain in the `JeffopolyDeal` namespace and are used both directly (reactive decisions) and indirectly (via RolloutPolicy during ISMCTS rollouts).
 
 All classes are **static** and **stateless** — they evaluate the current game state each time they're called, with no memory between turns.
+
+Key cross-cutting concerns:
+- `BoardAnalyzer` — `CountDiscarded`, `JsnRemainingInUnknown`, `EstimateJsnHeldProbability` expose discard-pile analysis to other components
+- `PaymentSolver` — accepts an optional `receiver` player and avoids paying cards that would give that player a game-winning complete set
+- `CardEvaluator` — accepts an optional `discardPile` snapshot; raises scores for attack cards when JSN risk is near zero
 
 ## Configuration
 
