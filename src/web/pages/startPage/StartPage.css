@@ -81,3 +81,18 @@ html.pwa-standalone .startPage {
     text-align: center;
     font-size: 1.1rem;
 }
+
+.aboutLink {
+    background: none;
+    border: none;
+    color: #557;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 4px;
+    margin-bottom: 8px;
+}
+
+.aboutLink:hover {
+    color: #223;
+}

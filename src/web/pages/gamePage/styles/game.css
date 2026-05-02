@@ -135,6 +135,24 @@ html.pwa-standalone .gamePage {
     font-style: italic;
 }
 
+.addBotButton {
+    margin-top: 10px;
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    background: transparent;
+    color: #6fa;
+    border: 1px dashed #6fa;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s, color 0.2s;
+}
+
+.addBotButton:hover {
+    background: rgba(102, 255, 170, 0.15);
+    color: #9fc;
+}
+
 .waitingText {
     color: #888;
     font-style: italic;

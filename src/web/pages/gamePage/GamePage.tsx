@@ -256,6 +256,14 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                                 {!p.isConnected && <span className="disconnectedLabel"> (reconnecting...)</span>}
                             </div>
                         ))}
+                        {canStart && state.players.length < 5 && (
+                            <button
+                                className="addBotButton"
+                                onClick={() => client?.addBotPlayer(state.gameCode)}
+                            >
+                                + Add Bot Player
+                            </button>
+                        )}
                     </div>
                     {canStart && (
                         <button

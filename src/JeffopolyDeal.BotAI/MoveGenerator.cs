@@ -58,17 +58,18 @@ namespace JeffopolyDeal.ISMCTS
             // Enumerate moves for each card in hand
             foreach (var card in player.Hand)
             {
-                // JSN and DTR are reactive-only — cannot be played for their effect.
-                // But they CAN still be banked as money (all cards can be banked).
+                // JSN and DTR are reactive-only — keep them in hand, never bank them.
                 if (card.ActionKind == ActionType.JustSayNo ||
                     card.ActionKind == ActionType.DoubleTheRent)
                 {
-                    moves.Add(new SimMove { Card = card, PlayAsMoney = true });
-                    continue; // no effect-based moves for these
+                    continue;
                 }
 
-                // Every other card can be played as money
-                moves.Add(new SimMove { Card = card, PlayAsMoney = true });
+                // Every other card can be played as money (except properties which must be played as properties)
+                if (card.CardType != CardType.Property && card.CardType != CardType.PropertyWildcard)
+                {
+                    moves.Add(new SimMove { Card = card, PlayAsMoney = true });
+                }
 
                 // Generate card-specific moves for playing the card for its effect
                 switch (card.CardType)

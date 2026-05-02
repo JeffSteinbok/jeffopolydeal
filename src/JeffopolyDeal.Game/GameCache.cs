@@ -73,6 +73,18 @@ namespace JeffopolyDeal
             return await game.ReconnectPlayerAsync(connectionId, playerName, playerId);
         }
 
+        public async Task AddBotPlayerAsync(string gameCode)
+        {
+            gameCode = gameCode.ToUpperInvariant();
+            if (!_games.TryGetValue(gameCode, out var game))
+                return;
+
+            if (game.AddBotPlayer())
+            {
+                await game.BroadcastGameStateAsync();
+            }
+        }
+
         public async Task StartGameAsync(
             string gameCode,
             bool allowSinglePlayer = false,
