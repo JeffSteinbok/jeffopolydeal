@@ -418,7 +418,7 @@ namespace JeffopolyDeal.BotAI.Tests
             for (int i = 0; i < size; i++)
                 set.Cards.Add(new Card
                 {
-                    Id = new Random().Next(1000, 9999),
+                    Id = _nextId++,
                     CardType = CardType.Property,
                     Color = color,
                     ActiveColor = color,
@@ -426,5 +426,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 });
             return set;
         }
+
+        private static int _nextId = 1000;
     }
 }

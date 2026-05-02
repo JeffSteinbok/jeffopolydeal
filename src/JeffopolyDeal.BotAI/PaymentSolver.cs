@@ -1,3 +1,4 @@
+using System.Linq;
 using JeffopolyDeal.Models;
 
 namespace JeffopolyDeal
@@ -115,7 +116,7 @@ namespace JeffopolyDeal
                 return colors;
             }
 
-            return System.Linq.Enumerable.Empty<PropertyColor>();
+            return Enumerable.Empty<PropertyColor>();
         }
 
         /// <summary>
