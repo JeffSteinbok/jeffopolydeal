@@ -278,9 +278,9 @@ namespace JeffopolyDeal.BotAI.Tests
         }
 
         [Fact]
-        public void MoveGenerator_PropertyCardHasTwoMoves()
+        public void MoveGenerator_PropertyCardOnlyPlaysAsProperty()
         {
-            // Property can be played as property OR as money
+            // Property can only be played as property, not banked as money
             var state = new SimulationState
             {
                 Players = new List<SimPlayer>
@@ -296,10 +296,10 @@ namespace JeffopolyDeal.BotAI.Tests
 
             var moves = MoveGenerator.GetLegalMoves(state, 0);
 
-            // EndTurn + PlayAsMoney + PlayAsProperty
-            Assert.Equal(3, moves.Count);
-            Assert.Contains(moves, m => !m.IsEndTurn && m.PlayAsMoney);
+            // EndTurn + PlayAsProperty only (no PlayAsMoney)
+            Assert.Equal(2, moves.Count);
             Assert.Contains(moves, m => !m.IsEndTurn && !m.PlayAsMoney);
+            Assert.DoesNotContain(moves, m => !m.IsEndTurn && m.PlayAsMoney);
         }
 
         [Fact]
@@ -342,7 +342,7 @@ namespace JeffopolyDeal.BotAI.Tests
         [Fact]
         public void MoveGenerator_ExcludesJSNAndDTR()
         {
-            // Just Say No and DoubleTheRent should NOT appear as standalone moves
+            // Just Say No and DoubleTheRent should NOT appear as any moves (kept in hand)
             var state = new SimulationState
             {
                 Players = new List<SimPlayer>
@@ -362,9 +362,9 @@ namespace JeffopolyDeal.BotAI.Tests
 
             var moves = MoveGenerator.GetLegalMoves(state, 0);
 
-            // Only EndTurn + 2 bank-as-money (one for each card)
-            Assert.Equal(3, moves.Count);
-            Assert.All(moves.Where(m => !m.IsEndTurn), m => Assert.True(m.PlayAsMoney));
+            // Only EndTurn — JSN and DTR are reactive-only, never played proactively
+            Assert.Single(moves);
+            Assert.True(moves[0].IsEndTurn);
         }
 
         [Fact]
