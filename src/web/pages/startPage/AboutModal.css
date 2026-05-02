@@ -1,0 +1,142 @@
+.aboutOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.aboutModal {
+    background: #1a1a2e;
+    border-radius: 12px;
+    padding: 28px 32px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.aboutCloseButton {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.aboutCloseButton:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.aboutHeader {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.aboutLogo {
+    width: 48px;
+    height: auto;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+}
+
+.aboutTitle {
+    margin: 0;
+    color: #fff;
+    font-size: 1.4rem;
+}
+
+.aboutDescription {
+    color: #ccc;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin: 0 0 16px;
+}
+
+.aboutRepoLink {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #0d1b2a;
+    border: 1px solid #1a4a7a;
+    border-radius: 6px;
+    color: #6fa;
+    font-size: 0.85rem;
+    text-decoration: none;
+    margin-bottom: 20px;
+    align-self: flex-start;
+    transition: background 0.2s;
+}
+
+.aboutRepoLink:hover {
+    background: #1a4a7a;
+    color: #fff;
+}
+
+.aboutCopyright {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+}
+
+.aboutCopyright p {
+    margin: 0;
+    color: #aaa;
+    font-size: 0.85rem;
+    line-height: 1.6;
+}
+
+.aboutChangelogTitle {
+    margin: 0 0 10px;
+    color: #aaa;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.aboutChangelog {
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    padding-right: 4px;
+}
+
+.aboutChangelogEntry {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.aboutChangelogEntry:last-child {
+    border-bottom: none;
+}
+
+.aboutDate {
+    font-weight: 700;
+    color: #e94560;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    min-width: 40px;
+}
+
+.aboutChangelogNotes {
+    margin: 0;
+    color: #bbb;
+    font-size: 0.82rem;
+    line-height: 1.4;
+}

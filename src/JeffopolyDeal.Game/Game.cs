@@ -538,9 +538,11 @@ namespace JeffopolyDeal
 
         private bool ProcessCardPlay(Player player, Card card, PlayCardRequest request)
         {
-            // Any card can be banked as money
+            // Any card can be banked as money, except properties/wildcards which must be played on the board
             if (request.PlayAsMoney)
             {
+                if (card.CardType == CardType.Property || card.CardType == CardType.PropertyWildcard)
+                    return false; // properties cannot be banked
                 player.Bank.Add(card);
                 return true;
             }

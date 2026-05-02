@@ -1,3 +1,4 @@
+using JeffopolyDeal.ISMCTS;
 using JeffopolyDeal;
 using JeffopolyDeal.Models;
 
@@ -93,7 +94,7 @@ namespace JeffopolyDeal.BotAI.Tests
                 playOrder.Add(card);
                 b.Hand.Remove(card);
                 return true;
-            }, maxPlays: 3);
+            }, maxPlays: 3, config: ISMCTSConfig.Heuristic);
 
             Assert.True(playOrder.Count >= 2);
             // PassGo (score 80 with 3 plays) should be played before Money (score 20)

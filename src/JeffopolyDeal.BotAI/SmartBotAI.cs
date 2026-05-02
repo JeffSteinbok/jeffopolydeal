@@ -1,73 +1,187 @@
+using JeffopolyDeal.ISMCTS;
 using JeffopolyDeal.Models;
 
 namespace JeffopolyDeal
 {
     /// <summary>
-    /// Smart bot AI that replaces the old dumb BotAI.
-    /// Uses strategic evaluation to make optimal decisions.
+    /// Smart bot AI powered by ISMCTS (Information Set Monte Carlo Tree Search).
+    /// 
+    /// For PROACTIVE decisions (what card to play on your turn), the bot uses
+    /// ISMCTS to search across many possible game states and find the move with
+    /// the highest win probability.
+    /// 
+    /// For REACTIVE decisions (how to respond to an opponent's action — paying
+    /// rent, playing Just Say No, etc.), the bot uses fast heuristic logic since
+    /// these decisions don't benefit as much from tree search.
     /// </summary>
     public static class SmartBotAI
     {
         private static readonly Random _rng = new();
 
+        /// <summary>
+        /// Default ISMCTS configuration. Can be overridden for difficulty levels
+        /// or performance tuning.
+        /// </summary>
+        private static readonly ISMCTSConfig _defaultConfig = new ISMCTSConfig
+        {
+            Iterations = 500,
+            ExplorationConstant = 1.0,
+            MaxRolloutTurns = 20,
+            TimeLimitMs = 200,
+        };
+
         public static bool IsBot(string connectionId) => connectionId.StartsWith("bot-");
 
         /// <summary>
-        /// Play a full bot turn: pick and play cards strategically.
+        /// Play a full bot turn using ISMCTS for move selection.
+        /// 
+        /// For each card play, the bot:
+        ///   1. Snapshots the game state into a SimulationState
+        ///   2. Runs ISMCTS to find the best move
+        ///   3. Converts the SimMove back to a PlayCardRequest
+        ///   4. Plays the card through the real game engine
+        ///   5. Repeats until out of plays or ISMCTS says to end turn
+        /// 
+        /// Falls back to the old heuristic (CardEvaluator) if ISMCTS produces
+        /// no results (e.g., too few iterations completed).
         /// </summary>
         public static void PlayTurn(Player bot, List<Player> allPlayers, Deck deck,
-            Func<Player, Card, PlayCardRequest, bool> playCard, int maxPlays)
+            Func<Player, Card, PlayCardRequest, bool> playCard, int maxPlays,
+            ISMCTSConfig? config = null)
         {
+            config ??= _defaultConfig;
+
+            // Collect all cards in the game (reused across all ISMCTS calls this turn).
+            // This pool is needed by the Determinizer to sample opponent hands.
+            var allCards = Determinizer.CollectAllCards(bot, allPlayers, deck);
+
+            // If the card pool is too small for meaningful ISMCTS (e.g., in unit tests
+            // with minimal game state), fall back to the heuristic-based approach.
+            // ISMCTS needs a reasonable unknown card pool to produce good determinizations.
+            bool useISMCTS = allCards.Count >= 20 && config.Iterations > 0;
+
             int plays = 0;
             while (plays < maxPlays && bot.Hand.Count > 0)
             {
-                var candidates = bot.Hand
-                    .Select(c => new { Card = c, Score = CardEvaluator.PlayScore(bot, c, allPlayers, maxPlays - plays) })
-                    .Where(x => x.Score.HasValue)
-                    .OrderByDescending(x => x.Score)
-                    .ToList();
+                int playsRemaining = maxPlays - plays;
 
-                if (candidates.Count == 0) break;
-
-                // Add small randomness among top choices (within 10% of best score)
-                var bestScore = candidates[0].Score!.Value;
-                var topTier = candidates.Where(x => x.Score >= bestScore * 0.9).ToList();
-                var pick = topTier.Count > 1 ? topTier[_rng.Next(topTier.Count)] : topTier[0];
-
-                var card = pick.Card;
-                var request = BuildRequest(bot, card, allPlayers);
-
-                if (request == null)
+                if (useISMCTS)
                 {
-                    request = new PlayCardRequest { PlayAsMoney = true };
-                }
+                    // --- ISMCTS path: search across simulated futures ---
 
-                // Check for DoubleTheRent opportunity when playing rent
-                if (card.CardType == CardType.Rent && !request.PlayAsMoney && plays + 1 < maxPlays)
-                {
-                    var dtr = bot.Hand.FirstOrDefault(c => c.ActionKind == ActionType.DoubleTheRent);
-                    if (dtr != null)
+                    // Record opponent hand sizes (Determinizer needs to deal the right count)
+                    var handSizes = allPlayers.Select(p => p.Hand.Count).ToArray();
+
+                    // Snapshot the real game state for ISMCTS
+                    var simState = SimulationState.FromGame(bot, allPlayers, deck, playsRemaining);
+
+                    int botIndex = allPlayers.FindIndex(p => p.ConnectionId == bot.ConnectionId);
+                    if (botIndex < 0) break;
+
+                    // Run ISMCTS to find the best move
+                    var bestMove = ISMCTSEngine.FindBestMove(
+                        simState, botIndex, allCards, handSizes, config);
+
+                    if (bestMove.IsEndTurn || bestMove.Card == null) break;
+
+                    var card = bot.Hand.FirstOrDefault(c => c.Id == bestMove.Card.Id);
+                    if (card == null) break;
+
+                    PlayCardRequest request;
+                    if (bestMove.PlayAsMoney)
                     {
-                        request.DoubleRentCardIds = new List<int> { dtr.Id };
-                        if (plays + 2 < maxPlays)
+                        request = new PlayCardRequest { PlayAsMoney = true };
+                    }
+                    else
+                    {
+                        request = ConvertMoveToRequest(bot, card, bestMove, allPlayers);
+                    }
+
+                    // Attach DoubleTheRent cards if the ISMCTS move included them
+                    if (bestMove.DoubleRentCardIds != null && bestMove.DoubleRentCardIds.Count > 0)
+                        request.DoubleRentCardIds = bestMove.DoubleRentCardIds;
+
+                    bool shouldContinue = playCard(bot, card, request);
+                    plays++;
+
+                    if (request.DoubleRentCardIds != null)
+                        plays += request.DoubleRentCardIds.Count;
+
+                    if (!shouldContinue) break;
+                }
+                else
+                {
+                    // --- Heuristic fallback path: CardEvaluator-based scoring ---
+                    // Used when the game state is too minimal for ISMCTS (e.g., tests)
+                    // or when ISMCTS is explicitly disabled (Iterations = 0).
+
+                    var candidates = bot.Hand
+                        .Select(c => new { Card = c, Score = CardEvaluator.PlayScore(bot, c, allPlayers, playsRemaining) })
+                        .Where(x => x.Score.HasValue)
+                        .OrderByDescending(x => x.Score)
+                        .ToList();
+
+                    if (candidates.Count == 0) break;
+
+                    // Small randomness among top choices (within 10% of best score)
+                    var bestScore = candidates[0].Score!.Value;
+                    var topTier = candidates.Where(x => x.Score >= bestScore * 0.9).ToList();
+                    var pick = topTier.Count > 1 ? topTier[_rng.Next(topTier.Count)] : topTier[0];
+
+                    var card = pick.Card;
+                    var request = BuildRequest(bot, card, allPlayers);
+                    if (request == null)
+                        request = new PlayCardRequest { PlayAsMoney = true };
+
+                    // Check for DoubleTheRent opportunity when playing rent
+                    if (card.CardType == CardType.Rent && !request.PlayAsMoney && plays + 1 < maxPlays)
+                    {
+                        var dtr = bot.Hand.FirstOrDefault(c => c.ActionKind == ActionType.DoubleTheRent);
+                        if (dtr != null)
                         {
-                            var dtr2 = bot.Hand.FirstOrDefault(c =>
-                                c.ActionKind == ActionType.DoubleTheRent && c.Id != dtr.Id);
-                            if (dtr2 != null)
-                                request.DoubleRentCardIds.Add(dtr2.Id);
+                            request.DoubleRentCardIds = new List<int> { dtr.Id };
+                            if (plays + 2 < maxPlays)
+                            {
+                                var dtr2 = bot.Hand.FirstOrDefault(c =>
+                                    c.ActionKind == ActionType.DoubleTheRent && c.Id != dtr.Id);
+                                if (dtr2 != null)
+                                    request.DoubleRentCardIds.Add(dtr2.Id);
+                            }
                         }
                     }
+
+                    bool shouldContinue = playCard(bot, card, request);
+                    plays++;
+
+                    if (request.DoubleRentCardIds != null)
+                        plays += request.DoubleRentCardIds.Count;
+
+                    if (!shouldContinue) break;
                 }
-
-                bool shouldContinue = playCard(bot, card, request);
-                plays++;
-
-                // Account for DTR plays used
-                if (request.DoubleRentCardIds != null)
-                    plays += request.DoubleRentCardIds.Count;
-
-                if (!shouldContinue) break;
             }
+        }
+
+        /// <summary>
+        /// Convert an ISMCTS SimMove (which uses player indices) to a PlayCardRequest
+        /// (which uses ConnectionId strings) for the real game engine.
+        /// </summary>
+        private static PlayCardRequest ConvertMoveToRequest(
+            Player bot, Card card, SimMove move, List<Player> allPlayers)
+        {
+            var request = new PlayCardRequest { PlayAsMoney = false };
+
+            // Target player
+            if (move.TargetPlayerIndex >= 0 && move.TargetPlayerIndex < allPlayers.Count)
+                request.TargetPlayerId = allPlayers[move.TargetPlayerIndex].ConnectionId;
+
+            // Card-type-specific fields
+            request.RentColor = move.RentColor;
+            request.WildcardColor = move.WildcardColor;
+            request.TargetCardId = move.TargetCardId;
+            request.OfferedCardId = move.OfferedCardId;
+            request.TargetSetColor = move.TargetSetColor;
+
+            return request;
         }
 
         /// <summary>

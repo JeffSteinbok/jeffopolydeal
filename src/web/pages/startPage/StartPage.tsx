@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import titleImage from "../../assets/JeffopolyDeal.png";
+import { AboutModal } from "./AboutModal";
 import "./StartPage.css";
 
 interface StartPageProps {
@@ -10,6 +11,7 @@ export function StartPage({ onJoinGame }: StartPageProps) {
     const [mode, setMode] = useState<"menu" | "create" | "join">("menu");
     const [playerName, setPlayerName] = useState("");
     const [gameCode, setGameCode] = useState("");
+    const [showAbout, setShowAbout] = useState(false);
 
     // Auto-switch to join mode if ?join=CODE is in the URL
     useEffect(() => {
@@ -109,10 +111,12 @@ export function StartPage({ onJoinGame }: StartPageProps) {
                     )}
                 </div>
             </div>
+            <button className="aboutLink" onClick={() => setShowAbout(true)}>About Jeffopoly Deal</button>
             <div className="copyrightFooter">
                 <p>© {new Date().getFullYear()} Jeff Steinbok. All rights reserved.</p>
                 <p>Monopoly Deal is a trademark of Hasbro, Inc.</p>
             </div>
+            {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
         </div>
     );
 }
