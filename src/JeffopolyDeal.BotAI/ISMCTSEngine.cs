@@ -371,7 +371,10 @@ namespace JeffopolyDeal.ISMCTS
         /// Factors considered:
         ///   - Number of unique completed sets (most important — this IS the win condition)
         ///   - Progress toward completing sets (near-complete sets are valuable)
-        ///   - Bank total (more money = more flexibility)
+        ///   - Bank total with diminishing returns (first 5M is a critical rent
+        ///     buffer; additional money is less important)
+        ///   - Defensive exposure: incomplete property sets are discounted when
+        ///     the player's bank can't absorb a rent charge
         ///   - Relative position vs opponents
         /// 
         /// The evaluation normalizes the bot's score relative to all players
@@ -380,6 +383,10 @@ namespace JeffopolyDeal.ISMCTS
         /// </summary>
         private static double HeuristicEval(SimulationState state, int botIndex)
         {
+            // Target bank balance for rent protection. The first RentBuffer
+            // units of money are worth significantly more than money above it.
+            const double RentBuffer = 5.0;
+
             // Score each player
             var scores = new double[state.PlayerCount];
             for (int i = 0; i < state.PlayerCount; i++)
@@ -389,17 +396,42 @@ namespace JeffopolyDeal.ISMCTS
                 // Completed sets are worth the most (100 points each)
                 double score = player.UniqueCompletedSetCount * 100.0;
 
-                // Near-complete sets are worth 30 points each
+                // Bank value uses diminishing returns curve:
+                //   First 5M of bank → worth 3.0 per M (total 15.0 for full buffer)
+                //   Money above 5M  → worth 0.3 per M  (nice to have, not critical)
+                //
+                // This models the defensive reality: a 5M bank absorbs most rent
+                // charges, protecting your properties. An empty bank means every
+                // rent card strips your board.
+                double bank = player.BankTotal;
+                double bufferPortion = Math.Min(bank, RentBuffer);
+                double excessPortion = Math.Max(0, bank - RentBuffer);
+                score += bufferPortion * 3.0 + excessPortion * 0.3;
+
+                // Property set evaluation — defensive-aware
+                bool bankCanAbsorbRent = bank >= RentBuffer;
                 foreach (var set in player.PropertySets)
                 {
-                    if (!set.IsComplete && set.Size >= set.RequiredSize - 1)
-                        score += 30.0;
-                    else if (!set.IsComplete && set.Cards.Count > 0)
-                        score += set.Cards.Count * 5.0;
+                    if (set.IsComplete)
+                    {
+                        // Complete sets are always good — can't be stolen with
+                        // Sly Deal and they count toward the win condition
+                        // (already counted above in UniqueCompletedSetCount)
+                    }
+                    else if (set.Size >= set.RequiredSize - 1)
+                    {
+                        // Near-complete sets: high value, but slightly reduced
+                        // if bank is thin (they're still worth pursuing)
+                        score += bankCanAbsorbRent ? 30.0 : 22.0;
+                    }
+                    else if (set.Cards.Count > 0)
+                    {
+                        // Partial sets: worth less when exposed to rent with no
+                        // bank buffer — these are the first to go when charged
+                        double perCard = bankCanAbsorbRent ? 5.0 : 2.0;
+                        score += set.Cards.Count * perCard;
+                    }
                 }
-
-                // Bank total contributes modestly
-                score += player.BankTotal * 0.5;
 
                 // Hand size is slightly valuable (more options)
                 score += player.Hand.Count * 0.5;

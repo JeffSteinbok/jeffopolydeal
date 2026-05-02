@@ -34,6 +34,13 @@ namespace JeffopolyDeal.ISMCTS
     {
         private static readonly Random _rng = new();
 
+        /// <summary>
+        /// Target bank balance for rent protection. Mirrors the constant
+        /// in CardEvaluator — the first RentBufferTarget units of money
+        /// provide critical defense against rent charges.
+        /// </summary>
+        private const int RentBufferTarget = 5;
+
         // =====================================================================
         // Move selection — used during the "play cards" phase
         // =====================================================================
@@ -91,6 +98,10 @@ namespace JeffopolyDeal.ISMCTS
         /// 
         /// This reconstructs the scoring from CardEvaluator.PlayScore() and
         /// SmartBotAI.BuildRequest() but operates on SimPlayer/SimulationState.
+        /// 
+        /// Defensive awareness: When bank is below the rent buffer threshold,
+        /// banking money scores higher and non-completing properties score lower.
+        /// This prevents the rollout from over-investing in exposed properties.
         /// </summary>
         private static int? ScoreMove(SimulationState state, int playerIndex, SimMove move)
         {
@@ -98,28 +109,58 @@ namespace JeffopolyDeal.ISMCTS
             var player = state.Players[playerIndex];
             var card = move.Card;
 
-            // Banking as money is always an option, scored modestly
+            int bankTotal = player.BankTotal;
+            bool bankIsLow = bankTotal < RentBufferTarget;
+
+            // Estimate max rent any opponent could charge
+            int maxOpponentRent = EstimateMaxRentSim(state, playerIndex);
+
+            // Banking as money: more valuable when bank is thin
             if (move.PlayAsMoney)
+            {
+                if (bankIsLow)
+                {
+                    int deficit = RentBufferTarget - bankTotal;
+                    return 20 + Math.Min(25, deficit * 5);
+                }
                 return 20;
+            }
 
             switch (card.CardType)
             {
                 case CardType.Money:
+                    if (bankIsLow)
+                    {
+                        int deficit = RentBufferTarget - bankTotal;
+                        return 20 + Math.Min(25, deficit * 5);
+                    }
                     return 20;
 
                 case CardType.Property:
                 {
-                    // Properties are good, especially if they complete a set
                     int propScore = 30;
                     var targetSet = player.PropertySets.FirstOrDefault(s =>
                         s.Color == card.Color && !s.IsComplete);
                     if (targetSet != null && targetSet.Size >= targetSet.RequiredSize - 1)
+                    {
                         propScore += 40; // this card completes a set!
+                    }
+                    else if (bankIsLow && maxOpponentRent > bankTotal)
+                    {
+                        // Non-completing property with thin bank: exposed to rent
+                        propScore = 15;
+                    }
                     return propScore;
                 }
 
                 case CardType.PropertyWildcard:
+                {
+                    bool completesASet = player.PropertySets.Any(s =>
+                        !s.IsComplete && s.Size >= s.RequiredSize - 1);
+                    if (completesASet) return 70;
+                    if (bankIsLow && maxOpponentRent > bankTotal) return 15;
                     return 35;
+                }
 
                 case CardType.Rent:
                 {
@@ -401,6 +442,28 @@ namespace JeffopolyDeal.ISMCTS
             if (set.IsComplete) return 50 + set.CalculateRent();
             if (set.Size >= set.RequiredSize - 1) return 30;
             return 10 + set.Size;
+        }
+
+        /// <summary>
+        /// Estimate the maximum rent any opponent could charge this player.
+        /// Mirrors CardEvaluator.EstimateMaxRent() but for SimulationState.
+        /// </summary>
+        private static int EstimateMaxRentSim(SimulationState state, int playerIndex)
+        {
+            int maxRent = 0;
+            for (int i = 0; i < state.PlayerCount; i++)
+            {
+                if (i == playerIndex) continue;
+                foreach (var set in state.Players[i].PropertySets)
+                {
+                    if (set.Cards.Count > 0)
+                    {
+                        int rent = set.CalculateRent();
+                        if (rent > maxRent) maxRent = rent;
+                    }
+                }
+            }
+            return maxRent;
         }
     }
 }

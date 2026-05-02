@@ -35,6 +35,9 @@ namespace JeffopolyDeal.Tests
             var others = new List<Player> { CreateBot("bot-other") };
             var allPlayers = new List<Player> { bot, others[0] };
 
+            // Give bot a healthy bank so it doesn't prioritize money defensively
+            bot.Bank.Add(CreateMoneyCard(99, 5));
+
             // Give bot a money card (score 20) and a property card (score 30+)
             bot.Hand.Add(CreateMoneyCard(2, 3));
             bot.Hand.Add(CreatePropertyCard(1, PropertyColor.Brown));

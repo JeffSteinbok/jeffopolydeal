@@ -103,7 +103,9 @@ namespace JeffopolyDeal.BotAI.Tests
         [Fact]
         public void PlayScore_MoneyHasModerateScore()
         {
+            // With a full rent buffer, money returns to baseline score of 20
             var bot = CreatePlayer("bot-1");
+            bot.Bank.Add(new Card { Id = 99, CardType = CardType.Money, MoneyValue = 5 });
             var card = new Card { Id = 1, CardType = CardType.Money, MoneyValue = 5 };
             var allPlayers = new List<Player> { bot };
 
@@ -111,6 +113,20 @@ namespace JeffopolyDeal.BotAI.Tests
 
             Assert.NotNull(score);
             Assert.Equal(20, score);
+        }
+
+        [Fact]
+        public void PlayScore_MoneyScoresHigherWhenBankIsLow()
+        {
+            // With an empty bank, money is worth more (defensive buffer)
+            var bot = CreatePlayer("bot-1");
+            var card = new Card { Id = 1, CardType = CardType.Money, MoneyValue = 5 };
+            var allPlayers = new List<Player> { bot };
+
+            var score = CardEvaluator.PlayScore(bot, card, allPlayers, 3);
+
+            Assert.NotNull(score);
+            Assert.True(score > 20, $"Money should score > 20 with empty bank, got {score}");
         }
 
         [Fact]
