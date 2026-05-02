@@ -1480,7 +1480,7 @@ namespace JeffopolyDeal
                 var bot = _players.FirstOrDefault(p => p.ConnectionId == botId);
                 if (bot == null) continue;
 
-                var response = SmartBotAI.BuildResponse(bot, _pendingAction!, _players);
+                var response = SmartBotAI.BuildResponse(bot, _pendingAction!, _players, _deck.GetDiscardPileSnapshot());
                 ProcessResponse(botId, response);
             }
         }
@@ -1700,6 +1700,12 @@ namespace JeffopolyDeal
             if (targetSetId > 0)
             {
                 var existingSet = player.PropertySets.First(s => s.SetId == targetSetId);
+
+                // Moving a card to the set it's already in is a no-op.
+                // Also prevents a bug where a 1-card set is removed when the only card is
+                // lifted out, leaving the card orphaned in the now-deleted set reference.
+                if (!fromUnbound && sourceSet == existingSet) return;
+
                 if (existingSet.Cards.Count >= existingSet.RequiredSize) return;
 
                 // Validated — now remove from source
@@ -1729,6 +1735,13 @@ namespace JeffopolyDeal
                 var newSet = new PropertySet { Color = color.Value };
                 newSet.Cards.Add(card);
                 player.PropertySets.Add(newSet);
+            }
+
+            // Check if this rearrangement completed the win condition (issue #95).
+            if (player.UniqueCompletedSetCount >= GameConfig.SetsToWin)
+            {
+                _phase = GamePhase.GameOver;
+                _winnerId = player.PlayerId;
             }
         }
 
@@ -1767,6 +1780,13 @@ namespace JeffopolyDeal
                         card.ActiveColor = newColor;
                         var newSet = player.GetOrCreatePropertySet(newColor.Value);
                         newSet.Cards.Add(card);
+
+                        // Check if the flip completed the win condition (issue #95).
+                        if (player.UniqueCompletedSetCount >= GameConfig.SetsToWin)
+                        {
+                            _phase = GamePhase.GameOver;
+                            _winnerId = player.PlayerId;
+                        }
                         break;
                     }
                 }

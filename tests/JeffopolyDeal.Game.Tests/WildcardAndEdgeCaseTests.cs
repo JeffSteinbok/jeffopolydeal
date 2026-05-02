@@ -316,15 +316,13 @@ namespace JeffopolyDeal.Tests
             var (p1, p2) = await h.SetupTwoPlayerGameAsync();
             await h.DrawAsync(p1);
 
-            // Play cards to exceed hand limit scenario
-            // Just verify discard works
-            var hand = h.GetHand(p1);
-            if (hand.Count > 0)
-            {
-                var card = hand.First();
-                await h.PlayAsMoney(p1, card.Id);
-                Assert.DoesNotContain(h.GetHand(p1), c => c.Id == card.Id);
-            }
+            // Inject a known money card so the test is deterministic.
+            // Only non-property cards can be banked as money; using any random
+            // hand.First() is unreliable because it may be a Property/Wildcard
+            // (which PlayAsMoney silently rejects, leaving the card in hand).
+            var card = h.InjectMoney(p1, 1);
+            await h.PlayAsMoney(p1, card.Id);
+            Assert.DoesNotContain(h.GetHand(p1), c => c.Id == card.Id);
         }
 
         [Fact]
