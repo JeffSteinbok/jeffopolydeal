@@ -57,7 +57,8 @@ namespace JeffopolyDeal.ISMCTS
         /// This mirrors the old SmartBotAI.PlayTurn() logic but operates on
         /// SimulationState instead of real game objects.
         /// </summary>
-        public static SimMove PickMove(SimulationState state, int playerIndex)
+        public static SimMove PickMove(SimulationState state, int playerIndex,
+            BotPersonality? personality = null)
         {
             var moves = MoveGenerator.GetLegalMoves(state, playerIndex);
 
@@ -72,7 +73,7 @@ namespace JeffopolyDeal.ISMCTS
             {
                 if (move.IsEndTurn) continue;
 
-                int? score = ScoreMove(state, playerIndex, move);
+                int? score = ScoreMove(state, playerIndex, move, personality);
                 if (score.HasValue)
                     scored.Add((move, score.Value));
             }
@@ -102,25 +103,39 @@ namespace JeffopolyDeal.ISMCTS
         /// Defensive awareness: When bank is below the rent buffer threshold,
         /// banking money scores higher and non-completing properties score lower.
         /// This prevents the rollout from over-investing in exposed properties.
+        /// 
+        /// Personality awareness: When provided, uses personality weights for
+        /// attack/steal/property scoring and rent buffer target.
         /// </summary>
-        private static int? ScoreMove(SimulationState state, int playerIndex, SimMove move)
+        private static int? ScoreMove(SimulationState state, int playerIndex, SimMove move,
+            BotPersonality? personality = null)
         {
             if (move.Card == null) return null;
             var player = state.Players[playerIndex];
             var card = move.Card;
 
+            int rentBufferTarget = personality?.RentBufferTarget ?? RentBufferTarget;
+            double propertyWeight = personality?.PropertyWeight ?? 1.0;
+            double setCompletionWeight = personality?.SetCompletionWeight ?? 1.0;
+            double attackWeight = personality?.AttackWeight ?? 1.0;
+            double stealWeight = personality?.StealWeight ?? 1.0;
+
             int bankTotal = player.BankTotal;
-            bool bankIsLow = bankTotal < RentBufferTarget;
+            bool bankIsLow = bankTotal < rentBufferTarget;
 
             // Estimate max rent any opponent could charge
             int maxOpponentRent = EstimateMaxRentSim(state, playerIndex);
 
-            // Banking as money: more valuable when bank is thin
+            // Banking as money: check ShouldBankCard first, then score if allowed
             if (move.PlayAsMoney)
             {
+                // Use the shared banking decision helper
+                if (!CardEvaluator.ShouldBankCard(card, player.Hand.Count, state.PlaysRemaining))
+                    return null; // don't bank this card
+
                 if (bankIsLow)
                 {
-                    int deficit = RentBufferTarget - bankTotal;
+                    int deficit = rentBufferTarget - bankTotal;
                     return 20 + Math.Min(25, deficit * 5);
                 }
                 return 20;
@@ -138,12 +153,12 @@ namespace JeffopolyDeal.ISMCTS
 
                 case CardType.Property:
                 {
-                    int propScore = 30;
+                    int propScore = (int)(30 * propertyWeight);
                     var targetSet = player.PropertySets.FirstOrDefault(s =>
                         s.Color == card.Color && !s.IsComplete);
                     if (targetSet != null && targetSet.Size >= targetSet.RequiredSize - 1)
                     {
-                        propScore += 40; // this card completes a set!
+                        propScore += (int)(40 * setCompletionWeight); // this card completes a set!
                     }
                     else if (bankIsLow && maxOpponentRent > bankTotal)
                     {
@@ -157,9 +172,9 @@ namespace JeffopolyDeal.ISMCTS
                 {
                     bool completesASet = player.PropertySets.Any(s =>
                         !s.IsComplete && s.Size >= s.RequiredSize - 1);
-                    if (completesASet) return 70;
+                    if (completesASet) return (int)(70 * setCompletionWeight);
                     if (bankIsLow && maxOpponentRent > bankTotal) return 15;
-                    return 35;
+                    return (int)(35 * propertyWeight);
                 }
 
                 case CardType.Rent:
@@ -167,7 +182,7 @@ namespace JeffopolyDeal.ISMCTS
                     // Score rent by how much money we'd collect
                     int rentAmount = GetRentAmount(player, card, move.RentColor);
                     if (rentAmount == 0) return 10;
-                    int score = 50 + rentAmount * 5;
+                    int score = (int)((50 + rentAmount * 5) * attackWeight);
                     // Bonus for DoubleTheRent combos
                     if (move.DoubleRentCardIds != null)
                         score += move.DoubleRentCardIds.Count * 30;
@@ -175,7 +190,7 @@ namespace JeffopolyDeal.ISMCTS
                 }
 
                 case CardType.Action:
-                    return ScoreAction(state, playerIndex, card, move);
+                    return ScoreAction(state, playerIndex, card, move, personality);
             }
 
             return 10;
@@ -183,12 +198,15 @@ namespace JeffopolyDeal.ISMCTS
 
         /// <summary>
         /// Score an action card. Logic mirrors CardEvaluator.ScoreAction() but
-        /// adapted for SimulationState.
+        /// adapted for SimulationState. Uses personality weights when provided.
         /// </summary>
         private static int? ScoreAction(
-            SimulationState state, int playerIndex, Card card, SimMove move)
+            SimulationState state, int playerIndex, Card card, SimMove move,
+            BotPersonality? personality = null)
         {
             var player = state.Players[playerIndex];
+            double attackWeight = personality?.AttackWeight ?? 1.0;
+            double stealWeight = personality?.StealWeight ?? 1.0;
 
             switch (card.ActionKind)
             {
@@ -204,27 +222,27 @@ namespace JeffopolyDeal.ISMCTS
                         var target = state.Players[move.TargetPlayerIndex];
                         // Does this DealBreaker win us the game?
                         if (player.UniqueCompletedSetCount >= GameConfig.SetsToWin - 1)
-                            return 200;
+                            return (int)(200 * stealWeight);
                         // Is the target about to win?
                         if (target.UniqueCompletedSetCount >= GameConfig.SetsToWin - 1)
-                            return 200;
-                        return 90;
+                            return (int)(200 * stealWeight);
+                        return (int)(90 * stealWeight);
                     }
                     return 10; // no valid target
                 }
 
                 case ActionType.DebtCollector:
-                    return 55;
+                    return (int)(55 * attackWeight);
 
                 case ActionType.ItsMyBirthday:
-                    return 45;
+                    return (int)(45 * attackWeight);
 
                 case ActionType.SlyDeal:
                 {
                     if (move.TargetCardId.HasValue)
                     {
                         // Bonus if the stolen card completes one of our sets
-                        int score = 60;
+                        int score = (int)(60 * stealWeight);
                         // Try to find the target card to check color
                         var targetPlayer = move.TargetPlayerIndex >= 0
                             ? state.Players[move.TargetPlayerIndex] : null;
@@ -251,7 +269,7 @@ namespace JeffopolyDeal.ISMCTS
                 }
 
                 case ActionType.ForceDeal:
-                    return move.TargetCardId.HasValue ? 55 : 10;
+                    return move.TargetCardId.HasValue ? (int)(55 * stealWeight) : 10;
 
                 case ActionType.House:
                 {

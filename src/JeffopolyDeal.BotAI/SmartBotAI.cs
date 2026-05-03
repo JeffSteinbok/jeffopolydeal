@@ -47,9 +47,16 @@ namespace JeffopolyDeal
         /// </summary>
         public static void PlayTurn(Player bot, List<Player> allPlayers, Deck deck,
             Func<Player, Card, PlayCardRequest, bool> playCard, int maxPlays,
-            ISMCTSConfig? config = null)
+            ISMCTSConfig? config = null, BotPersonality? personality = null)
         {
             config ??= _defaultConfig;
+
+            // If personality provides search parameters, override the config's
+            // exploration constant (difficulty iterations are kept from config)
+            if (personality != null)
+            {
+                config = personality.ToISMCTSConfig(config.Iterations, config.TimeLimitMs);
+            }
 
             // Collect all cards in the game (reused across all ISMCTS calls this turn).
             // This pool is needed by the Determinizer to sample opponent hands.
@@ -80,7 +87,7 @@ namespace JeffopolyDeal
 
                     // Run ISMCTS to find the best move
                     var bestMove = ISMCTSEngine.FindBestMove(
-                        simState, botIndex, allCards, handSizes, config);
+                        simState, botIndex, allCards, handSizes, config, personality);
 
                     if (bestMove.IsEndTurn || bestMove.Card == null) break;
 
@@ -90,6 +97,13 @@ namespace JeffopolyDeal
                     PlayCardRequest request;
                     if (bestMove.PlayAsMoney)
                     {
+                        // Check if this card should actually be banked
+                        if (!CardEvaluator.ShouldBankCard(card, bot.Hand.Count, playsRemaining))
+                        {
+                            // Card shouldn't be banked — skip to next iteration
+                            // (ISMCTS will pick a different move next time with updated state)
+                            break;
+                        }
                         request = new PlayCardRequest { PlayAsMoney = true };
                     }
                     else
@@ -117,7 +131,7 @@ namespace JeffopolyDeal
 
                     var discardSnapshot = deck.GetDiscardPileSnapshot();
                     var candidates = bot.Hand
-                        .Select(c => new { Card = c, Score = CardEvaluator.PlayScore(bot, c, allPlayers, playsRemaining, discardSnapshot) })
+                        .Select(c => new { Card = c, Score = CardEvaluator.PlayScore(bot, c, allPlayers, playsRemaining, discardSnapshot, personality) })
                         .Where(x => x.Score.HasValue)
                         .OrderByDescending(x => x.Score)
                         .ToList();
@@ -132,7 +146,20 @@ namespace JeffopolyDeal
                     var card = pick.Card;
                     var request = BuildRequest(bot, card, allPlayers);
                     if (request == null)
-                        request = new PlayCardRequest { PlayAsMoney = true };
+                    {
+                        // BuildRequest returned null — check if we should bank this card.
+                        // If the card shouldn't be banked (e.g., Pass Go, high-value action),
+                        // skip it and try the next candidate instead.
+                        if (CardEvaluator.ShouldBankCard(card, bot.Hand.Count, playsRemaining))
+                        {
+                            request = new PlayCardRequest { PlayAsMoney = true };
+                        }
+                        else
+                        {
+                            // Don't bank this card — skip to next iteration
+                            break;
+                        }
+                    }
 
                     // Check for DoubleTheRent opportunity when playing rent
                     if (card.CardType == CardType.Rent && !request.PlayAsMoney && plays + 1 < maxPlays)

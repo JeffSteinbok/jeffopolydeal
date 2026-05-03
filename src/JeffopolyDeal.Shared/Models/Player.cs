@@ -17,6 +17,13 @@ namespace JeffopolyDeal.Models
         /// <summary>Whether this player currently has an active connection.</summary>
         public bool IsConnected { get; set; } = true;
 
+        /// <summary>
+        /// Bot personality preset name (null for human players).
+        /// Stored as a string to avoid coupling Shared to BotAI.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        public string? BotPersonalityName { get; set; }
+
         /// <summary>When the player disconnected (null if connected).</summary>
         public DateTime? DisconnectedAt { get; set; }
 

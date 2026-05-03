@@ -9,6 +9,87 @@ The AI combines two approaches:
 - **ISMCTS for proactive decisions** (what card to play on your turn): The bot simulates hundreds of possible games by guessing what opponents might hold, plays each game to the end, and picks the move that wins most often.
 - **Heuristics for reactive decisions** (responding to rent, playing Just Say No): Fast rule-based logic handles time-sensitive responses where tree search isn't needed.
 
+## Bot Personalities
+
+Each bot is assigned a **personality** at creation time that affects its play style through feature-level parameters. Personality is separate from difficulty — an aggressive bot can be easy (few ISMCTS iterations) or hard (many iterations).
+
+### Available Presets
+
+| Personality | Play Style | Key Traits |
+|---|---|---|
+| **Balanced** | Default, well-rounded | All parameters at 1.0. Preserves legacy behavior. |
+| **Aggressive** | Attack-heavy, risky | High attack/steal weights, thin bank buffer, ignores JSN risk |
+| **Defensive** | Conservative, hoards cash | Large rent buffer, low attack weights, high JSN risk sensitivity |
+| **Builder** | Property-focused | High property/set-completion weights, uses steals to fill set gaps |
+| **Chaotic** | Unpredictable | High MCTS exploration constant, random targeting, ignores JSN risk |
+
+### How Personality Flows Through the System
+
+```
+Game.AddBotPlayer()
+  → BotPersonality.RandomPreset() → stored as player.BotPersonalityName
+
+Game.HandleBotTurn(bot)
+  → ResolveBotPersonality(bot) → BotPersonality instance
+  → SmartBotAI.PlayTurn(..., personality)
+    → CardEvaluator.PlayScore(..., personality)   // heuristic path
+    → ISMCTSEngine.FindBestMove(..., personality) // ISMCTS path
+      → RolloutPolicy.PickMove(..., personality)  // bot only
+      → HeuristicEval(..., personality)           // position eval
+```
+
+During ISMCTS rollouts, only the bot player uses its personality. All other simulated players use Balanced (default), since the bot doesn't know opponents' play styles.
+
+### Personality Parameters
+
+| Parameter | Default | Effect |
+|---|---|---|
+| `AttackWeight` | 1.0 | Multiplier for rent/debt/birthday scores |
+| `StealWeight` | 1.0 | Multiplier for DealBreaker/SlyDeal/ForceDeal scores |
+| `RentBufferTarget` | 5 | Target bank balance before investing in properties |
+| `BankValueWeight` | 3.0 | How much bank money matters in position evaluation |
+| `PropertyWeight` | 1.0 | Multiplier for property play scores |
+| `SetCompletionWeight` | 1.0 | Multiplier for near-complete set bonuses |
+| `JsnRiskSensitivity` | 0.5 | How much JSN probability discounts attack scores (0=yolo, 1=cautious) |
+| `ExplorationConstant` | 1.0 | UCB1 exploration in ISMCTS (higher=more varied moves) |
+| `Targeting` | BiggestThreat | How to choose attack targets |
+
+## ThreatProfile — Discard-Pile Awareness
+
+The `ThreatProfile` class provides a comprehensive snapshot of remaining threat cards in the unknown pool (opponent hands + draw pile). It tracks counts of all dangerous card types:
+
+- **Steal threats**: Deal Breaker (2 in deck), Sly Deal (3), Forced Deal (3)
+- **Payment threats**: Debt Collector (3), Birthday (3), Wild Rent (3)
+- **Counter threats**: Just Say No (3), Double The Rent (2)
+
+### Probability Queries
+
+```csharp
+var profile = BoardAnalyzer.BuildThreatProfile(bot, allPlayers, discardPile);
+
+// How likely is opponent X to hold a Deal Breaker?
+double risk = profile.ProbabilityOpponentHolds(
+    profile.DealBreakersRemaining, opponentHandSize);
+
+// How likely is ANY opponent to hold a JSN?
+double jsnRisk = profile.ProbabilityAnyOpponentHolds(
+    profile.JsnRemaining, opponents.Select(p => p.Hand.Count));
+```
+
+Uses the **hypergeometric distribution** — the same math as drawing cards without replacement.
+
+## Banking Rules
+
+The `ShouldBankCard` helper prevents the bot from wasting high-value action cards as money:
+
+| Card Type | Bank? | Reason |
+|---|---|---|
+| Money cards | ✅ Always | That's what they're for |
+| Properties/Wildcards | ❌ Never bank | Always play as property |
+| Pass Go | ❌ Never bank | Always play to draw 2 cards |
+| JSN / DTR | ❌ Never bank | Save for defensive/combo use |
+| Rent, DealBreaker, SlyDeal, etc. | 🤔 Only if... | Banking empties hand (5-card draw) OR hand is over limit |
+
 ## ISMCTS — The Search Engine
 
 When the bot needs to choose a card to play, here's what happens behind the scenes:
@@ -62,11 +143,11 @@ During simulated games (rollouts), all players use the same CardEvaluator-based 
 
 ### Reading the Board — `BoardAnalyzer`
 
-Evaluates game state: threat scoring, win detection, richest opponent, best wildcard placement. Used by both ISMCTS rollouts and targeting logic.
+Evaluates game state: threat scoring, win detection, richest opponent, best wildcard placement, and **ThreatProfile** construction for comprehensive discard-pile awareness.
 
 ### Card Priority Scoring — `CardEvaluator`
 
-Each card in hand gets a priority score. Used by the RolloutPolicy during ISMCTS simulated games to play cards realistically. Higher score = play first.
+Each card in hand gets a priority score. Used by the RolloutPolicy during ISMCTS simulated games to play cards realistically. Higher score = play first. Scores are modulated by personality weights.
 
 | Card Type | Priority | Why |
 |---|---|---|
@@ -105,14 +186,6 @@ When deciding whether a property card would give the receiver a win, the solver 
 | **Birthday** ($2) | ❌ Never blocks | Too cheap to waste JSN |
 | **JSN chain** (bot was original attacker) | ✅ Counters | Protect the original action investment |
 
-### Discard Pile Awareness
-
-The bot considers what cards have already been played when making decisions (issue #97):
-
-- **Just Say No probability**: By counting discarded JSN cards and comparing to the 3 in the deck, the bot estimates whether opponents are likely to be holding a JSN. When all 3 are discarded (or in the bot's hand), the bot knows no opponent can counter — it can attack more freely and defend at a lower cost threshold.
-- **Attack card scoring** (heuristic path): Sly Deal, Force Deal, and Deal Breaker receive a small score boost when JSN probability is below 10%, making the bot more aggressive when counters are impossible.
-- **ISMCTS** already handles the discard pile implicitly — the `Determinizer` excludes discarded cards from the unknown pool when sampling possible opponent hands.
-
 ### Discarding Smartly
 
 When the bot exceeds 7 cards: keeps JSN, set-completing properties, DealBreaker, wild rent; discards low-value money first.
@@ -122,14 +195,15 @@ When the bot exceeds 7 cards: keeps JSN, set-completing properties, DealBreaker,
 ```
 src/JeffopolyDeal.BotAI/
 ├── SmartBotAI.cs          # Main entry — PlayTurn (ISMCTS), BuildResponse, PickDiscards
+├── BotPersonality.cs      # Personality presets and parameterized policy configuration
 ├── ISMCTSEngine.cs        # Core MCTS loop: select → expand → rollout → backpropagate
 ├── SimulationState.cs     # Lightweight cloneable game state for simulation
 ├── GameSimulator.cs       # Synchronous game engine for fast rollouts
 ├── Determinizer.cs        # Samples plausible opponent hands from unknown card pool
 ├── MoveGenerator.cs       # Enumerates all legal moves for a position
 ├── RolloutPolicy.cs       # Heuristic move/response policy for simulated games
-├── BoardAnalyzer.cs       # Game state evaluation — threats, win detection, targeting
-├── CardEvaluator.cs       # Card priority scoring (used by RolloutPolicy)
+├── BoardAnalyzer.cs       # Game state evaluation — threats, ThreatProfile, targeting
+├── CardEvaluator.cs       # Card priority scoring (personality-aware, ShouldBankCard)
 └── PaymentSolver.cs       # Optimal payment selection — subset-sum algorithm
 ```
 
@@ -140,9 +214,10 @@ src/JeffopolyDeal.BotAI/
 All classes are **static** and **stateless** — they evaluate the current game state each time they're called, with no memory between turns.
 
 Key cross-cutting concerns:
-- `BoardAnalyzer` — `CountDiscarded`, `JsnRemainingInUnknown`, `EstimateJsnHeldProbability` expose discard-pile analysis to other components
+- `BoardAnalyzer` — `ThreatProfile`, `BuildThreatProfile`, `EstimateHeldProbability` expose discard-pile analysis to other components
+- `BotPersonality` — flows through `SmartBotAI → CardEvaluator / ISMCTSEngine → RolloutPolicy / HeuristicEval`
+- `CardEvaluator` — `ShouldBankCard` shared helper prevents banking high-value action cards
 - `PaymentSolver` — accepts an optional `receiver` player and avoids paying cards that would give that player a game-winning complete set
-- `CardEvaluator` — accepts an optional `discardPile` snapshot; raises scores for attack cards when JSN risk is near zero
 
 ## Configuration
 
@@ -154,6 +229,8 @@ ISMCTS behavior is controlled by `ISMCTSConfig`:
 | `ExplorationConstant` | 1.0 | UCB1 exploration vs exploitation tradeoff |
 | `MaxRolloutTurns` | 20 | Horizon cutoff for simulated games |
 | `TimeLimitMs` | 200 | Hard time limit per decision (ms) |
+
+Personality overrides `ExplorationConstant` via `BotPersonality.ToISMCTSConfig()`.
 
 ## Testing
 

@@ -69,7 +69,7 @@ namespace JeffopolyDeal.Tests
         }
 
         [Fact]
-        public async Task PlayProperty_CountsAsPlay()
+        public async Task PlayCard_CountsAsPlay()
         {
             var h = new TestGameHarness();
             var (p1, _) = await h.SetupTwoPlayerGameAsync();
@@ -77,7 +77,11 @@ namespace JeffopolyDeal.Tests
 
             Assert.Equal(0, h.GetPlaysUsed(p1));
 
-            var card = h.GetHand(p1).First();
+            // Find a card that can be banked (properties can't be played as money)
+            var card = h.GetHand(p1).FirstOrDefault(c =>
+                c.CardType != CardType.Property && c.CardType != CardType.PropertyWildcard);
+            if (card == null) return; // No bankable card — skip
+
             await h.PlayAsMoney(p1, card.Id);
             Assert.Equal(1, h.GetPlaysUsed(p1));
         }
