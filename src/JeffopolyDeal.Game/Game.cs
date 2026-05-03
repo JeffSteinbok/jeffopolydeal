@@ -1,5 +1,6 @@
 using JeffopolyDeal.Cards;
 using JeffopolyDeal.Hubs;
+using JeffopolyDeal.ISMCTS;
 using JeffopolyDeal.Models;
 using Microsoft.AspNetCore.SignalR;
 using System;
@@ -266,7 +267,11 @@ namespace JeffopolyDeal
                 {
                     var name = PickUnusedBotName();
                     var botId = $"bot-{Guid.NewGuid():N}";
-                    _players.Add(new Player { PlayerId = botId, ConnectionId = botId, Name = name });
+                    var personality = BotPersonality.RandomPreset(_botRng);
+                    int presetIndex = Array.IndexOf(BotPersonality.AllPresets, personality);
+                    var player = new Player { PlayerId = botId, ConnectionId = botId, Name = name };
+                    player.BotPersonalityName = BotPersonality.PresetNames[presetIndex >= 0 ? presetIndex : 0];
+                    _players.Add(player);
                     _connections[botId] = true;
                 }
             }
@@ -284,7 +289,11 @@ namespace JeffopolyDeal
 
                 var name = PickUnusedBotName();
                 var botId = $"bot-{Guid.NewGuid():N}";
-                _players.Add(new Player { PlayerId = botId, ConnectionId = botId, Name = name });
+                var personality = BotPersonality.RandomPreset(_botRng);
+                int presetIndex = Array.IndexOf(BotPersonality.AllPresets, personality);
+                var player = new Player { PlayerId = botId, ConnectionId = botId, Name = name };
+                player.BotPersonalityName = BotPersonality.PresetNames[presetIndex >= 0 ? presetIndex : 0];
+                _players.Add(player);
                 _connections[botId] = true;
                 return true;
             }
@@ -298,6 +307,17 @@ namespace JeffopolyDeal
                 return available[_botRng.Next(available.Length)];
             // Fallback if all names taken
             return $"Bot-{_botRng.Next(1000):D3}";
+        }
+
+        /// <summary>
+        /// Resolve a bot player's personality from its stored preset name.
+        /// Returns Balanced if no personality is set (e.g., bots from older saves).
+        /// </summary>
+        private static BotPersonality ResolveBotPersonality(Player bot)
+        {
+            if (bot.BotPersonalityName == null) return BotPersonality.Balanced;
+            int idx = Array.IndexOf(BotPersonality.PresetNames, bot.BotPersonalityName);
+            return idx >= 0 ? BotPersonality.AllPresets[idx] : BotPersonality.Balanced;
         }
 
         /// <summary>
@@ -1345,6 +1365,7 @@ namespace JeffopolyDeal
 
             // Play cards
             bool stoppedForPending = false;
+            var botPersonality = ResolveBotPersonality(bot);
             SmartBotAI.PlayTurn(bot, _players, _deck, (player, card, request) =>
             {
                 player.Hand.Remove(card);
@@ -1368,7 +1389,7 @@ namespace JeffopolyDeal
                     return false; // stop playing
                 }
                 return true; // continue playing
-            }, GameConfig.MaxPlaysPerTurn);
+            }, GameConfig.MaxPlaysPerTurn, personality: botPersonality);
 
             // If we stopped for a pending action, don't advance the turn
             if (stoppedForPending)
@@ -1411,6 +1432,7 @@ namespace JeffopolyDeal
             if (remainingPlays > 0)
             {
                 bool stoppedForPending = false;
+                var botPersonality = ResolveBotPersonality(bot);
                 SmartBotAI.PlayTurn(bot, _players, _deck, (player, card, request) =>
                 {
                     player.Hand.Remove(card);
@@ -1432,7 +1454,7 @@ namespace JeffopolyDeal
                         return false;
                     }
                     return true;
-                }, remainingPlays);
+                }, remainingPlays, personality: botPersonality);
 
                 if (stoppedForPending) return;
             }

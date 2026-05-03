@@ -158,13 +158,15 @@ namespace JeffopolyDeal.ISMCTS
         ///   allCards    — complete list of all 106 cards (from Determinizer.CollectAllCards)
         ///   opponentHandSizes — hand count for each player (bot's entry is ignored)
         ///   config      — search configuration (iterations, time limit, etc.)
+        ///   personality — bot personality for move evaluation (null = Balanced)
         /// </summary>
         public static SimMove FindBestMove(
             SimulationState rootState,
             int botIndex,
             List<Card> allCards,
             int[] opponentHandSizes,
-            ISMCTSConfig? config = null)
+            ISMCTSConfig? config = null,
+            BotPersonality? personality = null)
         {
             config ??= new ISMCTSConfig();
             var root = new MCTSNode();
@@ -297,7 +299,7 @@ namespace JeffopolyDeal.ISMCTS
 
                 // Step 4: ROLLOUT — simulate the game to the end (or horizon)
                 // using the heuristic rollout policy
-                double result = Rollout(simState, botIndex, config.MaxRolloutTurns);
+                double result = Rollout(simState, botIndex, config.MaxRolloutTurns, personality);
 
                 // Step 5: BACKPROPAGATE — update win/visit counts up the tree
                 var backpropNode = node;
@@ -315,7 +317,7 @@ namespace JeffopolyDeal.ISMCTS
             if (root.Children.Count == 0)
             {
                 // No children expanded — fallback to heuristic
-                return RolloutPolicy.PickMove(rootState, botIndex);
+                return RolloutPolicy.PickMove(rootState, botIndex, personality);
             }
 
             var bestMove = root.Children.Values
@@ -340,17 +342,29 @@ namespace JeffopolyDeal.ISMCTS
         /// on how close each player is to winning (set completion progress).
         /// This is much faster than simulating to terminal and produces better
         /// signals than a flat 0.5.
+        /// 
+        /// During rollouts, only the bot player uses the personality. All other
+        /// simulated players use Balanced (default), which happens naturally
+        /// since personality defaults to null.
         /// </summary>
-        private static double Rollout(SimulationState state, int botIndex, int maxTurns)
+        private static double Rollout(SimulationState state, int botIndex, int maxTurns,
+            BotPersonality? personality = null)
         {
             // If game is already over, return immediately
             if (state.Phase == SimPhase.GameOver)
                 return state.WinnerIndex == botIndex ? 1.0 : 0.0;
 
+            // Wrap PickMove to pass personality only for the bot player
+            SimMove pickMove(SimulationState s, int playerIdx)
+            {
+                var p = playerIdx == botIndex ? personality : null;
+                return RolloutPolicy.PickMove(s, playerIdx, p);
+            }
+
             // Run the simulation
             int winner = GameSimulator.SimulateToEnd(
                 state,
-                RolloutPolicy.PickMove,
+                pickMove,
                 RolloutPolicy.BuildResponse,
                 maxTurns);
 
@@ -361,7 +375,7 @@ namespace JeffopolyDeal.ISMCTS
             }
 
             // Game didn't finish — use heuristic evaluation
-            return HeuristicEval(state, botIndex);
+            return HeuristicEval(state, botIndex, personality);
         }
 
         /// <summary>
@@ -371,21 +385,22 @@ namespace JeffopolyDeal.ISMCTS
         /// Factors considered:
         ///   - Number of unique completed sets (most important — this IS the win condition)
         ///   - Progress toward completing sets (near-complete sets are valuable)
-        ///   - Bank total with diminishing returns (first 5M is a critical rent
+        ///   - Bank total with diminishing returns (first N units are a critical rent
         ///     buffer; additional money is less important)
         ///   - Defensive exposure: incomplete property sets are discounted when
         ///     the player's bank can't absorb a rent charge
         ///   - Relative position vs opponents
         /// 
-        /// The evaluation normalizes the bot's score relative to all players
-        /// so that the return value reflects competitive position, not just
-        /// absolute progress.
+        /// When a personality is provided, bank value weight, set completion weight,
+        /// and rent buffer target are adjusted accordingly.
         /// </summary>
-        private static double HeuristicEval(SimulationState state, int botIndex)
+        private static double HeuristicEval(SimulationState state, int botIndex,
+            BotPersonality? personality = null)
         {
-            // Target bank balance for rent protection. The first RentBuffer
-            // units of money are worth significantly more than money above it.
-            const double RentBuffer = 5.0;
+            // Use personality parameters or defaults
+            double rentBuffer = personality?.RentBufferTarget ?? 5.0;
+            double bankValueWeight = personality?.BankValueWeight ?? 3.0;
+            double setCompletionWeight = personality?.SetCompletionWeight ?? 1.0;
 
             // Score each player
             var scores = new double[state.PlayerCount];
@@ -397,19 +412,19 @@ namespace JeffopolyDeal.ISMCTS
                 double score = player.UniqueCompletedSetCount * 100.0;
 
                 // Bank value uses diminishing returns curve:
-                //   First 5M of bank → worth 3.0 per M (total 15.0 for full buffer)
-                //   Money above 5M  → worth 0.3 per M  (nice to have, not critical)
+                //   First N units of bank → worth bankValueWeight per M
+                //   Money above N       → worth 0.3 per M  (nice to have, not critical)
                 //
-                // This models the defensive reality: a 5M bank absorbs most rent
+                // This models the defensive reality: a full bank absorbs most rent
                 // charges, protecting your properties. An empty bank means every
                 // rent card strips your board.
                 double bank = player.BankTotal;
-                double bufferPortion = Math.Min(bank, RentBuffer);
-                double excessPortion = Math.Max(0, bank - RentBuffer);
-                score += bufferPortion * 3.0 + excessPortion * 0.3;
+                double bufferPortion = Math.Min(bank, rentBuffer);
+                double excessPortion = Math.Max(0, bank - rentBuffer);
+                score += bufferPortion * bankValueWeight + excessPortion * 0.3;
 
                 // Property set evaluation — defensive-aware
-                bool bankCanAbsorbRent = bank >= RentBuffer;
+                bool bankCanAbsorbRent = bank >= rentBuffer;
                 foreach (var set in player.PropertySets)
                 {
                     if (set.IsComplete)
@@ -421,8 +436,11 @@ namespace JeffopolyDeal.ISMCTS
                     else if (set.Size >= set.RequiredSize - 1)
                     {
                         // Near-complete sets: high value, but slightly reduced
-                        // if bank is thin (they're still worth pursuing)
-                        score += bankCanAbsorbRent ? 30.0 : 22.0;
+                        // if bank is thin (they're still worth pursuing).
+                        // Personality's set completion weight adjusts how much
+                        // the bot values being close to completing sets.
+                        double baseVal = bankCanAbsorbRent ? 30.0 : 22.0;
+                        score += baseVal * setCompletionWeight;
                     }
                     else if (set.Cards.Count > 0)
                     {
