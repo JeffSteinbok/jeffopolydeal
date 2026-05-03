@@ -887,6 +887,7 @@ namespace JeffopolyDeal
                     _pendingAction.TargetPlayerIds = new List<string> { _pendingAction.SourcePlayerId };
                     // Swap source and target for the chain
                     _pendingAction.SourcePlayerId = connectionId;
+                    _pendingAction.SourcePlayerName = responder.Name;
                     return;
                 }
             }
