@@ -1,3 +1,4 @@
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using JeffopolyDeal.Hubs;
 using Microsoft.AspNetCore.Builder;
 using System.Linq;
@@ -8,6 +9,12 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Application Insights via OpenTelemetry (reads APPLICATIONINSIGHTS_CONNECTION_STRING from config)
+if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+{
+    builder.Services.AddOpenTelemetry().UseAzureMonitor();
+}
 
 builder.Services.AddSignalR()
     .AddJsonProtocol(options =>

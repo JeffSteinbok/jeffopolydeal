@@ -1,6 +1,7 @@
 using JeffopolyDeal.Hubs;
 using JeffopolyDeal.Models;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
@@ -15,15 +16,17 @@ namespace JeffopolyDeal
     public class GameCache
     {
         private readonly IHubContext<GameHub> _hubContext;
+        private readonly ILoggerFactory _loggerFactory;
         private readonly ConcurrentDictionary<string, string> _connectionToGame = new();
         private readonly ConcurrentDictionary<string, Game> _games = new();
         private readonly ConcurrentDictionary<string, CancellationTokenSource> _cleanupTimers = new();
         private readonly Random _rng = new();
         private static readonly TimeSpan LobbyCleanupDelay = TimeSpan.FromMinutes(2);
 
-        public GameCache(IHubContext<GameHub> hubContext)
+        public GameCache(IHubContext<GameHub> hubContext, ILoggerFactory loggerFactory)
         {
             _hubContext = hubContext;
+            _loggerFactory = loggerFactory;
         }
 
         public string CreateGame(string? fixedCode = null, string? themeName = null)
@@ -31,7 +34,7 @@ namespace JeffopolyDeal
             if (!string.IsNullOrEmpty(fixedCode))
             {
                 var code = fixedCode.ToUpperInvariant();
-                var game = new Game(_hubContext, code, themeName);
+                var game = new Game(_hubContext, _loggerFactory.CreateLogger<Game>(), code, themeName);
                 _games[code] = game;
                 return code;
             }
@@ -42,7 +45,7 @@ namespace JeffopolyDeal
                 gameCode = GenerateGameCode();
             } while (_games.ContainsKey(gameCode));
 
-            var newGame = new Game(_hubContext, gameCode, themeName);
+            var newGame = new Game(_hubContext, _loggerFactory.CreateLogger<Game>(), gameCode, themeName);
             _games[gameCode] = newGame;
             return gameCode;
         }
