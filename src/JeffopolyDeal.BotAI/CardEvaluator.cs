@@ -289,8 +289,8 @@ namespace JeffopolyDeal
             // Money cards: always bank
             if (card.CardType == CardType.Money) return true;
 
-            // Properties: always play as property
-            if (card.CardType == CardType.Property || card.CardType == CardType.PropertyWildcard) return true;
+            // Properties can't be banked — they must be played as properties
+            if (card.CardType == CardType.Property || card.CardType == CardType.PropertyWildcard) return false;
 
             // JSN and DTR: never bank (handled elsewhere, shouldn't reach here)
             if (card.ActionKind == ActionType.JustSayNo) return false;
