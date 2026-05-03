@@ -193,6 +193,30 @@ namespace JeffopolyDeal.Tests
         }
 
         [Fact]
+        public async Task JSN_SourcePlayerName_UpdatedInChain()
+        {
+            var h = new TestGameHarness();
+            var (p1, p2) = await h.SetupTwoPlayerGameAsync();
+            await h.DrawAsync(p1);
+
+            h.PlaceMoneyInBank(p2, 5);
+            var jsn = h.InjectJustSayNo(p2);
+            var dc = h.InjectAction(p1, ActionType.DebtCollector, 3, "Debt Collector");
+
+            await h.PlayCardAsync(p1, dc.Id, new PlayCardRequest { TargetPlayerId = p2 });
+
+            // P2 plays JSN — the pending action should now show P2 as the source
+            await h.RespondAsync(p2, new ActionResponse { PlayJustSayNo = true });
+
+            var pending = h.GetPendingAction(p1);
+            Assert.NotNull(pending);
+            Assert.Equal(PendingActionType.JustSayNoChain, pending!.Type);
+            // SourcePlayerName should be P2's name, not P1's
+            var p2State = h.GetPlayerState(p1, p2);
+            Assert.Equal(p2State!.Name, pending.SourcePlayerName);
+        }
+
+        [Fact]
         public async Task JSN_BlocksRent_OnlyForThatPlayer()
         {
             var h = new TestGameHarness();
