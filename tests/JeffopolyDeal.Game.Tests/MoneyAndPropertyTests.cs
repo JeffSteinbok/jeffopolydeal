@@ -77,10 +77,11 @@ namespace JeffopolyDeal.Tests
 
             Assert.Equal(0, h.GetPlaysUsed(p1));
 
-            // Find a card that can be banked (properties can't be played as money)
-            var card = h.GetHand(p1).FirstOrDefault(c =>
-                c.CardType != CardType.Property && c.CardType != CardType.PropertyWildcard);
-            if (card == null) return; // No bankable card — skip
+            // Find a card that can be banked as money (money, action, or rent — not property/wildcard)
+            var card = h.FindCardInHand(p1, CardType.Money)
+                ?? h.FindCardInHand(p1, CardType.Action)
+                ?? h.FindCardInHand(p1, CardType.Rent);
+            if (card == null) return; // extremely rare: hand is all properties
 
             await h.PlayAsMoney(p1, card.Id);
             Assert.Equal(1, h.GetPlaysUsed(p1));
