@@ -1,6 +1,8 @@
 using JeffopolyDeal.Hubs;
 using JeffopolyDeal.Models;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using System.Collections.Concurrent;
 using System.Threading;
@@ -53,7 +55,7 @@ namespace JeffopolyDeal.Tests
         public async Task EndGame_RemovesGameStateFromCache()
         {
             var hubContext = CreateMockHubContext(new ConcurrentDictionary<string, GameState>());
-            var cache = new GameCache(hubContext);
+            var cache = new GameCache(hubContext, NullLoggerFactory.Instance);
 
             const string code = "ABCD";
             cache.CreateGame(code);
@@ -70,7 +72,7 @@ namespace JeffopolyDeal.Tests
         {
             var states = new ConcurrentDictionary<string, GameState>();
             var hubContext = CreateMockHubContext(states);
-            var cache = new GameCache(hubContext);
+            var cache = new GameCache(hubContext, NullLoggerFactory.Instance);
 
             const string code = "WXYZ";
             cache.CreateGame(code);

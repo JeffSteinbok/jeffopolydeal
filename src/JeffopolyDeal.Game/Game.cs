@@ -3,8 +3,11 @@ using JeffopolyDeal.Hubs;
 using JeffopolyDeal.ISMCTS;
 using JeffopolyDeal.Models;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,16 +22,20 @@ namespace JeffopolyDeal
     {
         private readonly object _lock = new();
         private readonly IHubContext<GameHub> _hubContext;
+        private readonly ILogger<Game> _logger;
         private readonly Deck _deck;
 
         public string GameCode { get; }
         public string ThemeName { get; }
+        private readonly string _gameId = Guid.NewGuid().ToString("N")[..12];
+        private readonly Stopwatch _gameStopwatch = new();
 
         private readonly List<Player> _players = new();
         private readonly Dictionary<string, bool> _connections = new();
 
         private int _currentPlayerIndex;
         private int _playsUsed;
+        private int _turnNumber;
         private GamePhase _phase = GamePhase.Lobby;
         private PendingAction? _pendingAction;
         private string? _winnerId;
@@ -39,9 +46,10 @@ namespace JeffopolyDeal
         private int _nextActionId = 1;
         private List<Card> _discardedThisTurn = new();
 
-        public Game(IHubContext<GameHub> hubContext, string gameCode, string? themeName = null)
+        public Game(IHubContext<GameHub> hubContext, ILogger<Game> logger, string gameCode, string? themeName = null)
         {
             _hubContext = hubContext;
+            _logger = logger;
             GameCode = gameCode;
             ThemeName = themeName ?? "jeffopoly";
             _deck = new Deck(ThemeName);
@@ -229,7 +237,20 @@ namespace JeffopolyDeal
 
                 _currentPlayerIndex = startingPlayerIndex ?? Random.Shared.Next(_players.Count);
                 _playsUsed = 0;
+                _turnNumber = 1;
                 _phase = GamePhase.Draw;
+                _gameStopwatch.Restart();
+
+                // Telemetry: GameStarted
+                var botCount = _players.Count(p => SmartBotAI.IsBot(p.ConnectionId));
+                _logger.LogInformation("GameStarted {GameId} {GameCode} {PlayerCount} {BotCount} {Theme} {Players}",
+                    _gameId, GameCode, _players.Count, botCount, ThemeName,
+                    JsonConvert.SerializeObject(_players.Select(p => new
+                    {
+                        p.PlayerId,
+                        p.Name,
+                        IsBot = SmartBotAI.IsBot(p.ConnectionId)
+                    })));
 
                 if (populateBoards)
                 {
@@ -439,16 +460,24 @@ namespace JeffopolyDeal
                     targetPlayerName: request.TargetPlayerId != null
                         ? _players.FirstOrDefault(p => p.ConnectionId == request.TargetPlayerId)?.Name
                         : null);
+
+                // Telemetry: CardPlayed
+                var targetIsBot = request.TargetPlayerId != null && SmartBotAI.IsBot(request.TargetPlayerId);
+                _logger.LogInformation(
+                    "CardPlayed {GameId} {TurnNumber} {PlayerIsBot} {CardType} {CardName} {ActionType} {PlayedAsMoney} {TargetPlayerIsBot} {RentColor} {RentAmount}",
+                    _gameId, _turnNumber, SmartBotAI.IsBot(player.ConnectionId),
+                    card.CardType.ToString(), card.Name, card.ActionKind?.ToString(),
+                    request.PlayAsMoney, targetIsBot,
+                    request.RentColor?.ToString(), _pendingAction?.Amount);
+
                 player.Hand.Remove(card);
                 _playsUsed++;
 
                 // Check win condition
                 if (player.UniqueCompletedSetCount >= GameConfig.SetsToWin)
                 {
-                    _phase = GamePhase.GameOver;
-                    _winnerId = player.PlayerId;
+                    SetGameOver(player.PlayerId);
                 }
-                // If pending action, wait for response
                 else if (_pendingAction != null)
                 {
                     _phase = GamePhase.AwaitingResponse;
@@ -882,6 +911,15 @@ namespace JeffopolyDeal
         {
             if (_pendingAction == null) return;
 
+            // Telemetry: ActionResponse
+            var responderPlayer = _players.FirstOrDefault(p => p.ConnectionId == connectionId);
+            var responseType = response.PlayJustSayNo ? "JustSayNo" : "Pay";
+            _logger.LogInformation(
+                "ActionResponse {GameId} {TurnNumber} {ResponseType} {PlayerIsBot} {AmountPaid}",
+                _gameId, _turnNumber, responseType,
+                SmartBotAI.IsBot(connectionId),
+                response.PaymentCardIds?.Count ?? 0);
+
             // Handle Just Say No
             if (response.PlayJustSayNo)
             {
@@ -1030,8 +1068,7 @@ namespace JeffopolyDeal
                 var currentPlayer = GetCurrentPlayer();
                 if (currentPlayer != null && currentPlayer.UniqueCompletedSetCount >= GameConfig.SetsToWin)
                 {
-                    _phase = GamePhase.GameOver;
-                    _winnerId = currentPlayer.PlayerId;
+                    SetGameOver(currentPlayer.PlayerId);
                 }
                 // If current player is a bot, resume their turn
                 else if (currentPlayer != null && SmartBotAI.IsBot(currentPlayer.ConnectionId))
@@ -1273,6 +1310,19 @@ namespace JeffopolyDeal
                 _recentActions.RemoveAt(0);
         }
 
+        private void SetGameOver(string winnerPlayerId)
+        {
+            _phase = GamePhase.GameOver;
+            _winnerId = winnerPlayerId;
+
+            var winner = _players.FirstOrDefault(p => p.PlayerId == winnerPlayerId);
+            _logger.LogInformation(
+                "GameEnded {GameId} {GameCode} {DurationSeconds} {TurnCount} {PlayerCount} {BotCount} {WinnerIsBot} {WinnerName}",
+                _gameId, GameCode, _gameStopwatch.Elapsed.TotalSeconds, _turnNumber,
+                _players.Count, _players.Count(p => SmartBotAI.IsBot(p.ConnectionId)),
+                winner != null && SmartBotAI.IsBot(winner.ConnectionId), winner?.Name);
+        }
+
         private string DescribeCardPlay(Player player, Card card, PlayCardRequest request)
         {
             if (request.PlayAsMoney)
@@ -1345,6 +1395,7 @@ namespace JeffopolyDeal
         {
             _currentPlayerIndex = (_currentPlayerIndex + 1) % _players.Count;
             _playsUsed = 0;
+            _turnNumber++;
             _pendingAction = null;
             _discardedThisTurn.Clear();
             _phase = GamePhase.Draw;
@@ -1414,8 +1465,7 @@ namespace JeffopolyDeal
             // Check win
             if (bot.UniqueCompletedSetCount >= GameConfig.SetsToWin)
             {
-                _phase = GamePhase.GameOver;
-                _winnerId = bot.PlayerId;
+                SetGameOver(bot.PlayerId);
                 return;
             }
 
@@ -1477,8 +1527,7 @@ namespace JeffopolyDeal
 
             if (bot.UniqueCompletedSetCount >= GameConfig.SetsToWin)
             {
-                _phase = GamePhase.GameOver;
-                _winnerId = bot.PlayerId;
+                SetGameOver(bot.PlayerId);
                 return;
             }
 
@@ -1763,8 +1812,7 @@ namespace JeffopolyDeal
             // Check if this rearrangement completed the win condition (issue #95).
             if (player.UniqueCompletedSetCount >= GameConfig.SetsToWin)
             {
-                _phase = GamePhase.GameOver;
-                _winnerId = player.PlayerId;
+                SetGameOver(player.PlayerId);
             }
         }
 
@@ -1807,8 +1855,7 @@ namespace JeffopolyDeal
                         // Check if the flip completed the win condition (issue #95).
                         if (player.UniqueCompletedSetCount >= GameConfig.SetsToWin)
                         {
-                            _phase = GamePhase.GameOver;
-                            _winnerId = player.PlayerId;
+                            SetGameOver(player.PlayerId);
                         }
                         break;
                     }

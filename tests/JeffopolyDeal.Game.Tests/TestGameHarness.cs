@@ -2,6 +2,8 @@ using JeffopolyDeal;
 using JeffopolyDeal.Hubs;
 using JeffopolyDeal.Models;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using System;
 using System.Collections.Concurrent;
@@ -35,7 +37,7 @@ namespace JeffopolyDeal.Tests
         public TestGameHarness(string gameCode = "TEST")
         {
             var hubContext = CreateMockHubContext();
-            _game = new Game(hubContext, gameCode);
+            _game = new Game(hubContext, NullLogger<Game>.Instance, gameCode);
         }
 
         /// <summary>Add a player and return their connectionId.</summary>

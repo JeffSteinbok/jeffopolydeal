@@ -22,4 +22,7 @@
   <ItemGroup>
     <Content Update="Themes\**" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Azure.Monitor.OpenTelemetry.AspNetCore" Version="*" />
+  </ItemGroup>
 </Project>
