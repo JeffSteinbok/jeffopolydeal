@@ -1,0 +1,255 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 1,
+      "content": {
+        "json": "# \ud83c\udfb2 Jeffopoly Deal \u2014 Game Analytics"
+      },
+      "name": "title"
+    },
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "0e88ff18-f43b-4931-841a-992f7dd6e3c2",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "type": 4,
+            "isRequired": true,
+            "value": {
+              "durationMs": 604800000
+            },
+            "typeSettings": {
+              "selectableValues": [
+                {
+                  "durationMs": 3600000
+                },
+                {
+                  "durationMs": 86400000
+                },
+                {
+                  "durationMs": 604800000
+                },
+                {
+                  "durationMs": 2592000000
+                }
+              ]
+            },
+            "label": "Time Range"
+          }
+        ]
+      },
+      "name": "parameters"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## Overview"
+      },
+      "name": "overview-header"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "traces\n| where timestamp {TimeRange}\n| where message startswith \"GameStarted\"\n| extend d = parse_json(tostring(customDimensions))\n| summarize Games=count(), AvgPlayers=round(avg(todouble(d.PlayerCount)),1), AvgBots=round(avg(todouble(d.BotCount)),1)",
+        "size": 3,
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "tiles",
+        "tileSettings": {
+          "showBorder": false
+        }
+      },
+      "name": "summary-tiles"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "traces\n| where timestamp {TimeRange}\n| where message startswith \"GameStarted\"\n| summarize Games=count() by bin(timestamp, 1d)\n| order by timestamp asc",
+        "size": 0,
+        "title": "\ud83d\udcc8 Games Per Day",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "barchart"
+      },
+      "name": "games-per-day"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "traces\n| where timestamp {TimeRange}\n| where message startswith \"GameEnded\"\n| extend d = parse_json(tostring(customDimensions))\n| summarize AvgDurationSec=round(avg(todouble(d.DurationSeconds)),0), MedianDurationSec=round(percentile(todouble(d.DurationSeconds),50),0), AvgTurns=round(avg(todouble(d.TurnCount)),0), MedianTurns=round(percentile(todouble(d.TurnCount),50),0), GamesCompleted=count()",
+        "size": 3,
+        "title": "\u23f1\ufe0f Game Duration & Turns",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "tiles",
+        "tileSettings": {
+          "showBorder": false
+        }
+      },
+      "name": "duration-stats"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## \ud83c\udf0d Player Locations"
+      },
+      "name": "locations-header"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "requests\n| where timestamp {TimeRange}\n| where name contains \"GameHub\"\n| where client_CountryOrRegion != \"\"\n| summarize Sessions=dcount(client_IP) by client_CountryOrRegion\n| order by Sessions desc",
+        "size": 0,
+        "title": "Players Map",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "map",
+        "mapSettings": {
+          "locInfo": "CountryRegion",
+          "locInfoColumn": "client_CountryOrRegion",
+          "sizeSettings": "Sessions",
+          "sizeAggregation": "Sum",
+          "legendMetric": "Sessions",
+          "legendAggregation": "Sum"
+        }
+      },
+      "name": "player-map"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "requests\n| where timestamp {TimeRange}\n| where name contains \"GameHub\"\n| extend City = client_City, Country = client_CountryOrRegion, IP = client_IP\n| summarize Requests=count(), LastSeen=max(timestamp) by Country, City, IP\n| order by LastSeen desc",
+        "size": 0,
+        "title": "Players by Location & IP",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "table"
+      },
+      "name": "player-locations"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## \ud83d\udcca Win Rates & Card Stats"
+      },
+      "name": "stats-header"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "traces\n| where timestamp {TimeRange}\n| where message startswith \"GameEnded\"\n| extend d = parse_json(tostring(customDimensions))\n| extend WinnerIsBot = tobool(d.WinnerIsBot)\n| summarize Wins=count() by WinnerType=iff(WinnerIsBot, \"\ud83e\udd16 Bot\", \"\ud83d\udc64 Human\")",
+        "size": 1,
+        "title": "Win Rate: Human vs Bot",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "piechart"
+      },
+      "name": "win-rate"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "traces\n| where timestamp {TimeRange}\n| where message startswith \"CardPlayed\"\n| extend d = parse_json(tostring(customDimensions))\n| where tobool(d.PlayedAsMoney) == false\n| extend CardType = tostring(d.CardType), ActionType = tostring(d.ActionType)\n| extend CardLabel = iff(CardType == \"Action\", ActionType, CardType)\n| summarize Count=count() by CardLabel\n| order by Count desc\n| take 15",
+        "size": 1,
+        "title": "Most Played Card Types",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "barchart"
+      },
+      "name": "card-stats"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "traces\n| where timestamp {TimeRange}\n| where message startswith \"ActionResponse\"\n| extend d = parse_json(tostring(customDimensions))\n| extend ResponseType = tostring(d.ResponseType), PlayerIsBot = tobool(d.PlayerIsBot)\n| summarize Count=count() by ResponseType, PlayerType=iff(PlayerIsBot, \"Bot\", \"Human\")\n| order by Count desc",
+        "size": 0,
+        "title": "Action Responses (JSN vs Pay)",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "table"
+      },
+      "name": "action-responses"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## \ud83c\udfae Game Drill-Down\nClick a game row to see its full timeline."
+      },
+      "name": "games-header"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "traces\n| where timestamp {TimeRange}\n| where message startswith \"GameStarted\"\n| extend d = parse_json(tostring(customDimensions))\n| join kind=leftouter (\n    traces\n    | where message startswith \"GameEnded\"\n    | extend ed = parse_json(tostring(customDimensions))\n    | project GameId=tostring(ed.GameId), Duration=strcat(tostring(toint(todouble(ed.DurationSeconds))), \"s\"), Turns=tostring(ed.TurnCount), Winner=tostring(ed.WinnerName), WinnerIsBot=tostring(ed.WinnerIsBot)\n) on $left.tostring(d.GameId) == $right.GameId\n| project Timestamp=timestamp, GameId=tostring(d.GameId), GameCode=tostring(d.GameCode), Players=toint(d.PlayerCount), Bots=toint(d.BotCount), Duration=coalesce(Duration, \"in progress\"), Turns=coalesce(Turns, \"-\"), Winner=coalesce(Winner, \"-\")\n| order by Timestamp desc",
+        "size": 0,
+        "title": "All Games",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "table",
+        "gridSettings": {
+          "sortBy": [
+            {
+              "itemKey": "Timestamp",
+              "sortOrder": 2
+            }
+          ]
+        },
+        "exportFieldName": "GameId",
+        "exportParameterName": "SelectedGameId"
+      },
+      "name": "game-list"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "traces\n| where customDimensions.GameId == \"{SelectedGameId}\"\n| where message startswith \"GameEnded\"\n| extend d = parse_json(tostring(customDimensions))\n| project Duration=strcat(tostring(toint(todouble(d.DurationSeconds))), \" seconds\"), Turns=tostring(d.TurnCount), Winner=tostring(d.WinnerName), WinnerIsBot=iff(tobool(d.WinnerIsBot), \"\ud83e\udd16 Yes\", \"\ud83d\udc64 No\"), Players=tostring(d.PlayerCount), Bots=tostring(d.BotCount)",
+        "size": 3,
+        "title": "\ud83c\udfc6 Game Result: {SelectedGameId}",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "table",
+        "conditionalVisibility": {
+          "parameterName": "SelectedGameId",
+          "comparison": "isNotEqualTo",
+          "value": ""
+        }
+      },
+      "name": "game-result"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "traces\n| where customDimensions.GameId == \"{SelectedGameId}\"\n| extend d = parse_json(tostring(customDimensions))\n| project Timestamp=timestamp, Event=extract(@\"^(\\w+)\", 1, message), Turn=tostring(d.TurnNumber), IsBot=iff(tobool(d.PlayerIsBot), \"\ud83e\udd16\", \"\ud83d\udc64\"), CardType=tostring(d.CardType), CardName=tostring(d.CardName), Action=tostring(d.ActionType), AsMoney=iff(tobool(d.PlayedAsMoney), \"\ud83d\udcb0\", \"\"), Response=tostring(d.ResponseType)\n| order by Timestamp asc",
+        "size": 0,
+        "title": "\ud83d\udccb Game Timeline: {SelectedGameId}",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "table",
+        "conditionalVisibility": {
+          "parameterName": "SelectedGameId",
+          "comparison": "isNotEqualTo",
+          "value": ""
+        }
+      },
+      "name": "game-detail"
+    }
+  ],
+  "fallbackResourceIds": [
+    "/subscriptions/16086fa9-229c-4bfd-9b92-cc388be37f40/resourceGroups/jeffopolydeal/providers/microsoft.insights/components/jeffopolydeal-appinsights"
+  ]
+}
