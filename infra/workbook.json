@@ -59,12 +59,37 @@
         "size": 3,
         "queryType": 0,
         "resourceType": "microsoft.insights/components",
-        "visualization": "tiles",
-        "tileSettings": {
-          "showBorder": false
-        }
+        "visualization": "table"
       },
       "name": "summary-tiles"
+    },
+    {
+      "type": 1,
+      "content": {
+        "json": "## \ud83d\udc64 Player Leaderboard"
+      },
+      "name": "player-stats-header"
+    },
+    {
+      "type": 3,
+      "content": {
+        "version": "KqlItem/1.0",
+        "query": "let games = traces\n| where timestamp {TimeRange}\n| where message startswith \"GameStarted\"\n| extend d = parse_json(tostring(customDimensions))\n| extend GameId = tostring(d.GameId), PlayerList = parse_json(tostring(d.Players))\n| mv-expand p = PlayerList\n| extend PlayerName = tostring(p.Name), IsBot = tobool(p.IsBot)\n| project GameId, PlayerName, IsBot;\nlet wins = traces\n| where timestamp {TimeRange}\n| where message startswith \"GameEnded\"\n| extend ed = parse_json(tostring(customDimensions))\n| project GameId = tostring(ed.GameId), WinnerName = tostring(ed.WinnerName), WinnerIsBot = tobool(ed.WinnerIsBot);\ngames\n| join kind=leftouter wins on GameId\n| summarize\n    GamesPlayed = dcount(GameId),\n    Wins = dcountif(GameId, PlayerName == WinnerName),\n    Losses = dcountif(GameId, isnotempty(WinnerName) and PlayerName != WinnerName),\n    InProgress = dcountif(GameId, isempty(WinnerName))\n    by PlayerName, IsBot\n| extend WinRate = iff(Wins + Losses > 0, strcat(tostring(round(100.0 * Wins / (Wins + Losses), 0)), \"%\"), \"-\")\n| extend Player = strcat(PlayerName, iff(IsBot, \" \ud83e\udd16\", \"\"))\n| project Player, GamesPlayed, Wins, Losses, InProgress, WinRate\n| order by GamesPlayed desc",
+        "size": 0,
+        "title": "Player Stats",
+        "queryType": 0,
+        "resourceType": "microsoft.insights/components",
+        "visualization": "table",
+        "gridSettings": {
+          "sortBy": [
+            {
+              "itemKey": "GamesPlayed",
+              "sortOrder": 2
+            }
+          ]
+        }
+      },
+      "name": "player-stats"
     },
     {
       "type": 3,
@@ -88,10 +113,7 @@
         "title": "\u23f1\ufe0f Game Duration & Turns",
         "queryType": 0,
         "resourceType": "microsoft.insights/components",
-        "visualization": "tiles",
-        "tileSettings": {
-          "showBorder": false
-        }
+        "visualization": "table"
       },
       "name": "duration-stats"
     },
@@ -127,7 +149,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "requests\n| where timestamp {TimeRange}\n| where name contains \"GameHub\"\n| extend City = client_City, Country = client_CountryOrRegion, IP = client_IP\n| summarize Requests=count(), LastSeen=max(timestamp) by Country, City, IP\n| order by LastSeen desc",
+        "query": "let playerIps = requests\n| where timestamp {TimeRange}\n| where name contains \"GameHub\"\n| extend IP = client_IP\n| distinct IP, client_City, client_CountryOrRegion;\nlet playerNames = traces\n| where timestamp {TimeRange}\n| where message startswith \"GameStarted\"\n| extend d = parse_json(tostring(customDimensions))\n| extend PlayerList = parse_json(tostring(d.Players))\n| mv-expand p = PlayerList\n| where tobool(p.IsBot) == false\n| summarize PlayerName = take_any(tostring(p.Name)) by placeholder = 1;\nrequests\n| where timestamp {TimeRange}\n| where name contains \"GameHub\"\n| extend City = client_City, Country = client_CountryOrRegion, IP = client_IP\n| summarize Requests=count(), LastSeen=max(timestamp) by Country, City, IP\n| order by LastSeen desc",
         "size": 0,
         "title": "Players by Location & IP",
         "queryType": 0,
@@ -193,7 +215,7 @@
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "traces\n| where timestamp {TimeRange}\n| where message startswith \"GameStarted\"\n| extend d = parse_json(tostring(customDimensions))\n| join kind=leftouter (\n    traces\n    | where message startswith \"GameEnded\"\n    | extend ed = parse_json(tostring(customDimensions))\n    | project GameId=tostring(ed.GameId), Duration=strcat(tostring(toint(todouble(ed.DurationSeconds))), \"s\"), Turns=tostring(ed.TurnCount), Winner=tostring(ed.WinnerName), WinnerIsBot=tostring(ed.WinnerIsBot)\n) on $left.tostring(d.GameId) == $right.GameId\n| project Timestamp=timestamp, GameId=tostring(d.GameId), GameCode=tostring(d.GameCode), Players=toint(d.PlayerCount), Bots=toint(d.BotCount), Duration=coalesce(Duration, \"in progress\"), Turns=coalesce(Turns, \"-\"), Winner=coalesce(Winner, \"-\")\n| order by Timestamp desc",
+        "query": "traces\n| where timestamp {TimeRange}\n| where message startswith \"GameStarted\"\n| extend d = parse_json(tostring(customDimensions))\n| extend GameId = tostring(d.GameId)\n| extend PlayerList = parse_json(tostring(d.Players))\n| mv-apply p = PlayerList on (\n    summarize PlayerNames = strcat_array(make_list(strcat(tostring(p.Name), iff(tobool(p.IsBot), \" \ud83e\udd16\", \"\"))), \", \")\n)\n| join kind=leftouter (\n    traces\n    | where message startswith \"GameEnded\"\n    | extend ed = parse_json(tostring(customDimensions))\n    | extend GameId = tostring(ed.GameId)\n    | project GameId, Duration=strcat(tostring(toint(todouble(ed.DurationSeconds))), \"s\"), Turns=tostring(ed.TurnCount), Winner=tostring(ed.WinnerName), WinnerIsBot=tostring(ed.WinnerIsBot)\n) on GameId\n| project Timestamp=timestamp, GameId, GameCode=tostring(d.GameCode), PlayerNames, Duration=coalesce(Duration, \"in progress\"), Turns=coalesce(Turns, \"-\"), Winner=coalesce(Winner, \"-\")\n| order by Timestamp desc",
         "size": 0,
         "title": "All Games",
         "queryType": 0,
@@ -205,10 +227,23 @@
               "itemKey": "Timestamp",
               "sortOrder": 2
             }
-          ]
+          ],
+          "rowSelection": {
+            "type": "single",
+            "selectedColumns": [
+              "GameId"
+            ]
+          }
         },
-        "exportFieldName": "GameId",
-        "exportParameterName": "SelectedGameId"
+        "exportFieldName": "SelectedGameId",
+        "exportParameterName": "SelectedGameId",
+        "exportedParameters": [
+          {
+            "fieldName": "GameId",
+            "parameterName": "SelectedGameId",
+            "parameterType": 1
+          }
+        ]
       },
       "name": "game-list"
     },
@@ -228,13 +263,18 @@
           "value": ""
         }
       },
-      "name": "game-result"
+      "name": "game-result",
+      "conditionalVisibility": {
+        "parameterName": "SelectedGameId",
+        "comparison": "isNotEqualTo",
+        "value": ""
+      }
     },
     {
       "type": 3,
       "content": {
         "version": "KqlItem/1.0",
-        "query": "traces\n| where customDimensions.GameId == \"{SelectedGameId}\"\n| extend d = parse_json(tostring(customDimensions))\n| project Timestamp=timestamp, Event=extract(@\"^(\\w+)\", 1, message), Turn=tostring(d.TurnNumber), IsBot=iff(tobool(d.PlayerIsBot), \"\ud83e\udd16\", \"\ud83d\udc64\"), CardType=tostring(d.CardType), CardName=tostring(d.CardName), Action=tostring(d.ActionType), AsMoney=iff(tobool(d.PlayedAsMoney), \"\ud83d\udcb0\", \"\"), Response=tostring(d.ResponseType)\n| order by Timestamp asc",
+        "query": "traces\n| where customDimensions.GameId == \"{SelectedGameId}\"\n| extend d = parse_json(tostring(customDimensions))\n| extend Event = extract(@\"^(\\w+)\", 1, message)\n| extend PlayerName = tostring(d.PlayerName)\n| extend Turn = toint(d.TurnNumber)\n| extend CardInfo = strcat(tostring(d.CardType), iff(isnotempty(d.CardName), strcat(\": \", tostring(d.CardName)), \"\"))\n| extend Label = case(\n    Event == \"GameStarted\", \"\ud83c\udfae Game Started\",\n    Event == \"GameEnded\", strcat(\"\ud83c\udfc6 \", tostring(d.WinnerName), \" wins!\"),\n    Event == \"CardPlayed\", strcat(PlayerName, \" \u2192 \", CardInfo),\n    Event == \"ActionResponse\", strcat(PlayerName, \" \", tostring(d.ResponseType)),\n    Event)\n| project Timestamp=timestamp, Event, Turn, Player=coalesce(PlayerName, \"-\"), IsBot=iff(tobool(d.PlayerIsBot), \"\ud83e\udd16\", \"\ud83d\udc64\"), Label, CardType=tostring(d.CardType), CardName=tostring(d.CardName), Response=tostring(d.ResponseType)\n| order by Timestamp asc",
         "size": 0,
         "title": "\ud83d\udccb Game Timeline: {SelectedGameId}",
         "queryType": 0,
@@ -246,7 +286,12 @@
           "value": ""
         }
       },
-      "name": "game-detail"
+      "name": "game-detail",
+      "conditionalVisibility": {
+        "parameterName": "SelectedGameId",
+        "comparison": "isNotEqualTo",
+        "value": ""
+      }
     }
   ],
   "fallbackResourceIds": [

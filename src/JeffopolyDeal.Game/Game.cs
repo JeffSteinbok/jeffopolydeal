@@ -464,8 +464,8 @@ namespace JeffopolyDeal
                 // Telemetry: CardPlayed
                 var targetIsBot = request.TargetPlayerId != null && SmartBotAI.IsBot(request.TargetPlayerId);
                 _logger.LogInformation(
-                    "CardPlayed {GameId} {TurnNumber} {PlayerIsBot} {CardType} {CardName} {ActionType} {PlayedAsMoney} {TargetPlayerIsBot} {RentColor} {RentAmount}",
-                    _gameId, _turnNumber, SmartBotAI.IsBot(player.ConnectionId),
+                    "CardPlayed {GameId} {TurnNumber} {PlayerName} {PlayerIsBot} {CardType} {CardName} {ActionType} {PlayedAsMoney} {TargetPlayerIsBot} {RentColor} {RentAmount}",
+                    _gameId, _turnNumber, player.Name, SmartBotAI.IsBot(player.ConnectionId),
                     card.CardType.ToString(), card.Name, card.ActionKind?.ToString(),
                     request.PlayAsMoney, targetIsBot,
                     request.RentColor?.ToString(), _pendingAction?.Amount);
@@ -915,8 +915,8 @@ namespace JeffopolyDeal
             var responderPlayer = _players.FirstOrDefault(p => p.ConnectionId == connectionId);
             var responseType = response.PlayJustSayNo ? "JustSayNo" : "Pay";
             _logger.LogInformation(
-                "ActionResponse {GameId} {TurnNumber} {ResponseType} {PlayerIsBot} {AmountPaid}",
-                _gameId, _turnNumber, responseType,
+                "ActionResponse {GameId} {TurnNumber} {PlayerName} {ResponseType} {PlayerIsBot} {AmountPaid}",
+                _gameId, _turnNumber, responderPlayer?.Name, responseType,
                 SmartBotAI.IsBot(connectionId),
                 response.PaymentCardIds?.Count ?? 0);
 
