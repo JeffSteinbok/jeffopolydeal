@@ -178,5 +178,61 @@ namespace JeffopolyDeal.Tests
             Assert.Contains(p1State!.Bank, c => c.Id == bankCard.Id);
             Assert.Contains(p1State.PropertySets, s => s.Cards.Any(c => c.Id == propCard.Id));
         }
+
+        [Fact]
+        public async Task RentPayment_PlayerHasWildcard_WildcardNotUsedAsPayment()
+        {
+            var h = new TestGameHarness();
+            var (p1, p2) = await h.SetupTwoPlayerGameAsync();
+            await h.DrawAsync(p1);
+
+            h.PlacePropertyOnBoard(p1, PropertyColor.Brown, 1);
+            var rent = h.InjectRent(p1, PropertyColor.LightBlue, PropertyColor.Brown);
+
+            var payer = h.Game.GetPlayer(p2)!;
+            var wildcard = h.Game.GetDeck().CreateCard(
+                CardType.PropertyWildcard, 0, "Green/DarkBlue Wildcard",
+                color: PropertyColor.Green, altColor: PropertyColor.DarkBlue);
+            wildcard.ActiveColor = PropertyColor.Green;
+            payer.GetOrCreatePropertySet(PropertyColor.Green).Cards.Add(wildcard);
+
+            await h.PlayCardAsync(p1, rent.Id, new PlayCardRequest { RentColor = PropertyColor.Brown });
+            await h.RespondAsync(p2, new ActionResponse { PaymentCardIds = new List<int>() });
+
+            Assert.Equal(GamePhase.Play, h.GetPhase(p1));
+
+            var p2PlayerAfter = h.Game.GetPlayer(p2)!;
+            Assert.Contains(p2PlayerAfter.PropertySets.SelectMany(s => s.Cards), c => c.Id == wildcard.Id);
+        }
+
+        [Fact]
+        public async Task RentPayment_SelectingWildcardCard_IsRejected()
+        {
+            var h = new TestGameHarness();
+            var (p1, p2) = await h.SetupTwoPlayerGameAsync();
+            await h.DrawAsync(p1);
+
+            h.PlacePropertyOnBoard(p1, PropertyColor.Brown, 1);
+            var rent = h.InjectRent(p1, PropertyColor.LightBlue, PropertyColor.Brown);
+
+            var payer = h.Game.GetPlayer(p2)!;
+            var bankCard = h.PlaceMoneyInBank(p2, 1);
+            var wildcard = h.Game.GetDeck().CreateCard(
+                CardType.PropertyWildcard, 0, "Green/DarkBlue Wildcard",
+                color: PropertyColor.Green, altColor: PropertyColor.DarkBlue);
+            wildcard.ActiveColor = PropertyColor.Green;
+            payer.GetOrCreatePropertySet(PropertyColor.Green).Cards.Add(wildcard);
+
+            await h.PlayCardAsync(p1, rent.Id, new PlayCardRequest { RentColor = PropertyColor.Brown });
+            await h.RespondAsync(p2, new ActionResponse { PaymentCardIds = new List<int> { wildcard.Id } });
+
+            Assert.Equal(GamePhase.AwaitingResponse, h.GetPhase(p1));
+            var pending = h.GetPendingAction(p1);
+            Assert.Contains(p2, pending!.TargetPlayerIds);
+
+            var p2PlayerAfter = h.Game.GetPlayer(p2)!;
+            Assert.Contains(p2PlayerAfter.PropertySets.SelectMany(s => s.Cards), c => c.Id == wildcard.Id);
+            Assert.Contains(p2PlayerAfter.Bank, c => c.Id == bankCard.Id);
+        }
     }
 }
