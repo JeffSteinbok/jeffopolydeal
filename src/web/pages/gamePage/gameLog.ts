@@ -88,6 +88,7 @@ export async function copyTextToClipboard(text: string): Promise<void> {
     textArea.select();
     textArea.setSelectionRange(0, text.length);
 
+    // Deprecated, but still used as a last-resort fallback when the async Clipboard API is unavailable.
     const copied = document.execCommand("copy");
     document.body.removeChild(textArea);
 
