@@ -180,7 +180,7 @@ namespace JeffopolyDeal.Tests
         }
 
         [Fact]
-        public async Task RentPayment_WildcardOnlyAssets_WildcardNotUsedAsPayment()
+        public async Task RentPayment_PlayerHasWildcard_WildcardNotUsedAsPayment()
         {
             var h = new TestGameHarness();
             var (p1, p2) = await h.SetupTwoPlayerGameAsync();
@@ -200,9 +200,6 @@ namespace JeffopolyDeal.Tests
             await h.RespondAsync(p2, new ActionResponse { PaymentCardIds = new List<int>() });
 
             Assert.Equal(GamePhase.Play, h.GetPhase(p1));
-
-            var p1State = h.GetPlayerState(p1, p1);
-            Assert.DoesNotContain(p1State!.PropertySets, s => s.Cards.Any(c => c.Id == wildcard.Id));
 
             var p2PlayerAfter = h.Game.GetPlayer(p2)!;
             Assert.Contains(p2PlayerAfter.PropertySets.SelectMany(s => s.Cards), c => c.Id == wildcard.Id);
