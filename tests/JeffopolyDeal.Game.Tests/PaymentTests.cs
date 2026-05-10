@@ -180,7 +180,7 @@ namespace JeffopolyDeal.Tests
         }
 
         [Fact]
-        public async Task RentPayment_WildcardOnlyAssets_CanPayNothing()
+        public async Task RentPayment_WildcardOnlyAssets_WildcardNotUsedAsPayment()
         {
             var h = new TestGameHarness();
             var (p1, p2) = await h.SetupTwoPlayerGameAsync();
