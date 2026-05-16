@@ -14,6 +14,7 @@ import { DiscardModal } from "./components/DiscardModal";
 import { FyiToast } from "./components/FyiToast";
 import { DebugDeckViewer } from "./components/DebugDeckViewer";
 import { DebugConsole } from "./components/DebugConsole";
+import { copyTextToClipboard, formatGameLog } from "./gameLog";
 import titleImage from "../../assets/JeffopolyDeal.png";
 import ShareIcon from "../../assets/Share.svg";
 import "./styles/game.css";
@@ -69,10 +70,12 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
     const [toasts, setToasts] = useState<GameAction[]>([]);
     const [toastBusy, setToastBusy] = useState(false);
+    const [copyLogStatus, setCopyLogStatus] = useState<"idle" | "copied" | "failed">("idle");
     const clientRef = useRef<GameSignalRClient | null>(null);
     const seenActionIdsRef = useRef<Set<number>>(new Set());
     const firstStateRef = useRef(true);
     const toastTimeoutsRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
+    const copyLogTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
     const isMobile = useIsMobile();
     const isLandscape = useIsLandscapePhone();
 
@@ -185,6 +188,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
         return () => {
             toastTimeoutsRef.current.forEach(clearTimeout);
             toastTimeoutsRef.current.clear();
+            clearTimeout(copyLogTimeoutRef.current);
         };
     }, []);
 
@@ -197,6 +201,27 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     const handleExitGame = () => {
         setShowLeaveConfirm(true);
     };
+
+    const handleCopyGameLog = async () => {
+        if (!state) return;
+
+        try {
+            await copyTextToClipboard(formatGameLog(state, playerId));
+            setCopyLogStatus("copied");
+        } catch (err) {
+            Logger.error("Failed to copy game log:", err);
+            setCopyLogStatus("failed");
+        }
+
+        clearTimeout(copyLogTimeoutRef.current);
+        copyLogTimeoutRef.current = setTimeout(() => setCopyLogStatus("idle"), 2000);
+    };
+
+    const copyLogLabel = copyLogStatus === "copied"
+        ? "Copied!"
+        : copyLogStatus === "failed"
+            ? "Copy failed"
+            : "Copy log";
 
     // Enter to draw cards when it's your turn in Draw phase
     useEffect(() => {
@@ -349,6 +374,13 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                             ))}
                         </div>
                     )}
+                    <button
+                        className="secondary copyLogButton"
+                        onClick={() => { void handleCopyGameLog(); }}
+                        title="Copy the current game state and recent actions for a bug report"
+                    >
+                        {copyLogLabel}
+                    </button>
                     <button className="primary" onClick={onLeave}>Play Again</button>
                 </div>
             </div>
@@ -380,6 +412,13 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     <span className="deckInfo">
                         Draw: {state.drawPileCount} | Discard: {state.discardPileCount} |
                     </span>
+                    <button
+                        className="secondary copyLogButton copyLogButton--compact"
+                        onClick={() => { void handleCopyGameLog(); }}
+                        title="Copy the current game state and recent actions for a bug report"
+                    >
+                        {copyLogLabel}
+                    </button>
                     <button className="exitButton" onClick={handleExitGame}>✕</button>
                 </div>
             </div>

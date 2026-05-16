@@ -16,5 +16,20 @@
             "sizes": "512x512",
             "type": "image/png"
         }
+    ],
+    "screenshots": [
+        {
+            "src": "/screenshots/desktop.png",
+            "sizes": "1220x705",
+            "type": "image/png",
+            "form_factor": "wide",
+            "label": "Jeffopoly Deal game board"
+        },
+        {
+            "src": "/screenshots/mobile.png",
+            "sizes": "848x848",
+            "type": "image/png",
+            "label": "Jeffopoly Deal mobile app icon and branding"
+        }
     ]
 }
