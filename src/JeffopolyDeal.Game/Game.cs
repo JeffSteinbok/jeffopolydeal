@@ -875,9 +875,19 @@ namespace JeffopolyDeal
         /// Rules: If player can afford the full amount, they must pay at least that much.
         /// If player can't afford it, they must pay everything they have.
         /// </summary>
-        private string? ValidatePayment(Player payer, List<int> cardIds, int amountOwed)
+        private static List<Card> GetPayableCardsForPendingAction(Player payer, PendingActionType pendingActionType)
         {
             var payableCards = payer.GetPayableCards();
+
+            // House rule: property wildcards cannot be used to pay rent.
+            if (pendingActionType == PendingActionType.PayRent)
+                payableCards = payableCards.Where(c => c.CardType != CardType.PropertyWildcard).ToList();
+
+            return payableCards;
+        }
+
+        private string? ValidatePayment(List<Card> payableCards, List<int> cardIds, int amountOwed)
+        {
             int totalAssets = payableCards.Sum(c => c.MoneyValue);
             int selectedTotal = 0;
 
@@ -1020,7 +1030,7 @@ namespace JeffopolyDeal
                 var payer = _players.FirstOrDefault(p => p.ConnectionId == connectionId);
                 if (payer != null)
                 {
-                    var payableCards = payer.GetPayableCards();
+                    var payableCards = GetPayableCardsForPendingAction(payer, _pendingAction.Type);
                     int totalAssets = payableCards.Sum(c => c.MoneyValue);
 
                     if (totalAssets < _pendingAction.Amount)
@@ -1036,7 +1046,7 @@ namespace JeffopolyDeal
                     else if (response.PaymentCardIds != null && response.PaymentCardIds.Count > 0)
                     {
                         // Solvent: validate that they're paying at least the required amount
-                        var error = ValidatePayment(payer, response.PaymentCardIds, _pendingAction.Amount);
+                        var error = ValidatePayment(payableCards, response.PaymentCardIds, _pendingAction.Amount);
                         if (error != null)
                         {
                             // Invalid payment — store rejection reason (will be sent via state broadcast)
