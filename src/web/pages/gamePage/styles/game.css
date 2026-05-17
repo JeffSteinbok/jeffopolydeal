@@ -204,6 +204,10 @@ html.pwa-standalone .gamePage {
     animation: gameOverSlideDown 0.8s ease-out 0.9s both;
 }
 
+.gameOver .copyLogButton {
+    animation: gameOverSlideDown 0.8s ease-out 0.9s both;
+}
+
 @keyframes gameOverFadeIn {
     from { opacity: 0; }
     to { opacity: 1; }

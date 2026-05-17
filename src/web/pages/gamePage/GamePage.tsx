@@ -412,13 +412,6 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     <span className="deckInfo">
                         Draw: {state.drawPileCount} | Discard: {state.discardPileCount} |
                     </span>
-                    <button
-                        className="secondary copyLogButton copyLogButton--compact"
-                        onClick={() => { void handleCopyGameLog(); }}
-                        title="Copy the current game state and recent actions for a bug report"
-                    >
-                        {copyLogLabel}
-                    </button>
                     <button className="exitButton" onClick={handleExitGame}>✕</button>
                 </div>
             </div>
