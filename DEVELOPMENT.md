@@ -244,7 +244,7 @@ Deployment is fully automated — **never deploy manually**.
 
 1. **CI** — builds and tests on every push/PR to `main`
 2. **Deploy** — on push to `main`, builds frontend + backend and deploys to Azure Web App
-3. **Health Check** — runs weekly + after every deploy to verify the site is up
+3. **Health Check** — runs every 30 minutes + after every deploy to verify the site is up
 
 All workflows live in `.github/workflows/`.
 

@@ -99,7 +99,7 @@ Deployment is fully automated via GitHub Actions:
 
 1. **CI** (`.github/workflows/ci.yml`) — builds and tests both frontend and backend on every push/PR to `main`
 2. **Deploy** (`.github/workflows/deploy.yml`) — builds, publishes, and deploys to Azure Web App
-3. **Health Check** (`.github/workflows/health-check.yml`) — scheduled weekly + post-deploy verification
+3. **Health Check** (`.github/workflows/health-check.yml`) — scheduled every 30 minutes + post-deploy verification
 
 > ⚠️ Never deploy manually. All deployments go through GitHub Actions CI/CD.
 

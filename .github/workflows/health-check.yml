@@ -2,9 +2,10 @@ name: Health Check
 
 on:
   schedule:
-    - cron: "0 8 * * 1"
+    # Keep the app service warm with regular pings (every 30 minutes)
+    - cron: "*/30 * * * *"
   workflow_run:
-    workflows: ["Deploy to Azure"]
+    workflows: ["Deploy ASP.NET Core app to Azure Web App"]
     types: [completed]
   workflow_dispatch:
 
