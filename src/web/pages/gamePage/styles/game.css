@@ -283,20 +283,95 @@ html.pwa-standalone .gamePage {
     box-shadow: none;
 }
 
-.exitButton {
+.gameMenuButton {
     padding: 2px 6px;
-    font-size: 1rem;
+    font-size: 1.1rem;
     font-weight: 600;
     background: transparent;
-    color: #e94560;
+    color: #ccc;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     line-height: 1;
 }
 
-.exitButton:hover {
+.gameMenuButton:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.gameMenu {
+    position: relative;
+}
+
+.gameMenuBackdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 99;
+}
+
+.gameMenuDropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    background: #16213e;
+    border: 1px solid rgba(100, 180, 255, 0.3);
+    border-radius: 8px;
+    padding: 4px 0;
+    min-width: 160px;
+    z-index: 100;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    animation: popIn 0.15s ease-out;
+}
+
+.gameMenuItem {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    color: #ccc;
+    font-size: 0.85rem;
+    text-align: left;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.gameMenuItem:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+}
+
+.gameMenuItem--danger {
+    color: #e94560;
+}
+
+.gameMenuItem--danger:hover {
     background: rgba(233, 69, 96, 0.15);
+    color: #e94560;
+}
+
+.gameMenuCopyStatus {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 4px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 100;
+    animation: popIn 0.15s ease-out;
+}
+
+.gameMenuCopyStatus--ok {
+    background: rgba(46, 204, 113, 0.9);
+    color: #fff;
+}
+
+.gameMenuCopyStatus--fail {
+    background: rgba(233, 69, 96, 0.9);
+    color: #fff;
 }
 
 /* Board Areas */

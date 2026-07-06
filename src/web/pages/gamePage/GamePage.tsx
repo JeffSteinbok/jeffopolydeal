@@ -68,6 +68,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     const [error, setError] = useState<string | null>(null);
     const [inspectedPlayer, setInspectedPlayer] = useState<PlayerState | null>(null);
     const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+    const [showGameMenu, setShowGameMenu] = useState(false);
     const [toasts, setToasts] = useState<GameAction[]>([]);
     const [toastBusy, setToastBusy] = useState(false);
     const [copyLogStatus, setCopyLogStatus] = useState<"idle" | "copied" | "failed">("idle");
@@ -199,7 +200,13 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     const isCreator = state && me && state.players[0]?.playerId === playerId;
 
     const handleExitGame = () => {
+        setShowGameMenu(false);
         setShowLeaveConfirm(true);
+    };
+
+    const handleReportHang = async () => {
+        setShowGameMenu(false);
+        await handleCopyGameLog();
     };
 
     const handleCopyGameLog = async () => {
@@ -412,7 +419,27 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     <span className="deckInfo">
                         Draw: {state.drawPileCount} | Discard: {state.discardPileCount} |
                     </span>
-                    <button className="exitButton" onClick={handleExitGame}>✕</button>
+                    <div className="gameMenu">
+                        <button className="gameMenuButton" onClick={() => setShowGameMenu(!showGameMenu)}>☰</button>
+                        {copyLogStatus !== "idle" && (
+                            <span className={`gameMenuCopyStatus ${copyLogStatus === "copied" ? "gameMenuCopyStatus--ok" : "gameMenuCopyStatus--fail"}`}>
+                                {copyLogStatus === "copied" ? "✓ Log copied!" : "✗ Copy failed"}
+                            </span>
+                        )}
+                        {showGameMenu && (
+                            <>
+                                <div className="gameMenuBackdrop" onClick={() => setShowGameMenu(false)} />
+                                <div className="gameMenuDropdown">
+                                    <button className="gameMenuItem" onClick={() => { void handleReportHang(); }}>
+                                        🐛 Report Hang
+                                    </button>
+                                    <button className="gameMenuItem gameMenuItem--danger" onClick={handleExitGame}>
+                                        Leave Game
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
 
