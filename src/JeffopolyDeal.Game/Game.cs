@@ -84,7 +84,11 @@ namespace JeffopolyDeal
                     return;
 
                 if (_players.Count(p => p.IsConnected) >= MaxPlayers)
+                {
+                    _logger.LogWarning("PlayerConnectRejected {GameId} {GameCode} {PlayerName} {PlayerId} {ConnectionId} (max players reached)",
+                        _gameId, GameCode, playerName, playerId, connectionId);
                     return;
+                }
 
                 _players.Add(new Player
                 {
@@ -93,6 +97,9 @@ namespace JeffopolyDeal
                     Name = playerName,
                     IsConnected = true,
                 });
+
+                _logger.LogInformation("PlayerConnected {GameId} {GameCode} {PlayerName} {PlayerId} {ConnectionId} {TotalPlayers}",
+                    _gameId, GameCode, playerName, playerId, connectionId, _players.Count);
             }
 
             await _hubContext.Groups.AddToGroupAsync(connectionId, GameCode);
@@ -112,7 +119,20 @@ namespace JeffopolyDeal
                     {
                         player.IsConnected = false;
                         player.DisconnectedAt = DateTime.UtcNow;
+                        _logger.LogInformation("PlayerDisconnected {GameId} {GameCode} {PlayerName} {PlayerId} {ConnectionId} {Phase}",
+                            _gameId, GameCode, player.Name, player.PlayerId, connectionId, _phase);
                     }
+                }
+                else
+                {
+                    var player = _players.FirstOrDefault(p => p.ConnectionId == connectionId);
+                    var currentPlayer = GetCurrentPlayer();
+                    var isCurrentTurnPlayer = currentPlayer?.ConnectionId == connectionId;
+                    _logger.LogWarning(
+                        "PlayerDisconnected {GameId} {GameCode} {PlayerName} {PlayerId} {ConnectionId} {Phase} {TurnNumber} {IsCurrentTurnPlayer} {HasPendingAction} {PendingActionType} {PendingActionTargets}",
+                        _gameId, GameCode, player?.Name, player?.PlayerId, connectionId, _phase, _turnNumber,
+                        isCurrentTurnPlayer, _pendingAction != null, _pendingAction?.Type.ToString(),
+                        _pendingAction != null ? string.Join(",", _pendingAction.TargetPlayerIds) : null);
                 }
             }
             await BroadcastGameStateAsync();
@@ -160,6 +180,12 @@ namespace JeffopolyDeal
                     player.IsConnected = true;
                     player.DisconnectedAt = null;
 
+                    var currentPlayer = GetCurrentPlayer();
+                    _logger.LogInformation(
+                        "PlayerReconnected {GameId} {GameCode} {PlayerName} {PlayerId} {OldConnectionId} {NewConnectionId} {Phase} {TurnNumber} {IsCurrentTurnPlayer} {HasPendingAction} {PendingActionType}",
+                        _gameId, GameCode, player.Name, playerId, oldConnectionId, newConnectionId, _phase, _turnNumber,
+                        currentPlayer?.PlayerId == playerId, _pendingAction != null, _pendingAction?.Type.ToString());
+
                     // Remap pending action references from old to new ConnectionId
                     if (_pendingAction != null)
                     {
@@ -183,6 +209,11 @@ namespace JeffopolyDeal
                                     _pendingAction.OriginalTargetPlayerIds[i] = newConnectionId;
                             }
                         }
+
+                        _logger.LogInformation(
+                            "PendingActionRemapped {GameId} {GameCode} {PlayerId} {OldConnectionId} {NewConnectionId} {PendingActionType} {PendingActionTargets}",
+                            _gameId, GameCode, playerId, oldConnectionId, newConnectionId,
+                            _pendingAction.Type.ToString(), string.Join(",", _pendingAction.TargetPlayerIds));
                     }
 
                     found = true;
@@ -200,8 +231,17 @@ namespace JeffopolyDeal
                             Name = playerName,
                             IsConnected = true,
                         });
+                        _logger.LogInformation(
+                            "PlayerReconnectedAsNew {GameId} {GameCode} {PlayerName} {PlayerId} {ConnectionId} (joined lobby as new player)",
+                            _gameId, GameCode, playerName, playerId, newConnectionId);
                         found = true;
                     }
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "PlayerReconnectFailed {GameId} {GameCode} {PlayerName} {PlayerId} {ConnectionId} {Phase} (player not found in active game)",
+                        _gameId, GameCode, playerName, playerId, newConnectionId, _phase);
                 }
             }
 

@@ -19,7 +19,17 @@ namespace JeffopolyDeal.Hubs
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
-            await _gameCache.RemoveConnectionAsync(Context.ConnectionId);
+            var connectionId = Context.ConnectionId;
+            if (exception != null)
+            {
+                _logger.LogWarning(exception, "SignalR disconnected {ConnectionId} (exception)", connectionId);
+            }
+            else
+            {
+                _logger.LogInformation("SignalR disconnected {ConnectionId}", connectionId);
+            }
+
+            await _gameCache.RemoveConnectionAsync(connectionId);
             await base.OnDisconnectedAsync(exception);
         }
 
@@ -43,6 +53,8 @@ namespace JeffopolyDeal.Hubs
                 if (string.IsNullOrEmpty(gameCode)) throw new ArgumentNullException(nameof(gameCode));
                 if (string.IsNullOrEmpty(playerName)) throw new ArgumentNullException(nameof(playerName));
                 if (string.IsNullOrEmpty(playerId)) throw new ArgumentNullException(nameof(playerId));
+                _logger.LogInformation("JoinGame {GameCode} {PlayerName} {PlayerId} {ConnectionId}",
+                    gameCode, playerName, playerId, Context.ConnectionId);
                 await _gameCache.JoinGameAsync(Context.ConnectionId, gameCode, playerName, playerId);
             }
             catch (Exception ex)
@@ -62,7 +74,12 @@ namespace JeffopolyDeal.Hubs
                 if (string.IsNullOrEmpty(gameCode)) return false;
                 if (string.IsNullOrEmpty(playerName)) return false;
                 if (string.IsNullOrEmpty(playerId)) return false;
-                return await _gameCache.RejoinGameAsync(Context.ConnectionId, gameCode, playerName, playerId);
+                _logger.LogInformation("RejoinGame requested {GameCode} {PlayerName} {PlayerId} {ConnectionId}",
+                    gameCode, playerName, playerId, Context.ConnectionId);
+                var result = await _gameCache.RejoinGameAsync(Context.ConnectionId, gameCode, playerName, playerId);
+                _logger.LogInformation("RejoinGame result {GameCode} {PlayerId} {ConnectionId} {Success}",
+                    gameCode, playerId, Context.ConnectionId, result);
+                return result;
             }
             catch (Exception ex)
             {
