@@ -14,7 +14,7 @@ import { DiscardModal } from "./components/DiscardModal";
 import { FyiToast } from "./components/FyiToast";
 import { DebugDeckViewer } from "./components/DebugDeckViewer";
 import { DebugConsole } from "./components/DebugConsole";
-import { copyTextToClipboard, formatGameLog } from "./gameLog";
+import { copyTextToClipboard, formatGameLog, buildHangIssueUrl } from "./gameLog";
 import titleImage from "../../assets/JeffopolyDeal.png";
 import ShareIcon from "../../assets/Share.svg";
 import "./styles/game.css";
@@ -68,6 +68,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     const [error, setError] = useState<string | null>(null);
     const [inspectedPlayer, setInspectedPlayer] = useState<PlayerState | null>(null);
     const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+    const [showHangHelp, setShowHangHelp] = useState(false);
     const [showGameMenu, setShowGameMenu] = useState(false);
     const [toasts, setToasts] = useState<GameAction[]>([]);
     const [toastBusy, setToastBusy] = useState(false);
@@ -207,6 +208,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     const handleReportHang = async () => {
         setShowGameMenu(false);
         await handleCopyGameLog();
+        setShowHangHelp(true);
     };
 
     const handleCopyGameLog = async () => {
@@ -579,6 +581,40 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
                     player={inspectedPlayer}
                     onClose={() => setInspectedPlayer(null)}
                 />
+            )}
+
+            {/* Report Hang help dialog */}
+            {showHangHelp && (
+                <div className="modalOverlay leaveConfirmOverlay" onClick={() => setShowHangHelp(false)}>
+                    <div className="leaveConfirmDialog hangHelpDialog" onClick={e => e.stopPropagation()}>
+                        <h3>🐛 Report a Hang</h3>
+                        <p>
+                            The game log has been copied to your clipboard. Click <strong>Open GitHub Issue</strong> to
+                            file a report — the log is pre-filled, so just describe what you were doing and submit.
+                        </p>
+                        <div className="leaveConfirmButtons">
+                            <button
+                                className="primary"
+                                onClick={() => {
+                                    window.open(
+                                        buildHangIssueUrl(formatGameLog(state, playerId), state.gameCode),
+                                        "_blank",
+                                        "noopener,noreferrer",
+                                    );
+                                    setShowHangHelp(false);
+                                }}
+                            >
+                                Open GitHub Issue
+                            </button>
+                            <button className="secondary" onClick={() => { void handleCopyGameLog(); }}>
+                                Copy log again
+                            </button>
+                            <button className="secondary" onClick={() => setShowHangHelp(false)}>
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* Leave game confirmation dialog */}

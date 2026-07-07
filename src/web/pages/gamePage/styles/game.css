@@ -669,3 +669,12 @@ html.pwa-standalone .gamePage {
     gap: 10px;
     justify-content: center;
 }
+
+/* Report Hang help dialog */
+.hangHelpDialog {
+    max-width: 380px;
+}
+
+.hangHelpDialog .leaveConfirmButtons {
+    flex-wrap: wrap;
+}

@@ -69,6 +69,28 @@ export function formatGameLog(state: GameState, currentPlayerId?: string, genera
     return sections.join("\n");
 }
 
+const HANG_ISSUE_REPO = "JeffSteinbok/jeffopolydeal";
+
+/**
+ * Builds a URL that opens GitHub's "new issue" form with the hang report
+ * pre-filled: a title, the bug label, and a body containing the game log.
+ */
+export function buildHangIssueUrl(log: string, gameCode: string): string {
+    const title = `Game hang report (${gameCode})`;
+    const body = [
+        "## What happened",
+        "_Describe what you were doing when the game hung: device, browser, and the action you took._",
+        "",
+        "## Game log",
+        "```",
+        log,
+        "```",
+    ].join("\n");
+
+    const params = new URLSearchParams({ title, body, labels: "bug" });
+    return `https://github.com/${HANG_ISSUE_REPO}/issues/new?${params.toString()}`;
+}
+
 export async function copyTextToClipboard(text: string): Promise<void> {
     if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(text);
