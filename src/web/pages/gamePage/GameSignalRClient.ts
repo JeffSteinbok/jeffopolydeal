@@ -22,22 +22,30 @@ export class GameSignalRClient {
             this.onGameStateUpdated(state);
         });
 
-        this.connection.onreconnected(async () => {
-            Logger.log("Reconnected to SignalR hub, rejoining game...");
+        this.connection.onreconnected(async (connectionId) => {
+            Logger.log("Reconnected to SignalR hub, new connectionId:", connectionId, "- rejoining game...");
             if (this._gameCode && this._playerName && this._playerId) {
                 try {
                     const success = await this.rejoinGame(this._gameCode, this._playerName, this._playerId);
-                    if (!success) {
-                        Logger.warn("Failed to rejoin game after reconnect");
+                    if (success) {
+                        Logger.log("Successfully rejoined game", this._gameCode);
+                    } else {
+                        Logger.warn("Failed to rejoin game after reconnect — server returned false");
                     }
                 } catch (err) {
                     Logger.error("Error rejoining game after reconnect:", err);
                 }
+            } else {
+                Logger.warn("Reconnected but missing game context (gameCode/playerName/playerId)");
             }
         });
 
-        this.connection.onclose(() => {
-            Logger.warn("SignalR connection closed");
+        this.connection.onreconnecting((error) => {
+            Logger.warn("SignalR reconnecting...", error ? `Error: ${error.message}` : "(no error)");
+        });
+
+        this.connection.onclose((error) => {
+            Logger.warn("SignalR connection closed", error ? `Error: ${error.message}` : "(clean close)");
         });
     }
 

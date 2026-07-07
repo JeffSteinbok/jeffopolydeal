@@ -1,4 +1,4 @@
-import { formatGameLog } from "./gameLog";
+import { formatGameLog, buildHangIssueUrl } from "./gameLog";
 import { GameState } from "../../Types";
 
 function makeState(): GameState {
@@ -89,5 +89,19 @@ describe("formatGameLog", () => {
 
         expect(log).toContain("Recent actions:");
         expect(log).toContain("- none");
+    });
+});
+
+describe("buildHangIssueUrl", () => {
+    it("builds a prefilled GitHub new-issue URL with the log in the body", () => {
+        const url = buildHangIssueUrl("line1\nline2", "ABCD");
+        const parsed = new URL(url);
+
+        expect(parsed.origin + parsed.pathname).toBe("https://github.com/JeffSteinbok/jeffopolydeal/issues/new");
+        expect(parsed.searchParams.get("title")).toBe("Game hang report (ABCD)");
+        expect(parsed.searchParams.get("labels")).toBe("bug");
+        const body = parsed.searchParams.get("body") ?? "";
+        expect(body).toContain("## Game log");
+        expect(body).toContain("line1\nline2");
     });
 });
