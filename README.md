@@ -10,6 +10,8 @@
 
 A real-time multiplayer **Monopoly Deal** card game built with React, ASP.NET Core, and SignalR. Play with friends in your browser — no installs needed.
 
+The native iPhone and iPad client is maintained separately in [`JeffSteinbok/jeffopolydeal-ios`](https://github.com/JeffSteinbok/jeffopolydeal-ios).
+
 ## Table of Contents
 
 - [Tech Stack](#tech-stack)
