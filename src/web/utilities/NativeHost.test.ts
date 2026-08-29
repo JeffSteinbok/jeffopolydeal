@@ -1,9 +1,12 @@
 import {
     readNativeGameEntry,
+    readPlayerNameHint,
     applyNativeHostClasses,
+    isNativeHost,
     NATIVE_ENTRY_PATH,
     NATIVE_CONTRACT_VERSION,
 } from "./NativeHost";
+import { BRIDGE_HANDLER_NAME } from "./NativeBridge";
 
 const PID = "1F0C2B7A-6D3E-4A21-9C55-0A1B2C3D4E5F";
 
@@ -60,13 +63,19 @@ describe("readNativeGameEntry", () => {
         expect(readNativeGameEntry(loc("/", "?join=ABCD"))).toBeNull();
     });
 
+    it("treats identity as optional, since a deep link may not carry one", () => {
+        const entry = readNativeGameEntry(entryUrl({ pid: null, name: null }));
+        expect(entry).not.toBeNull();
+        expect(entry?.playerId).toBeUndefined();
+        expect(entry?.playerName).toBeUndefined();
+        expect(entry?.gameCode).toBe("ABCD");
+    });
+
     it.each([
         ["a missing version", { v: null }],
         ["an unknown version", { v: "99" }],
         ["a missing host", { host: null }],
         ["a host that is not a plain identifier", { host: "ios<script>" }],
-        ["a missing player id", { pid: null }],
-        ["a blank player name", { name: "   " }],
         ["a missing game code with no new flag", { game: null }],
         ["a malformed game code", { game: "AB" }],
     ])("rejects %s", (_label, overrides) => {
@@ -74,10 +83,35 @@ describe("readNativeGameEntry", () => {
     });
 });
 
+describe("isNativeHost", () => {
+    afterEach(() => { delete (window as any).webkit; });
+
+    it("is false in a browser or PWA", () => {
+        expect(isNativeHost()).toBe(false);
+    });
+
+    it("follows the bridge, so it survives navigation away from the entry URL", () => {
+        (window as any).webkit = {
+            messageHandlers: { [BRIDGE_HANDLER_NAME]: { postMessage: () => {} } },
+        };
+        expect(isNativeHost()).toBe(true);
+    });
+});
+
+describe("readPlayerNameHint", () => {
+    it("reads the device name the shell suggests", () => {
+        expect(readPlayerNameHint(loc("/", "?name=Jeff%27s%20iPhone"))).toBe("Jeff's iPhone");
+    });
+
+    it("is null when absent or blank", () => {
+        expect(readPlayerNameHint(loc("/", ""))).toBeNull();
+        expect(readPlayerNameHint(loc("/", "?name=%20%20"))).toBeNull();
+    });
+});
+
 describe("applyNativeHostClasses", () => {
     it("marks the document for native and standalone styling", () => {
-        const entry = readNativeGameEntry(entryUrl())!;
-        applyNativeHostClasses(entry);
+        applyNativeHostClasses("ios");
         expect(document.documentElement.classList.contains("native-host")).toBe(true);
         expect(document.documentElement.classList.contains("native-host-ios")).toBe(true);
         expect(document.documentElement.classList.contains("pwa-standalone")).toBe(true);
