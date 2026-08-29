@@ -6,6 +6,12 @@ import { GamePage } from "./pages/gamePage/GamePage";
 import { DeckPage } from "./pages/deckPage/DeckPage";
 import { ThemeProvider } from "./themes/ThemeContext";
 import { Debug, DebugFlags } from "./utilities/Debug";
+import {
+    readNativeGameEntry,
+    applyNativeHostClasses,
+    publishResolvedGameCode,
+    exitToNativeShell,
+} from "./utilities/NativeHost";
 import "./styles/global.css";
 import "./themes/classic.css";
 import "./themes/dark.css";
@@ -15,6 +21,13 @@ Debug.initFromUrl();
 // Detect iOS standalone (PWA) mode and set a class on <html> for safe-area styling
 if ((navigator as any).standalone || window.matchMedia("(display-mode: standalone)").matches) {
     document.documentElement.classList.add("pwa-standalone");
+}
+
+// A native shell (see utilities/NativeHost.ts) enters gameplay directly at /play
+// and supplies the player identity itself, so there is no start page to show.
+const nativeEntry = readNativeGameEntry();
+if (nativeEntry) {
+    applyNativeHostClasses(nativeEntry);
 }
 
 const SESSION_KEY = "jeffopolydeal_session";
@@ -71,6 +84,20 @@ function App() {
     // Route to deck test page via ?page=deck
     if (params.get("page") === "deck") {
         return <DeckPage />;
+    }
+
+    // Native shells own app entry and hand off straight into gameplay.
+    if (nativeEntry) {
+        return (
+            <GamePage
+                gameCode={nativeEntry.gameCode}
+                playerName={nativeEntry.playerName}
+                playerId={nativeEntry.playerId}
+                isRejoin={nativeEntry.isRejoin}
+                onGameCodeResolved={publishResolvedGameCode}
+                onLeave={exitToNativeShell}
+            />
+        );
     }
 
     const handleLeave = () => {
