@@ -15,6 +15,7 @@ import { FyiToast } from "./components/FyiToast";
 import { DebugDeckViewer } from "./components/DebugDeckViewer";
 import { DebugConsole } from "./components/DebugConsole";
 import { copyTextToClipboard, formatGameLog, buildHangIssueUrl } from "./gameLog";
+import { deriveHaptics, emitDerivedHaptics } from "../../utilities/Haptics";
 import titleImage from "../../assets/JeffopolyDeal.png";
 import ShareIcon from "../../assets/Share.svg";
 import "./styles/game.css";
@@ -75,6 +76,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     const [copyLogStatus, setCopyLogStatus] = useState<"idle" | "copied" | "failed">("idle");
     const clientRef = useRef<GameSignalRClient | null>(null);
     const seenActionIdsRef = useRef<Set<number>>(new Set());
+    const hapticStateRef = useRef<GameState | null>(null);
     const firstStateRef = useRef(true);
     const toastTimeoutsRef = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
     const copyLogTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
@@ -130,6 +132,16 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
             client.stop();
         };
     }, []);
+
+    // Semantic haptics for a native shell. Derived from the state transition in
+    // one place rather than sprinkled through handlers, so every event is
+    // id-stamped and a replayed state cannot replay feedback. No-ops in a
+    // browser or PWA, where no bridge is listening.
+    useEffect(() => {
+        if (!state) return;
+        emitDerivedHaptics(deriveHaptics(hapticStateRef.current, state, playerId));
+        hapticStateRef.current = state;
+    }, [state, playerId]);
 
     // Show FYI toasts for new actions by other players
     useEffect(() => {
