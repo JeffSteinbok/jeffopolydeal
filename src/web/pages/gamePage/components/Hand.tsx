@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Card, GameState, PlayCardRequest, PlayerState } from "../../../Types";
 import { CardComponent } from "./Card";
 import { PlayCardModal } from "./PlayCardModal";
+import { emitHaptic } from "../../../utilities/Haptics";
 import "./Hand.css";
 
 interface HandProps {
@@ -84,6 +85,10 @@ export function Hand({ cards, canPlay, phase, gameState, myConnectionId, smallCa
     }, [cards.length, smallCards]);
 
     const handleCardClick = (card: Card) => {
+        // Picking a card up is the one gameplay moment the server never sees, so
+        // it cannot come from the state transition like the rest of the haptics.
+        emitHaptic("selection");
+
         // Discard phase: direct discard on click (DiscardModal is already visible)
         if (canPlay && phase === "Discard") {
             onDiscardCard(card.id);
