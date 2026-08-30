@@ -25,6 +25,8 @@ export interface NativeInboundAPI {
     setLifecycle(phase: unknown): void;
     /** A notification tap or deep link asking for a specific game. */
     openGame(gameCode: unknown): void;
+    /** Why push is or is not working on the device, for support reporting. */
+    setPushDiagnostics(status: unknown): void;
 }
 
 export type LifecyclePhase = "active" | "background";
@@ -35,6 +37,7 @@ let nearbyGames: NearbyGame[] = [];
 const listeners = new Set<(games: NearbyGame[]) => void>();
 
 let pushToken: string | null = null;
+let pushDiagnostics = "none";
 const pushTokenListeners = new Set<(token: string) => void>();
 
 const foregroundListeners = new Set<() => void>();
@@ -87,6 +90,11 @@ export function installNativeInboundAPI(): void {
             for (const listener of foregroundListeners) listener();
         },
 
+        setPushDiagnostics(status: unknown) {
+            if (typeof status !== "string") return;
+            pushDiagnostics = status.trim().slice(0, 60) || "none";
+        },
+
         openGame(gameCode: unknown) {
             if (typeof gameCode !== "string") return;
             const code = gameCode.trim().toUpperCase();
@@ -99,6 +107,10 @@ export function installNativeInboundAPI(): void {
 
 export function getPushToken(): string | null {
     return pushToken;
+}
+
+export function getPushDiagnostics(): string {
+    return pushDiagnostics;
 }
 
 /** Fires immediately if a token already arrived, then on every change. */
@@ -123,6 +135,7 @@ export function resetNativeInbound(): void {
     nearbyGames = [];
     listeners.clear();
     pushToken = null;
+    pushDiagnostics = "none";
     pushTokenListeners.clear();
     foregroundListeners.clear();
     openGameListeners.clear();

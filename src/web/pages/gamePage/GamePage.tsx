@@ -17,7 +17,7 @@ import { DebugConsole } from "./components/DebugConsole";
 import { copyTextToClipboard, formatGameLog, buildHangIssueUrl } from "./gameLog";
 import { deriveHaptics, emitDerivedHaptics } from "../../utilities/Haptics";
 import { postToNativeHost } from "../../utilities/NativeBridge";
-import { onPushToken, onReturnToForeground, getPushToken } from "../../utilities/NativeInbound";
+import { onPushToken, onReturnToForeground, getPushToken, getPushDiagnostics } from "../../utilities/NativeInbound";
 import { isNativeHost, clientKind } from "../../utilities/NativeHost";
 import titleImage from "../../assets/JeffopolyDeal.png";
 import ShareIcon from "../../assets/Share.svg";
@@ -159,7 +159,7 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     useEffect(() => {
         if (!hasJoined) return;
         const timer = setTimeout(() => {
-            clientRef.current?.reportPushStatus(clientKind(), isNativeHost(), !!getPushToken());
+            clientRef.current?.reportPushStatus(clientKind(), isNativeHost(), !!getPushToken(), getPushDiagnostics());
         }, 4000);
         return () => clearTimeout(timer);
     }, [hasJoined]);

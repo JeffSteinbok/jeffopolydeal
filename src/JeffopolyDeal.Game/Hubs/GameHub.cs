@@ -236,11 +236,11 @@ namespace JeffopolyDeal.Hubs
         /// this, a device that never obtained an APNs token is indistinguishable
         /// from one that obtained a token we then failed to register.
         /// </summary>
-        public void ReportPushStatus(string clientKind, bool nativeHost, bool hasToken)
+        public void ReportPushStatus(string clientKind, bool nativeHost, bool hasToken, string nativeDiagnostics = "")
         {
             _logger.LogInformation(
-                "Push status from {ConnectionId}: kind={ClientKind} nativeHost={NativeHost} hasToken={HasToken}",
-                Context.ConnectionId, clientKind, nativeHost, hasToken);
+                "Push status from {ConnectionId}: kind={ClientKind} nativeHost={NativeHost} hasToken={HasToken} native={NativeDiagnostics}",
+                Context.ConnectionId, clientKind, nativeHost, hasToken, nativeDiagnostics);
         }
 
         public DebugDeckInfo? GetDebugDeckInfo()
