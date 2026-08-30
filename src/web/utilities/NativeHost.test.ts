@@ -3,6 +3,7 @@ import {
     readPlayerNameHint,
     applyNativeHostClasses,
     isNativeHost,
+    clientKind,
     NATIVE_ENTRY_PATH,
     NATIVE_CONTRACT_VERSION,
 } from "./NativeHost";
@@ -115,5 +116,20 @@ describe("applyNativeHostClasses", () => {
         expect(document.documentElement.classList.contains("native-host")).toBe(true);
         expect(document.documentElement.classList.contains("native-host-ios")).toBe(true);
         expect(document.documentElement.classList.contains("pwa-standalone")).toBe(true);
+    });
+});
+
+describe("clientKind", () => {
+    afterEach(() => { delete (window as any).webkit; });
+
+    it("reports the native app when the bridge is present", () => {
+        (window as any).webkit = {
+            messageHandlers: { [BRIDGE_HANDLER_NAME]: { postMessage: () => {} } },
+        };
+        expect(clientKind()).toBe("ios-app");
+    });
+
+    it("reports a plain browser otherwise", () => {
+        expect(clientKind()).toBe("browser");
     });
 });

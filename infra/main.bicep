@@ -56,6 +56,10 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
           value: appInsights.properties.ConnectionString
         }
+        {
+          name: 'APNS__TOPIC'
+          value: 'net.steinbok.jeffopolydeal'
+        }
       ]
     }
   }

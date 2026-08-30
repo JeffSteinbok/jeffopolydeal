@@ -1,6 +1,6 @@
 import * as React from "react";
 import { createRoot } from "react-dom/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { StartPage } from "./pages/startPage/StartPage";
 import { GamePage } from "./pages/gamePage/GamePage";
 import { DeckPage } from "./pages/deckPage/DeckPage";
@@ -12,7 +12,7 @@ import {
     readPlayerNameHint,
     applyNativeHostClasses,
 } from "./utilities/NativeHost";
-import { installNativeInboundAPI } from "./utilities/NativeNearby";
+import { installNativeInboundAPI, onOpenGame } from "./utilities/NativeInbound";
 import "./styles/global.css";
 import "./themes/classic.css";
 import "./themes/dark.css";
@@ -89,6 +89,17 @@ function App() {
     const [isRejoin, setIsRejoin] = useState(
         nativeEntry ? nativeEntry.isRejoin : !!savedSession && !autoStart
     );
+
+    // A notification tap or deep link while the app is already running. The
+    // player name we already know is reused, so this does not bounce them back
+    // to the start page just to retype it.
+    useEffect(() => onOpenGame((code) => {
+        if (code === gameCode && inGame) return;
+        setGameCode(code);
+        setInGame(true);
+        setIsRejoin(true);
+        saveSession({ gameCode: code, playerName, playerId });
+    }), [gameCode, inGame, playerName, playerId]);
 
     // Route to deck test page via ?page=deck
     if (params.get("page") === "deck") {

@@ -1,5 +1,6 @@
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using JeffopolyDeal.Hubs;
+using JeffopolyDeal.Notifications;
 using Microsoft.AspNetCore.Builder;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
@@ -21,6 +22,8 @@ builder.Services.AddSignalR()
     {
         options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
+builder.Services.AddSingleton<IPushTokenStore, PushTokenStore>();
+builder.Services.AddHttpClient<ITurnNotificationService, ApnsTurnNotificationService>();
 builder.Services.AddSingleton<JeffopolyDeal.GameCache>();
 
 var app = builder.Build();
