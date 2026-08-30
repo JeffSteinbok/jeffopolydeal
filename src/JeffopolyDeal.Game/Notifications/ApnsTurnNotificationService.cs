@@ -57,13 +57,23 @@ public sealed class ApnsTurnNotificationService : ITurnNotificationService
     {
         if (!IsConfigured)
         {
-            _logger.LogDebug("APNs turn notification skipped because APNS configuration is incomplete");
+            _logger.LogWarning("APNs turn notification skipped: APNS configuration is incomplete");
             return;
         }
 
         var tokens = _tokenStore.GetTokens(playerId);
         if (tokens.Count == 0)
+        {
+            // The common real-world failure, and it used to be silent.
+            _logger.LogInformation(
+                "APNs turn notification skipped: no device tokens registered for player {PlayerId} in {GameCode}",
+                playerId, gameCode);
             return;
+        }
+
+        _logger.LogInformation(
+            "Sending APNs turn notification to {Count} device(s) for player {PlayerId} in {GameCode}",
+            tokens.Count, playerId, gameCode);
 
         var providerToken = GetProviderToken();
         foreach (var deviceToken in tokens)
