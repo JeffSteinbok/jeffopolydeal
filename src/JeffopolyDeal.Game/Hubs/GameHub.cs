@@ -223,6 +223,14 @@ namespace JeffopolyDeal.Hubs
             }
         }
 
+        /// <summary>
+        /// Cheap liveness probe. A client returning from the background cannot
+        /// trust its own connection state — iOS freezes sockets while suspended,
+        /// so a dead connection keeps reporting Connected until a keepalive
+        /// eventually fails. Asking the server is the only honest answer.
+        /// </summary>
+        public bool Ping() => true;
+
         public DebugDeckInfo? GetDebugDeckInfo()
         {
             try
