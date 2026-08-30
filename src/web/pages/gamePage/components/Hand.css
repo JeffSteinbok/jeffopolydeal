@@ -209,7 +209,10 @@
 
     .hand {
         padding-top: 6px;
-        height: 160px;
+        /* Must repeat the safe-area allowance: this overrides the base rule on
+           exactly the devices that have a home indicator, and a flat height
+           here left the cards overflowing off the bottom of the screen. */
+        height: calc(160px + max(env(safe-area-inset-bottom, 0px), var(--native-safe-bottom, 0px)));
     }
 
     .hand-header {
