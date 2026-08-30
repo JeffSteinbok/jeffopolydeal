@@ -18,6 +18,7 @@ namespace JeffopolyDeal
     {
         private readonly IHubContext<GameHub> _hubContext;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger<GameCache> _logger;
         private readonly ITurnNotificationService _turnNotificationService;
         private readonly IPushTokenStore _pushTokenStore;
         private readonly ConcurrentDictionary<string, string> _connectionToGame = new();
@@ -34,6 +35,7 @@ namespace JeffopolyDeal
         {
             _hubContext = hubContext;
             _loggerFactory = loggerFactory;
+            _logger = loggerFactory.CreateLogger<GameCache>();
             _turnNotificationService = turnNotificationService ?? NullTurnNotificationService.Instance;
             _pushTokenStore = pushTokenStore ?? new PushTokenStore();
         }
@@ -87,16 +89,33 @@ namespace JeffopolyDeal
 
         public bool RegisterPushToken(string connectionId, string playerId, string deviceToken)
         {
+            // Apple has never promised a token length, and a Mac running an iOS
+            // app can differ from a phone, so accept any plausible hex token
+            // rather than pinning the 32-byte size tokens happen to have today.
             if (string.IsNullOrWhiteSpace(deviceToken)
-                || deviceToken.Length != 64
+                || deviceToken.Length < 64
+                || deviceToken.Length > 200
                 || deviceToken.Any(character => !Uri.IsHexDigit(character)))
+            {
+                _logger.LogWarning(
+                    "RegisterPushToken rejected: malformed token of length {Length} for player {PlayerId}",
+                    deviceToken?.Length ?? 0, playerId);
                 return false;
+            }
 
             var game = GetGameForConnection(connectionId);
             if (game == null || !game.MatchesPlayer(connectionId, playerId))
+            {
+                _logger.LogWarning(
+                    "RegisterPushToken rejected: connection {ConnectionId} is not player {PlayerId} in a game",
+                    connectionId, playerId);
                 return false;
+            }
 
             _pushTokenStore.Register(playerId, deviceToken.ToLowerInvariant());
+            _logger.LogInformation(
+                "RegisterPushToken accepted for player {PlayerId} (token length {Length})",
+                playerId, deviceToken.Length);
             return true;
         }
 
