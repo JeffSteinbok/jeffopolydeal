@@ -17,6 +17,7 @@ import { DebugConsole } from "./components/DebugConsole";
 import { copyTextToClipboard, formatGameLog, buildHangIssueUrl } from "./gameLog";
 import { deriveHaptics, emitDerivedHaptics } from "../../utilities/Haptics";
 import { postToNativeHost } from "../../utilities/NativeBridge";
+import { onPushToken, onReturnToForeground } from "../../utilities/NativeInbound";
 import titleImage from "../../assets/JeffopolyDeal.png";
 import ShareIcon from "../../assets/Share.svg";
 import "./styles/game.css";
@@ -138,6 +139,30 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     // drive capabilities the web cannot — advertising this lobby to nearby
     // devices, and remembering enough to rejoin after a cold launch. Deliberately
     // not gameplay state: the shell has no business interpreting a board.
+    // A native shell holds the APNs token; this client owns the hub connection.
+    // Wait until we are actually in a game, since the engine keys tokens by
+    // player and there is nothing to notify about before then. onPushToken
+    // fires immediately if a token already arrived, so ordering does not matter.
+    const hasJoined = !!state;
+    useEffect(() => {
+        if (!playerId || !hasJoined) return;
+        return onPushToken((token) => {
+            clientRef.current?.registerPushToken(playerId, token);
+        });
+    }, [playerId, hasJoined]);
+
+    // Coming back to the foreground: iOS may have frozen or killed the socket
+    // while suspended, and SignalR's own reconnect cannot run while it is. Check
+    // and recover rather than assuming the connection survived.
+    useEffect(() => onReturnToForeground(async () => {
+        const client = clientRef.current;
+        if (!client || client.isConnected) return;
+        const reconnected = await client.ensureConnected();
+        if (reconnected && gameCode && playerName && playerId) {
+            await client.rejoinGame(gameCode, playerName, playerId);
+        }
+    }), [gameCode, playerName, playerId]);
+
     // Narrowed to the fields the shell cares about, so a board update does not
     // re-announce a game that has not changed.
     const contextGameCode = state?.gameCode ?? null;

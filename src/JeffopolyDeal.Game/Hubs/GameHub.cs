@@ -17,6 +17,31 @@ namespace JeffopolyDeal.Hubs
             _logger = logger;
         }
 
+        /// <summary>
+        /// Which client this connection came from, for telemetry. The iOS app and
+        /// the browser now reach this hub through the same JavaScript client, so
+        /// nothing else distinguishes them. It travels in the query string
+        /// because that is the only thing every SignalR transport carries — a
+        /// browser cannot set headers on a WebSocket handshake.
+        /// </summary>
+        private string ClientKind
+        {
+            get
+            {
+                var kind = Context.GetHttpContext()?.Request.Query["client"].ToString();
+                return kind is "ios-app" or "pwa" or "browser" ? kind : "unknown";
+            }
+        }
+
+        public override Task OnConnectedAsync()
+        {
+            var clientKind = ClientKind;
+            System.Diagnostics.Activity.Current?.SetTag("jeffopoly.client_kind", clientKind);
+            _logger.LogInformation(
+                "SignalR connected {ConnectionId} from {ClientKind}", Context.ConnectionId, clientKind);
+            return base.OnConnectedAsync();
+        }
+
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             var connectionId = Context.ConnectionId;

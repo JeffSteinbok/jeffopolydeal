@@ -93,3 +93,16 @@ export function readNativeGameEntry(location: Location = window.location): Nativ
 export function applyNativeHostClasses(host = "ios"): void {
     document.documentElement.classList.add("native-host", `native-host-${host}`, "pwa-standalone");
 }
+
+/**
+ * Which client this is, for server-side telemetry. The iOS app and the browser
+ * reach the hub through the same JavaScript now, so without this they are
+ * indistinguishable once a connection is up.
+ */
+export function clientKind(): "ios-app" | "pwa" | "browser" {
+    if (isNativeHost()) return "ios-app";
+
+    const standalone = (navigator as unknown as { standalone?: boolean }).standalone
+        || window.matchMedia?.("(display-mode: standalone)").matches;
+    return standalone ? "pwa" : "browser";
+}

@@ -1,6 +1,7 @@
 import * as signalR from "@microsoft/signalr";
 import { GameState, PlayCardRequest, ActionResponse } from "../../Types";
 import { Logger } from "../../utilities/Logger";
+import { clientKind } from "../../utilities/NativeHost";
 
 export class GameSignalRClient {
     private connection: signalR.HubConnection;
@@ -13,7 +14,11 @@ export class GameSignalRClient {
         this.onGameStateUpdated = onGameStateUpdated;
 
         this.connection = new signalR.HubConnectionBuilder()
-            .withUrl("/hub/game")
+            // Tagged so server-side telemetry can still tell the iOS app, the
+            // installed PWA, and a plain browser apart. A query parameter is the
+            // only thing every SignalR transport carries; a browser cannot set
+            // headers on a WebSocket handshake.
+            .withUrl(`/hub/game?client=${clientKind()}`)
             .withAutomaticReconnect()
             .build();
 
@@ -135,6 +140,43 @@ export class GameSignalRClient {
 
     async debugCommand(command: string): Promise<string> {
         return await this.connection.invoke<string>("DebugCommand", command);
+    }
+
+    /**
+     * Associates an APNs device token with this player so the engine can tell
+     * them their turn started while the app is backgrounded. Only a native
+     * shell has a token; the browser never calls this.
+     */
+    async registerPushToken(playerId: string, deviceToken: string): Promise<boolean> {
+        if (!this.isConnected) return false;
+        try {
+            return await this.connection.invoke<boolean>("RegisterPushToken", playerId, deviceToken);
+        } catch (err) {
+            // A missed notification must never break a game in progress.
+            Logger.warn("Failed to register push token:", err);
+            return false;
+        }
+    }
+
+    get isConnected(): boolean {
+        return this.connection.state === signalR.HubConnectionState.Connected;
+    }
+
+    /**
+     * Nudges a connection that may have died while the app was suspended. iOS
+     * freezes the web view's timers and sockets in the background, and neither
+     * side necessarily notices until something is sent.
+     */
+    async ensureConnected(): Promise<boolean> {
+        if (this.isConnected) return true;
+        if (this.connection.state !== signalR.HubConnectionState.Disconnected) return false;
+        try {
+            await this.connection.start();
+            return true;
+        } catch (err) {
+            Logger.warn("Reconnect after foreground failed:", err);
+            return false;
+        }
     }
 
     get connectionId(): string | null {
