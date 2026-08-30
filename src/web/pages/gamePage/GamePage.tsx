@@ -156,8 +156,11 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
     // and recover rather than assuming the connection survived.
     useEffect(() => onReturnToForeground(async () => {
         const client = clientRef.current;
-        if (!client || client.isConnected) return;
-        const reconnected = await client.ensureConnected();
+        if (!client) return;
+        // Verify with the server instead of reading our own connection state,
+        // which can still say Connected over a socket iOS froze and killed.
+        if (await client.isAlive()) return;
+        const reconnected = await client.reconnect();
         if (reconnected && gameCode && playerName && playerId) {
             await client.rejoinGame(gameCode, playerName, playerId);
         }

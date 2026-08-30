@@ -163,13 +163,35 @@ export class GameSignalRClient {
     }
 
     /**
-     * Nudges a connection that may have died while the app was suspended. iOS
-     * freezes the web view's timers and sockets in the background, and neither
-     * side necessarily notices until something is sent.
+     * Asks the server to answer, rather than trusting our own connection state.
+     * iOS freezes sockets while suspended, so a dead connection keeps reporting
+     * Connected until a keepalive eventually fails — up to half a minute of a
+     * game that looks alive and is not.
      */
-    async ensureConnected(): Promise<boolean> {
-        if (this.isConnected) return true;
-        if (this.connection.state !== signalR.HubConnectionState.Disconnected) return false;
+    async isAlive(timeoutMs = 1500): Promise<boolean> {
+        if (!this.isConnected) return false;
+        try {
+            await Promise.race([
+                this.connection.invoke<boolean>("Ping"),
+                new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error("ping timed out")), timeoutMs)),
+            ]);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    /**
+     * Forces a fresh connection. Stops first even when the old one still claims
+     * to be up, since that claim is exactly what we are recovering from.
+     */
+    async reconnect(): Promise<boolean> {
+        try {
+            await this.connection.stop();
+        } catch {
+            // Already down; nothing to stop.
+        }
         try {
             await this.connection.start();
             return true;
