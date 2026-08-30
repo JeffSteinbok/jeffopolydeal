@@ -38,6 +38,30 @@ if (inNativeShell) {
 const nativeEntry = readNativeGameEntry();
 
 const SESSION_KEY = "jeffopolydeal_session";
+const PLAYER_NAME_KEY = "jeffopolydeal_playerName";
+
+/**
+ * The name this player last chose. A native shell suggests the device name, but
+ * that is only ever a first-run hint — once someone edits it, their choice wins.
+ */
+function loadPlayerName(): string | null {
+    try {
+        const name = localStorage.getItem(PLAYER_NAME_KEY)?.trim();
+        return name ? name : null;
+    } catch {
+        return null;
+    }
+}
+
+function savePlayerName(name: string) {
+    const trimmed = name.trim().slice(0, 20);
+    if (!trimmed) return;
+    try {
+        localStorage.setItem(PLAYER_NAME_KEY, trimmed);
+    } catch {
+        // A full or disabled store must not stop someone starting a game.
+    }
+}
 
 interface SessionInfo {
     gameCode: string;
@@ -118,6 +142,7 @@ function App() {
         setPlayerName(name);
         setInGame(true);
         setIsRejoin(false);
+        savePlayerName(name);
         saveSession({ gameCode: code, playerName: name, playerId });
     };
 
@@ -137,7 +162,10 @@ function App() {
         );
     }
 
-    return <StartPage onJoinGame={handleJoin} playerNameHint={readPlayerNameHint() ?? undefined} />;
+    // A remembered name beats the shell's device-name hint, which only fills in
+    // for someone who has never entered one.
+    const nameHint = loadPlayerName() ?? readPlayerNameHint() ?? undefined;
+    return <StartPage onJoinGame={handleJoin} playerNameHint={nameHint} />;
 }
 
 const root = document.getElementById("root")!;

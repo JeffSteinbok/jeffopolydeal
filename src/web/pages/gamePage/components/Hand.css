@@ -3,9 +3,12 @@
     border-radius: 8px;
     padding: 12px;
     padding-top: 18px;
+    /* Edge to edge in a native shell, so the bottom row would otherwise sit
+       under the home indicator. */
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     overflow: visible;
     flex-shrink: 0;
-    height: 180px;
+    height: calc(180px + env(safe-area-inset-bottom, 0px));
 }
 
 .hand-header {

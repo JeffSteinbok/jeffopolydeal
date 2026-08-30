@@ -1,6 +1,8 @@
 .fyiToast-container {
     position: fixed;
-    top: 58px;
+    /* Fixed positioning escapes the page's top padding, so the notch has to be
+       accounted for here or the toast rides underneath it. */
+    top: calc(58px + env(safe-area-inset-top, 0px));
     left: 8px;
     right: 8px;
     max-width: 500px;
