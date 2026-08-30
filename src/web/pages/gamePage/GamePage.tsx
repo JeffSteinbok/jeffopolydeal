@@ -17,7 +17,8 @@ import { DebugConsole } from "./components/DebugConsole";
 import { copyTextToClipboard, formatGameLog, buildHangIssueUrl } from "./gameLog";
 import { deriveHaptics, emitDerivedHaptics } from "../../utilities/Haptics";
 import { postToNativeHost } from "../../utilities/NativeBridge";
-import { onPushToken, onReturnToForeground } from "../../utilities/NativeInbound";
+import { onPushToken, onReturnToForeground, getPushToken } from "../../utilities/NativeInbound";
+import { isNativeHost, clientKind } from "../../utilities/NativeHost";
 import titleImage from "../../assets/JeffopolyDeal.png";
 import ShareIcon from "../../assets/Share.svg";
 import "./styles/game.css";
@@ -150,6 +151,18 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
             clientRef.current?.registerPushToken(playerId, token);
         });
     }, [playerId, hasJoined]);
+
+    // Report once per game whether push is even possible from this client, so a
+    // device that never got a token is distinguishable from one whose token we
+    // failed to register. Delayed slightly: the token often arrives just after
+    // the first game state does.
+    useEffect(() => {
+        if (!hasJoined) return;
+        const timer = setTimeout(() => {
+            clientRef.current?.reportPushStatus(clientKind(), isNativeHost(), !!getPushToken());
+        }, 4000);
+        return () => clearTimeout(timer);
+    }, [hasJoined]);
 
     // Coming back to the foreground: iOS may have frozen or killed the socket
     // while suspended, and SignalR's own reconnect cannot run while it is. Check

@@ -158,6 +158,16 @@ export class GameSignalRClient {
         }
     }
 
+    /** Diagnostic: tells the server whether this client can receive push at all. */
+    async reportPushStatus(clientKind: string, nativeHost: boolean, hasToken: boolean): Promise<void> {
+        if (!this.isConnected) return;
+        try {
+            await this.connection.invoke("ReportPushStatus", clientKind, nativeHost, hasToken);
+        } catch {
+            // Diagnostics must never affect play.
+        }
+    }
+
     get isConnected(): boolean {
         return this.connection.state === signalR.HubConnectionState.Connected;
     }
