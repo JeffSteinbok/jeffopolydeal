@@ -100,7 +100,7 @@ public sealed class ApnsTurnNotificationService : ITurnNotificationService
                     gameCode
                 });
 
-                using var response = await _httpClient.SendAsync(request, cancellationToken);
+                using var response = await SendWithRetryAsync(request, cancellationToken);
                 if (response.IsSuccessStatusCode)
                     continue;
 
@@ -123,6 +123,30 @@ public sealed class ApnsTurnNotificationService : ITurnNotificationService
         !string.IsNullOrWhiteSpace(_teamId)
         && !string.IsNullOrWhiteSpace(_keyId)
         && !string.IsNullOrWhiteSpace(_privateKey);
+
+    /// <summary>
+    /// A pooled HTTP/2 connection Apple has already closed fails the first
+    /// request that touches it and succeeds on a fresh one. Retry once rather
+    /// than dropping a notification for a connection-level hiccup.
+    /// </summary>
+    private async Task<HttpResponseMessage> SendWithRetryAsync(
+        HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await _httpClient.SendAsync(request, cancellationToken);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or HttpIOException)
+        {
+            _logger.LogWarning(ex, "APNs request failed at the connection level; retrying once");
+
+            using var retry = new HttpRequestMessage(request.Method, request.RequestUri);
+            foreach (var header in request.Headers)
+                retry.Headers.TryAddWithoutValidation(header.Key, header.Value);
+            retry.Content = request.Content;
+            return await _httpClient.SendAsync(retry, cancellationToken);
+        }
+    }
 
     private string GetProviderToken()
     {
