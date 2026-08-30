@@ -231,6 +231,18 @@ namespace JeffopolyDeal.Hubs
         /// </summary>
         public bool Ping() => true;
 
+        /// <summary>
+        /// Lets a client say whether it is able to receive push at all. Without
+        /// this, a device that never obtained an APNs token is indistinguishable
+        /// from one that obtained a token we then failed to register.
+        /// </summary>
+        public void ReportPushStatus(string clientKind, bool nativeHost, bool hasToken)
+        {
+            _logger.LogInformation(
+                "Push status from {ConnectionId}: kind={ClientKind} nativeHost={NativeHost} hasToken={HasToken}",
+                Context.ConnectionId, clientKind, nativeHost, hasToken);
+        }
+
         public DebugDeckInfo? GetDebugDeckInfo()
         {
             try
