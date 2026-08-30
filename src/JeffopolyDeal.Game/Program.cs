@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using JeffopolyDeal.Hubs;
 using JeffopolyDeal.Notifications;
@@ -86,6 +87,42 @@ app.MapGet("/.well-known/apple-app-site-association", () =>
             },
         },
     }, contentType: "application/json"));
+
+// Diagnostic: can this host reach APNs over HTTP/2 at all? Turn notifications
+// failed here for a long time with "The response ended prematurely", and there
+// was no way to tell a platform limitation from a bug in our own client.
+app.MapGet("/api/apns-selftest", async () =>
+{
+    var results = new List<object>();
+
+    foreach (var (label, version, policy) in new[]
+    {
+        ("http2-exact", System.Net.HttpVersion.Version20, HttpVersionPolicy.RequestVersionExact),
+        ("http2-orhigher", System.Net.HttpVersion.Version20, HttpVersionPolicy.RequestVersionOrHigher),
+        ("http11", System.Net.HttpVersion.Version11, HttpVersionPolicy.RequestVersionOrLower),
+    })
+    {
+        using var handler = new SocketsHttpHandler { EnableMultipleHttp2Connections = true };
+        using var client = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(15) };
+        try
+        {
+            using var req = new HttpRequestMessage(HttpMethod.Post, "https://api.push.apple.com/3/device/0000")
+            {
+                Version = version,
+                VersionPolicy = policy,
+                Content = new StringContent("{}"),
+            };
+            using var res = await client.SendAsync(req);
+            results.Add(new { label, ok = true, status = (int)res.StatusCode, negotiated = res.Version.ToString() });
+        }
+        catch (Exception ex)
+        {
+            results.Add(new { label, ok = false, error = ex.GetType().Name, detail = ex.InnerException?.Message ?? ex.Message });
+        }
+    }
+
+    return Microsoft.AspNetCore.Http.Results.Json(new { os = System.Runtime.InteropServices.RuntimeInformation.OSDescription, results });
+});
 
 // API endpoint: returns game configuration (rent tables, set sizes) — single source of truth
 app.MapGet("/api/gameconfig", () =>
