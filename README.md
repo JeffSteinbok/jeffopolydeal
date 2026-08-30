@@ -105,6 +105,20 @@ Deployment is fully automated via GitHub Actions:
 
 > ⚠️ Never deploy manually. All deployments go through GitHub Actions CI/CD.
 
+### Turn notification configuration
+
+The backend sends an APNs alert when a human player's draw phase begins. Configure these Azure App Service settings; notification delivery remains disabled when the credentials are absent:
+
+| Setting | Value |
+|---|---|
+| `APNS__TEAM_ID` | Apple Developer Team ID |
+| `APNS__KEY_ID` | APNs authentication key ID |
+| `APNS__PRIVATE_KEY` | Full contents of the APNs `.p8` private key |
+| `APNS__TOPIC` | `net.steinbok.jeffopolydeal` |
+| `APNS__USE_SANDBOX` | `false` for TestFlight/App Store builds; `true` only for development-signed device builds |
+
+Store the private key as a secret-backed App Service setting; never add it to Bicep, source control, or GitHub variables. The Apple key must have APNs access for the app's bundle ID.
+
 ---
 
 ## Debug Mode

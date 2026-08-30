@@ -1,5 +1,6 @@
 using JeffopolyDeal.Hubs;
 using JeffopolyDeal.Models;
+using JeffopolyDeal.Notifications;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using System;
@@ -17,16 +18,24 @@ namespace JeffopolyDeal
     {
         private readonly IHubContext<GameHub> _hubContext;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly ITurnNotificationService _turnNotificationService;
+        private readonly IPushTokenStore _pushTokenStore;
         private readonly ConcurrentDictionary<string, string> _connectionToGame = new();
         private readonly ConcurrentDictionary<string, Game> _games = new();
         private readonly ConcurrentDictionary<string, CancellationTokenSource> _cleanupTimers = new();
         private readonly Random _rng = new();
         private static readonly TimeSpan LobbyCleanupDelay = TimeSpan.FromMinutes(2);
 
-        public GameCache(IHubContext<GameHub> hubContext, ILoggerFactory loggerFactory)
+        public GameCache(
+            IHubContext<GameHub> hubContext,
+            ILoggerFactory loggerFactory,
+            ITurnNotificationService? turnNotificationService = null,
+            IPushTokenStore? pushTokenStore = null)
         {
             _hubContext = hubContext;
             _loggerFactory = loggerFactory;
+            _turnNotificationService = turnNotificationService ?? NullTurnNotificationService.Instance;
+            _pushTokenStore = pushTokenStore ?? new PushTokenStore();
         }
 
         public string CreateGame(string? fixedCode = null, string? themeName = null)
@@ -34,7 +43,7 @@ namespace JeffopolyDeal
             if (!string.IsNullOrEmpty(fixedCode))
             {
                 var code = fixedCode.ToUpperInvariant();
-                var game = new Game(_hubContext, _loggerFactory.CreateLogger<Game>(), code, themeName);
+                var game = new Game(_hubContext, _loggerFactory.CreateLogger<Game>(), code, themeName, _turnNotificationService);
                 _games[code] = game;
                 return code;
             }
@@ -45,7 +54,7 @@ namespace JeffopolyDeal
                 gameCode = GenerateGameCode();
             } while (_games.ContainsKey(gameCode));
 
-            var newGame = new Game(_hubContext, _loggerFactory.CreateLogger<Game>(), gameCode, themeName);
+            var newGame = new Game(_hubContext, _loggerFactory.CreateLogger<Game>(), gameCode, themeName, _turnNotificationService);
             _games[gameCode] = newGame;
             return gameCode;
         }
@@ -74,6 +83,21 @@ namespace JeffopolyDeal
             CancelCleanupTimer(gameCode);
             _connectionToGame[connectionId] = gameCode;
             return await game.ReconnectPlayerAsync(connectionId, playerName, playerId);
+        }
+
+        public bool RegisterPushToken(string connectionId, string playerId, string deviceToken)
+        {
+            if (string.IsNullOrWhiteSpace(deviceToken)
+                || deviceToken.Length != 64
+                || deviceToken.Any(character => !Uri.IsHexDigit(character)))
+                return false;
+
+            var game = GetGameForConnection(connectionId);
+            if (game == null || !game.MatchesPlayer(connectionId, playerId))
+                return false;
+
+            _pushTokenStore.Register(playerId, deviceToken.ToLowerInvariant());
+            return true;
         }
 
         public async Task AddBotPlayerAsync(string gameCode)
