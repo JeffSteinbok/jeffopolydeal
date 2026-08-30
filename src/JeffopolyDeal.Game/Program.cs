@@ -45,6 +45,29 @@ else
 app.UseRouting();
 app.MapHub<GameHub>("/hub/game");
 
+// Lets iOS open shared game links in the installed app instead of Safari.
+// Served from an endpoint rather than wwwroot because the file has no
+// extension, and static file serving will not guess a content type for it.
+app.MapGet("/.well-known/apple-app-site-association", () =>
+    Microsoft.AspNetCore.Http.Results.Json(new
+    {
+        applinks = new
+        {
+            details = new[]
+            {
+                new
+                {
+                    appIDs = new[] { "Y7KVX7666P.net.steinbok.jeffopolydeal" },
+                    components = new[]
+                    {
+                        // Shared invites look like https://host/?join=ABCD
+                        new { query = new { join = "?*" } },
+                    },
+                },
+            },
+        },
+    }, contentType: "application/json"));
+
 // API endpoint: returns game configuration (rent tables, set sizes) — single source of truth
 app.MapGet("/api/gameconfig", () =>
 {
