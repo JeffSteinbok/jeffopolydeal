@@ -27,6 +27,8 @@ export interface NativeInboundAPI {
     openGame(gameCode: unknown): void;
     /** Why push is or is not working on the device, for support reporting. */
     setPushDiagnostics(status: unknown): void;
+    /** The real safe-area insets, in CSS pixels, measured by the shell. */
+    setSafeAreaInsets(insets: unknown): void;
 }
 
 export type LifecyclePhase = "active" | "background";
@@ -93,6 +95,20 @@ export function installNativeInboundAPI(): void {
         setPushDiagnostics(status: unknown) {
             if (typeof status !== "string") return;
             pushDiagnostics = status.trim().slice(0, 60) || "none";
+        },
+
+        setSafeAreaInsets(insets: unknown) {
+            // env(safe-area-inset-*) reports 0 on first layout inside the web
+            // view and only corrects later, which is too late for anything
+            // sized once. The shell measures it properly, so prefer that.
+            if (typeof insets !== "object" || insets === null) return;
+            const { top, bottom } = insets as Record<string, unknown>;
+            const set = (name: string, value: unknown) => {
+                if (typeof value !== "number" || !isFinite(value) || value < 0 || value > 200) return;
+                document.documentElement.style.setProperty(name, `${value}px`);
+            };
+            set("--native-safe-top", top);
+            set("--native-safe-bottom", bottom);
         },
 
         openGame(gameCode: unknown) {

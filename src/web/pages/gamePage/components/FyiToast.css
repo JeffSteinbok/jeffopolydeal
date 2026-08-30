@@ -2,7 +2,7 @@
     position: fixed;
     /* Fixed positioning escapes the page's top padding, so the notch has to be
        accounted for here or the toast rides underneath it. */
-    top: calc(58px + env(safe-area-inset-top, 0px));
+    top: calc(58px + max(env(safe-area-inset-top, 0px), var(--native-safe-top, 0px)));
     left: 8px;
     right: 8px;
     max-width: 500px;

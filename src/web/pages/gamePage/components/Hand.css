@@ -5,10 +5,10 @@
     padding-top: 18px;
     /* Edge to edge in a native shell, so the bottom row would otherwise sit
        under the home indicator. */
-    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(12px + max(env(safe-area-inset-bottom, 0px), var(--native-safe-bottom, 0px)));
     overflow: visible;
     flex-shrink: 0;
-    height: calc(180px + env(safe-area-inset-bottom, 0px));
+    height: calc(180px + max(env(safe-area-inset-bottom, 0px), var(--native-safe-bottom, 0px)));
 }
 
 .hand-header {
