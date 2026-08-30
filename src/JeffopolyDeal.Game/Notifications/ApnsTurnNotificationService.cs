@@ -80,7 +80,15 @@ public sealed class ApnsTurnNotificationService : ITurnNotificationService
         {
             try
             {
-                using var request = new HttpRequestMessage(HttpMethod.Post, $"/3/device/{deviceToken}");
+                using var request = new HttpRequestMessage(HttpMethod.Post, $"/3/device/{deviceToken}")
+                {
+                    // Set on the request, not just as a client default. A request
+                    // defaults to HTTP/1.1, and APNs speaks only HTTP/2 — it closes
+                    // the connection, which surfaces as "the response ended
+                    // prematurely" from the HTTP/1.1 header parser.
+                    Version = HttpVersion.Version20,
+                    VersionPolicy = HttpVersionPolicy.RequestVersionExact,
+                };
                 request.Headers.Authorization = new AuthenticationHeaderValue("bearer", providerToken);
                 request.Headers.TryAddWithoutValidation("apns-topic", _topic);
                 request.Headers.TryAddWithoutValidation("apns-push-type", "alert");
@@ -140,7 +148,11 @@ public sealed class ApnsTurnNotificationService : ITurnNotificationService
         {
             _logger.LogWarning(ex, "APNs request failed at the connection level; retrying once");
 
-            using var retry = new HttpRequestMessage(request.Method, request.RequestUri);
+            using var retry = new HttpRequestMessage(request.Method, request.RequestUri)
+            {
+                Version = HttpVersion.Version20,
+                VersionPolicy = HttpVersionPolicy.RequestVersionExact,
+            };
             foreach (var header in request.Headers)
                 retry.Headers.TryAddWithoutValidation(header.Key, header.Value);
             retry.Content = request.Content;

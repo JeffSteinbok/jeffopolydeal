@@ -36,9 +36,8 @@ builder.Services.AddHttpClient<ITurnNotificationService, ApnsTurnNotificationSer
         PooledConnectionLifetime = TimeSpan.FromMinutes(5),
         PooledConnectionIdleTimeout = TimeSpan.FromSeconds(30),
         ConnectTimeout = TimeSpan.FromSeconds(10),
-        KeepAlivePingDelay = TimeSpan.FromSeconds(20),
-        KeepAlivePingTimeout = TimeSpan.FromSeconds(10),
-        KeepAlivePingPolicy = HttpKeepAlivePingPolicy.WithActiveRequests,
+        // No keep-alive pings: peers have been known to answer .NET's HTTP/2
+        // ping behaviour with GOAWAY, and nothing here needs them.
     });
 builder.Services.AddSingleton<JeffopolyDeal.GameCache>();
 
