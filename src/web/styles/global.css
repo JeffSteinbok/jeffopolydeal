@@ -105,3 +105,33 @@ input[type="text"]:focus {
 .copyrightFooter p {
     margin: 0;
 }
+
+/*
+ * Running inside a native shell (see utilities/NativeHost.ts). These are
+ * presentation and input-behaviour rules only — no game logic differs by host.
+ */
+html.native-host,
+html.native-host body {
+    /* The shell owns the window; the page should never rubber-band inside it. */
+    overscroll-behavior: none;
+}
+
+html.native-host {
+    /* Long-press in a card game means "inspect", not "select text" or "open the
+       iOS share sheet for a link". */
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    /* Taps are gameplay, not link presses; the grey flash reads as a glitch. */
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Text the player may genuinely want to copy stays selectable. */
+html.native-host .gameCodeDisplay .code,
+html.native-host .gameCodeSmall,
+html.native-host .debugConsole,
+html.native-host input,
+html.native-host textarea {
+    -webkit-user-select: text;
+    user-select: text;
+}
