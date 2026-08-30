@@ -2,6 +2,7 @@ using JeffopolyDeal.Cards;
 using JeffopolyDeal.Hubs;
 using JeffopolyDeal.ISMCTS;
 using JeffopolyDeal.Models;
+using JeffopolyDeal.Notifications;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -23,6 +24,7 @@ namespace JeffopolyDeal
         private readonly object _lock = new();
         private readonly IHubContext<GameHub> _hubContext;
         private readonly ILogger<Game> _logger;
+        private readonly ITurnNotificationService _turnNotificationService;
         private readonly Deck _deck;
 
         public string GameCode { get; }
@@ -36,6 +38,7 @@ namespace JeffopolyDeal
         private int _currentPlayerIndex;
         private int _playsUsed;
         private int _turnNumber;
+        private int _lastNotifiedTurnNumber;
         private GamePhase _phase = GamePhase.Lobby;
         private PendingAction? _pendingAction;
         private string? _winnerId;
@@ -46,10 +49,16 @@ namespace JeffopolyDeal
         private int _nextActionId = 1;
         private List<Card> _discardedThisTurn = new();
 
-        public Game(IHubContext<GameHub> hubContext, ILogger<Game> logger, string gameCode, string? themeName = null)
+        public Game(
+            IHubContext<GameHub> hubContext,
+            ILogger<Game> logger,
+            string gameCode,
+            string? themeName = null,
+            ITurnNotificationService? turnNotificationService = null)
         {
             _hubContext = hubContext;
             _logger = logger;
+            _turnNotificationService = turnNotificationService ?? NullTurnNotificationService.Instance;
             GameCode = gameCode;
             ThemeName = themeName ?? "jeffopoly";
             _deck = new Deck(ThemeName);
@@ -1712,9 +1721,22 @@ namespace JeffopolyDeal
         public async Task BroadcastGameStateAsync()
         {
             List<Player> playersCopy;
+            (string PlayerId, string PlayerName, string HostName)? turnNotification = null;
             lock (_lock)
             {
                 playersCopy = _players.ToList();
+                var currentPlayer = GetCurrentPlayer();
+                if (_phase == GamePhase.Draw
+                    && _turnNumber > _lastNotifiedTurnNumber
+                    && currentPlayer != null
+                    && !SmartBotAI.IsBot(currentPlayer.ConnectionId))
+                {
+                    _lastNotifiedTurnNumber = _turnNumber;
+                    turnNotification = (
+                        currentPlayer.PlayerId,
+                        currentPlayer.Name,
+                        _players.FirstOrDefault()?.Name ?? currentPlayer.Name);
+                }
             }
 
             // Send personalized state to each connected player (with their own hand)
@@ -1729,6 +1751,32 @@ namespace JeffopolyDeal
                 }
                 await _hubContext.Clients.Client(player.ConnectionId)
                     .SendAsync("gameStateUpdated", state);
+            }
+
+            if (turnNotification is { } notification)
+            {
+                try
+                {
+                    await _turnNotificationService.NotifyTurnAsync(
+                        notification.PlayerId,
+                        notification.PlayerName,
+                        GameCode,
+                        notification.HostName);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Turn notification failed for {GameCode} turn {TurnNumber}", GameCode, _turnNumber);
+                }
+            }
+        }
+
+        public bool MatchesPlayer(string connectionId, string playerId)
+        {
+            lock (_lock)
+            {
+                return _players.Any(player =>
+                    player.ConnectionId == connectionId
+                    && player.PlayerId == playerId);
             }
         }
 

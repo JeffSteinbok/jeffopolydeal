@@ -1,6 +1,7 @@
 using JeffopolyDeal;
 using JeffopolyDeal.Hubs;
 using JeffopolyDeal.Models;
+using JeffopolyDeal.Notifications;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -34,10 +35,16 @@ namespace JeffopolyDeal.Tests
         /// <summary>Returns all captured states.</summary>
         public IReadOnlyDictionary<string, GameState> AllStates => _lastStates;
 
-        public TestGameHarness(string gameCode = "TEST")
+        public TestGameHarness(
+            string gameCode = "TEST",
+            ITurnNotificationService? turnNotificationService = null)
         {
             var hubContext = CreateMockHubContext();
-            _game = new Game(hubContext, NullLogger<Game>.Instance, gameCode);
+            _game = new Game(
+                hubContext,
+                NullLogger<Game>.Instance,
+                gameCode,
+                turnNotificationService: turnNotificationService);
         }
 
         /// <summary>Add a player and return their connectionId.</summary>

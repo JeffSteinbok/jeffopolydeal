@@ -1,5 +1,6 @@
 using JeffopolyDeal.Hubs;
 using JeffopolyDeal.Models;
+using JeffopolyDeal.Notifications;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -85,6 +86,27 @@ namespace JeffopolyDeal.Tests
             // Game started — phase depends on whether a bot or human goes first
             Assert.NotEqual(GamePhase.Lobby, state!.Phase);
             Assert.True(state.Players.Count >= 4);
+        }
+
+        [Fact]
+        public async Task RegisterPushToken_RequiresValidTokenAndMatchingConnectedPlayer()
+        {
+            var hubContext = CreateMockHubContext(new ConcurrentDictionary<string, GameState>());
+            var tokenStore = new PushTokenStore();
+            var cache = new GameCache(
+                hubContext,
+                NullLoggerFactory.Instance,
+                pushTokenStore: tokenStore);
+            const string validToken = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+
+            cache.CreateGame("PUSH");
+            await cache.JoinGameAsync("conn-1", "PUSH", "Alice", "player-1");
+
+            Assert.False(cache.RegisterPushToken("conn-1", "player-1", "not-a-token"));
+            Assert.False(cache.RegisterPushToken("conn-1", "player-2", validToken));
+            Assert.False(cache.RegisterPushToken("conn-2", "player-1", validToken));
+            Assert.True(cache.RegisterPushToken("conn-1", "player-1", validToken.ToUpperInvariant()));
+            Assert.Equal(new[] { validToken }, tokenStore.GetTokens("player-1"));
         }
     }
 }

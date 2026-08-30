@@ -88,6 +88,14 @@ namespace JeffopolyDeal.Hubs
             }
         }
 
+        public bool RegisterPushToken(string playerId, string deviceToken)
+        {
+            if (string.IsNullOrWhiteSpace(playerId) || string.IsNullOrWhiteSpace(deviceToken))
+                return false;
+
+            return _gameCache.RegisterPushToken(Context.ConnectionId, playerId, deviceToken);
+        }
+
         public async Task AddBotPlayer(string gameCode)
         {
             try
