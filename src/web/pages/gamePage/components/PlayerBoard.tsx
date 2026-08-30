@@ -187,10 +187,10 @@ export function PlayerBoard({ player, isMe, isMyTurn, isCurrentTurn, compact, in
         }
     };
 
-    const handlePropertyPointerUp = (e: React.PointerEvent) => {
-        if (e.pointerType === "mouse") return;
-
-        const cardId = pointerDragCardId.current;
+    /// Clears everything a touch drag leaves behind. The mouse path gets this
+    /// from dragend; touch has no equivalent, so a cancelled drag used to leave
+    /// the drop target highlighted until the next one started.
+    const endPointerDrag = () => {
         if (dragClone.current) {
             document.body.removeChild(dragClone.current);
             dragClone.current = null;
@@ -198,6 +198,22 @@ export function PlayerBoard({ player, isMe, isMyTurn, isCurrentTurn, compact, in
         if (draggedElement.current) {
             draggedElement.current.style.opacity = "";
         }
+        pointerDragCardId.current = null;
+        pointerStartPos.current = null;
+        pointerDragging.current = false;
+        draggedElement.current = null;
+        setDragOverTarget(null);
+    };
+
+    const handlePropertyPointerCancel = (e: React.PointerEvent) => {
+        if (e.pointerType === "mouse") return;
+        endPointerDrag();
+    };
+
+    const handlePropertyPointerUp = (e: React.PointerEvent) => {
+        if (e.pointerType === "mouse") return;
+
+        const cardId = pointerDragCardId.current;
 
         if (pointerDragging.current && cardId && onMoveProperty) {
             // Find drop target under pointer
@@ -221,10 +237,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, isCurrentTurn, compact, in
             }
         }
 
-        pointerDragCardId.current = null;
-        pointerStartPos.current = null;
-        pointerDragging.current = false;
-        draggedElement.current = null;
+        endPointerDrag();
     };
 
     const findCard = (cardId: number): Card | undefined => {
@@ -287,6 +300,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, isCurrentTurn, compact, in
                                             onPointerDown={canDrag ? (e) => handlePropertyPointerDown(e, card.id) : undefined}
                                             onPointerMove={canDrag ? handlePropertyPointerMove : undefined}
                                             onPointerUp={canDrag ? handlePropertyPointerUp : undefined}
+                                            onPointerCancel={canDrag ? handlePropertyPointerCancel : undefined}
                                             onClick={() => setExpandedSet(set)}
                                         >
                                             <CardComponent
@@ -324,6 +338,7 @@ export function PlayerBoard({ player, isMe, isMyTurn, isCurrentTurn, compact, in
                                             onPointerDown={canDrag ? (e) => handlePropertyPointerDown(e, card.id) : undefined}
                                             onPointerMove={canDrag ? handlePropertyPointerMove : undefined}
                                             onPointerUp={canDrag ? handlePropertyPointerUp : undefined}
+                                            onPointerCancel={canDrag ? handlePropertyPointerCancel : undefined}
                                         >
                                             <CardComponent card={card} small={!compact} compact={compact} currentRent={compact ? 0 : undefined} />
                                         </div>
