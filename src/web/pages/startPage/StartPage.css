@@ -96,3 +96,31 @@ html.pwa-standalone .startPage {
 .aboutLink:hover {
     color: #223;
 }
+
+/* Games a native shell found on the local network. Never shown in a browser,
+   which has no way to discover them. */
+.nearbyGames {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.nearbyGamesLabel {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    text-align: left;
+}
+
+.nearbyGame {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.nearbyGameCode {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+}

@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from "react";
 import titleImage from "../../assets/JeffopolyDeal.png";
 import { AboutModal } from "./AboutModal";
+import { useNearbyGames } from "../../utilities/NativeNearby";
 import "./StartPage.css";
 
 interface StartPageProps {
     onJoinGame: (gameCode: string, playerName: string) => void;
+    /** Device name suggested by a native shell, if we are running inside one. */
+    playerNameHint?: string;
 }
 
-export function StartPage({ onJoinGame }: StartPageProps) {
+export function StartPage({ onJoinGame, playerNameHint }: StartPageProps) {
     const [mode, setMode] = useState<"menu" | "create" | "join">("menu");
-    const [playerName, setPlayerName] = useState("");
+    const [playerName, setPlayerName] = useState(playerNameHint ?? "");
+    const nearbyGames = useNearbyGames();
     const [gameCode, setGameCode] = useState("");
     const [showAbout, setShowAbout] = useState(false);
 
@@ -104,6 +108,23 @@ export function StartPage({ onJoinGame }: StartPageProps) {
                             <button className="primary" onClick={handleJoin} disabled={!playerName.trim() || !gameCode.trim()}>
                                 Join Game
                             </button>
+
+                            {nearbyGames.length > 0 && (
+                                <div className="nearbyGames">
+                                    <div className="nearbyGamesLabel">Nearby Games</div>
+                                    {nearbyGames.map((game) => (
+                                        <button
+                                            key={game.gameCode}
+                                            className="secondary nearbyGame"
+                                            onClick={() => setGameCode(game.gameCode)}
+                                        >
+                                            <span>{game.hostName}&rsquo;s Game</span>
+                                            <span className="nearbyGameCode">{game.gameCode}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
                             <button className="secondary" onClick={() => setMode("menu")}>
                                 Back
                             </button>

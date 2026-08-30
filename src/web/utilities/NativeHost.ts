@@ -10,20 +10,43 @@
  * (repo: JeffSteinbok/jeffopolydeal-ios).
  */
 
-/** Path the native shell loads. Served by MapFallbackToFile in Program.cs. */
+import { isNativeBridgeAvailable } from "./NativeBridge";
+
+/** Path the native shell loads to enter a specific game directly. */
 export const NATIVE_ENTRY_PATH = "/play";
 
 /** Bumped when the query-string shape changes incompatibly. */
 export const NATIVE_CONTRACT_VERSION = "1";
+
+/**
+ * True when running inside a native shell.
+ *
+ * The bridge handler is the signal rather than a URL parameter, because it is
+ * present on every page in the web view and so survives navigation between the
+ * start page and a game. A browser or PWA never has it.
+ */
+export function isNativeHost(): boolean {
+    return isNativeBridgeAvailable();
+}
+
+/**
+ * The display name the shell suggests, from the device name. Only a hint for
+ * prefilling the start page — the player can always change it.
+ */
+export function readPlayerNameHint(location: Location = window.location): string | null {
+    const hint = new URLSearchParams(location.search).get("name")?.trim();
+    return hint ? hint : null;
+}
 
 export interface NativeGameEntry {
     /** Which native shell we are embedded in, currently only "ios". */
     host: string;
     /** Four-character game code, or "" to ask the server for a new game. */
     gameCode: string;
-    playerName: string;
-    /** Stable per-install id owned by the native shell, not by localStorage. */
-    playerId: string;
+    /** Only when the shell knows one; otherwise the client uses its own. */
+    playerName?: string;
+    /** Only when the shell knows one; otherwise the client uses its own. */
+    playerId?: string;
     isRejoin: boolean;
 }
 
@@ -41,9 +64,13 @@ export function readNativeGameEntry(location: Location = window.location): Nativ
     if (params.get("v") !== NATIVE_CONTRACT_VERSION) return null;
 
     const host = (params.get("host") ?? "").trim().toLowerCase();
-    const playerId = (params.get("pid") ?? "").trim();
-    const playerName = (params.get("name") ?? "").trim();
-    if (!HOST_PATTERN.test(host) || !playerId || !playerName) return null;
+    if (!HOST_PATTERN.test(host)) return null;
+
+    // Identity is optional: a deep link or notification tap knows which game to
+    // open but not necessarily who is opening it, and the client already has a
+    // player id of its own.
+    const playerId = (params.get("pid") ?? "").trim() || undefined;
+    const playerName = (params.get("name") ?? "").trim() || undefined;
 
     const wantsNewGame = params.get("new") === "1";
     const gameCode = (params.get("game") ?? "").trim().toUpperCase();
@@ -63,26 +90,6 @@ export function readNativeGameEntry(location: Location = window.location): Nativ
  * game logic. `pwa-standalone` comes along because the embedded surface has the
  * same no-browser-chrome, safe-area-inset layout as the installed PWA.
  */
-export function applyNativeHostClasses(entry: NativeGameEntry): void {
-    document.documentElement.classList.add("native-host", `native-host-${entry.host}`, "pwa-standalone");
-}
-
-/**
- * Reflects the resolved game code back into the address bar after a create. The
- * native shell observes the web view's URL to learn the code the server picked,
- * so it can persist a rejoin session without mirroring gameplay state.
- */
-export function publishResolvedGameCode(code: string): void {
-    const url = new URL(window.location.href);
-    url.searchParams.set("game", code);
-    url.searchParams.delete("new");
-    window.history.replaceState(null, "", url.toString());
-}
-
-/**
- * Hands control back to the native shell, which cancels this navigation and
- * pops to its own start screen.
- */
-export function exitToNativeShell(): void {
-    window.location.assign("/");
+export function applyNativeHostClasses(host = "ios"): void {
+    document.documentElement.classList.add("native-host", `native-host-${host}`, "pwa-standalone");
 }

@@ -16,6 +16,7 @@ import { DebugDeckViewer } from "./components/DebugDeckViewer";
 import { DebugConsole } from "./components/DebugConsole";
 import { copyTextToClipboard, formatGameLog, buildHangIssueUrl } from "./gameLog";
 import { deriveHaptics, emitDerivedHaptics } from "../../utilities/Haptics";
+import { postToNativeHost } from "../../utilities/NativeBridge";
 import titleImage from "../../assets/JeffopolyDeal.png";
 import ShareIcon from "../../assets/Share.svg";
 import "./styles/game.css";
@@ -132,6 +133,32 @@ export function GamePage({ gameCode, playerName, playerId, isRejoin, onGameCodeR
             client.stop();
         };
     }, []);
+
+    // Tell a native shell which game we are in and what it is doing, so it can
+    // drive capabilities the web cannot — advertising this lobby to nearby
+    // devices, and remembering enough to rejoin after a cold launch. Deliberately
+    // not gameplay state: the shell has no business interpreting a board.
+    // Narrowed to the fields the shell cares about, so a board update does not
+    // re-announce a game that has not changed.
+    const contextGameCode = state?.gameCode ?? null;
+    const contextPhase = state?.phase ?? null;
+    const contextHostName = state?.players[0]?.name ?? null;
+
+    useEffect(() => {
+        if (!contextGameCode) return;
+        postToNativeHost("gameContext", {
+            gameCode: contextGameCode,
+            phase: contextPhase,
+            playerId,
+            playerName,
+            hostName: contextHostName,
+        });
+    }, [contextGameCode, contextPhase, contextHostName, playerId, playerName]);
+
+    // Leaving a game means there is no game to be in. Told separately from
+    // gameContext because the shell must stop advertising even though no new
+    // state arrives after this point.
+    useEffect(() => () => { postToNativeHost("gameContext", { gameCode: null, phase: null }); }, []);
 
     // Semantic haptics for a native shell. Derived from the state transition in
     // one place rather than sprinkled through handlers, so every event is
