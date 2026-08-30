@@ -1,7 +1,9 @@
+using System;
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using JeffopolyDeal.Hubs;
 using JeffopolyDeal.Notifications;
 using Microsoft.AspNetCore.Builder;
+using System.Net.Http;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,7 +25,21 @@ builder.Services.AddSignalR()
         options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 builder.Services.AddSingleton<IPushTokenStore, PushTokenStore>();
-builder.Services.AddHttpClient<ITurnNotificationService, ApnsTurnNotificationService>();
+builder.Services.AddHttpClient<ITurnNotificationService, ApnsTurnNotificationService>()
+    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+    {
+        // APNs is HTTP/2 only and keeps long-lived connections. App Service was
+        // reusing pooled connections Apple had already closed, which surfaces as
+        // "The response ended prematurely". Keep them fresh and let more than
+        // one exist so a single bad connection cannot stall every notification.
+        EnableMultipleHttp2Connections = true,
+        PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+        PooledConnectionIdleTimeout = TimeSpan.FromSeconds(30),
+        ConnectTimeout = TimeSpan.FromSeconds(10),
+        KeepAlivePingDelay = TimeSpan.FromSeconds(20),
+        KeepAlivePingTimeout = TimeSpan.FromSeconds(10),
+        KeepAlivePingPolicy = HttpKeepAlivePingPolicy.WithActiveRequests,
+    });
 builder.Services.AddSingleton<JeffopolyDeal.GameCache>();
 
 var app = builder.Build();
