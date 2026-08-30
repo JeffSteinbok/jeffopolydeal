@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import titleImage from "../../assets/JeffopolyDeal.png";
 import { AboutModal } from "./AboutModal";
-import { useNearbyGames } from "../../utilities/NativeNearby";
+import { useNearbyGames } from "../../utilities/NativeInbound";
 import "./StartPage.css";
 
 interface StartPageProps {
