@@ -480,8 +480,14 @@ html.pwa-standalone .gamePage {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100%;
     font-size: 1.3rem;
+}
+
+/* Claim the leftover column space so the message centres inside it. These are
+   flex items of .gamePage, where a percentage height never resolves — it
+   collapsed to a single line and pinned the text under the status bar. */
+.loading {
+    flex: 1;
 }
 
 .errorMessage {

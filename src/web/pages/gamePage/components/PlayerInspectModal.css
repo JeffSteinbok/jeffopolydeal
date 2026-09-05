@@ -21,6 +21,9 @@
     width: 100%;
     max-width: 760px;
     max-height: 78vh;
+    max-height: 78dvh;
+    /* Anchored to the bottom edge, so keep the body off the home indicator. */
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--native-safe-bottom, 0px));
     display: flex;
     flex-direction: column;
     animation: slideUp 0.2s ease-out;
@@ -40,6 +43,14 @@
     .inspectDrawer {
         border-radius: 0 0 16px 16px;
         max-height: 70vh;
+        max-height: 70dvh;
+        /* The overlay is fixed to the viewport, so it escapes .gamePage's
+           safe-area padding entirely. Top-anchored here, the drawer has to
+           claim the top inset itself or its header lands under the status
+           bar and notch. env() reads 0 on first layout inside the web view;
+           the shell's measured value is the one to trust. */
+        padding-top: max(env(safe-area-inset-top, 0px), var(--native-safe-top, 0px));
+        padding-bottom: 0;
         animation: slideDown 0.2s ease-out;
     }
 
