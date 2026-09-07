@@ -124,3 +124,34 @@ html.pwa-standalone .startPage {
     font-weight: 700;
     letter-spacing: 0.15em;
 }
+
+/* TestFlight invite. Sits above the About link so it reads as a footer note
+   rather than a third menu action competing with Create/Join. */
+.iosDownloadLink {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding: 7px 16px;
+    border: 1px solid rgba(34, 51, 34, 0.25);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.55);
+    color: #223;
+    text-decoration: none;
+    line-height: 1;
+}
+
+.iosDownloadLink:hover {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(34, 51, 34, 0.45);
+}
+
+.iosDownloadTitle {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.iosDownloadNote {
+    font-size: 0.7rem;
+    color: #557;
+}
