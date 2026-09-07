@@ -2,7 +2,11 @@ import React, { useEffect, useState } from "react";
 import titleImage from "../../assets/JeffopolyDeal.png";
 import { AboutModal } from "./AboutModal";
 import { useNearbyGames } from "../../utilities/NativeInbound";
+import { isNativeHost } from "../../utilities/NativeHost";
 import "./StartPage.css";
+
+/** Public TestFlight invite for the iOS beta. */
+const TESTFLIGHT_URL = "https://testflight.apple.com/join/JGt389zR";
 
 interface StartPageProps {
     onJoinGame: (gameCode: string, playerName: string) => void;
@@ -132,6 +136,13 @@ export function StartPage({ onJoinGame, playerNameHint }: StartPageProps) {
                     )}
                 </div>
             </div>
+            {/* Pointless inside the app itself, which is where this link leads. */}
+            {!isNativeHost() && (
+                <a className="iosDownloadLink" href={TESTFLIGHT_URL} target="_blank" rel="noopener noreferrer">
+                    <span className="iosDownloadTitle">Get the iOS app</span>
+                    <span className="iosDownloadNote">TestFlight beta</span>
+                </a>
+            )}
             <button className="aboutLink" onClick={() => setShowAbout(true)}>About Jeffopoly Deal</button>
             <div className="copyrightFooter">
                 <p>© {new Date().getFullYear()} Jeff Steinbok. All rights reserved.</p>
